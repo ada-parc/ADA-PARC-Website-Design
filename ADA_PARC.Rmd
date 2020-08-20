@@ -17,7 +17,8 @@ output:
 # Packages
 library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor); 
 library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
-library(htmltools); library(shiny); library(flexdashboard); library(DT); library(highcharter);
+library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
+library(colourpicker); library(DT); library(highcharter);
 library(scales); library(hrbrthemes); library(ggthemes)
 
 # Must install urbnmapr via GitHUb if is not already installed
@@ -42,11 +43,11 @@ Sidebar {.sidebar}
 
 Use the **National** tab to examine the status of people with disabilities at the national and state level.  
 
-Use the **By Metro** tab to investigate trends by county or city.
+Use the **By Metro** tab to investigate transit accessibility to jobs and housing by county or city.
 
-Use the **Download** tab to get the raw data powering this dashboard.
+Use the **Download** tab to get the raw data powering this dashboard and as well as pre-formatted fact sheets a specific area of interest.
 
-To learn more about the project, click the **About** tab.  
+Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.  
 
 <br>
 
@@ -112,7 +113,7 @@ To learn about the accessibility features of this website, please see the Access
 
 
 
-Demographics {data-navmenu="National" data-icon="fa-list"}
+Demographics {data-navmenu="National" data-icon="fa-user"}
 ======================================================================
 
 ```{r, national import}
@@ -161,7 +162,6 @@ work_economic <- read_excel(path = db_path,
 states_sf <- get_urbn_map(map = "states", sf = TRUE)
 
 ```
-
 Row {data-height=100}
 -----------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ Row {data-height=100}
 
 #### Overall
 
-##### Percent of Total Population with Disability
+##### Percent of Total Population with Disabilities
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -193,30 +193,30 @@ demo_gen_map_data <- demo_gen_data %>%
 
 demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
 
+pal_demo1 <- reactive ({ 
+  
+  colorNumeric(palette = input$access_map_palette, 
+               domain = pull(demo_gen_data, !!sym(demo_gen_selected())))
+  
+})
+  
 # State map
 output$demo1map <- renderLeaflet({
   
-  pal <- reactive ({ 
-    
-    colorNumeric(palette = "Oranges", 
-                 domain = pull(demo_gen_data, !!sym(demo_gen_selected())))
-                 
-  })
-  
   # Map
   demo1map <- demo_gen_map_data %>%
-     mutate(map_focus = !!sym(demo_gen_selected())) %>% 
+    mutate(map_focus = !!sym(demo_gen_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_demo1()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_demo1(),
               values = ~map_focus,
               title = paste0("PWD (%),<br>", input$demo_gen_type))
   
@@ -291,7 +291,7 @@ Row {data-height=100}
 
 #### Age
 
-##### Percent of Population 18-64, 65+ with Disability
+##### Percent of Persons 18-64, 65+ with Disability
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -329,30 +329,30 @@ demo_age_selected <- reactive({
 
 })
 
+pal_demo2 <- reactive ({ 
+  
+  colorNumeric(palette = input$access_map_palette, 
+               domain = pull(demo_age_data, !!sym(demo_age_selected())))
+  
+})
+    
 # State map
 output$demo2map <- renderLeaflet({
   
-    pal <- reactive ({ 
-    
-    colorNumeric(palette = "Oranges", 
-                 domain = pull(demo_age_data, !!sym(demo_age_selected())))
-                 
-  })
-  
   # Map
   demo2map <- demo_age_map_data %>%
-     mutate(map_focus = !!sym(demo_age_selected())) %>% 
+    mutate(map_focus = !!sym(demo_age_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_demo2()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_demo2(),
               values = ~map_focus,
               title = paste0("PWD (%),<br>", input$demo_age_type))
   
@@ -442,7 +442,7 @@ Row {data-height=100}
 
 #### Race
 
-##### Percent of Population with Disability
+##### Percent of Persons with Disabilities
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -486,30 +486,30 @@ demo_race_selected <- reactive({
   
 })
 
-# State map
-output$demo3map <- renderLeaflet({
-  
-    pal <- reactive ({ 
+pal_demo3 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette, 
                  domain = pull(demo_race_data, !!sym(demo_race_selected())))
                  
   })
+    
+# State map
+output$demo3map <- renderLeaflet({
   
   # Map
   demo3map <- demo_race_map_data %>%
-     mutate(map_focus = !!sym(demo_race_selected())) %>% 
+    mutate(map_focus = !!sym(demo_race_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_demo3()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_demo3(),
               values = ~map_focus,
               title = paste0("PWD (%),<br>", input$demo_race_type))
   
@@ -558,7 +558,7 @@ leafletOutput("demo3map")
 
 ### Table {.wide-DT}
 
-```{r, demographics race table }
+```{r, demographics race table}
 
 # Columns to show
 demo_race_cols_selected <- reactive({
@@ -600,6 +600,38 @@ DT::renderDataTable({
 
 ```
 
+Row {data-height=800}
+-----------------------------------------------------------------------
+
+### Racial Composition of Persons with Disabilities
+
+```{r, demographics race plot}
+
+# Plot
+renderPlot({
+  
+  demo_race_data %>% 
+    select(state_name, state_abbv,
+           "Black" = percent_of_pwd_who_are_black_african_american,
+           "White, Non-Hispanic" = percent_of_pwd_who_are_white_non_hispanic,
+           "Hispanic" = percent_of_pwd_who_are_hispanic,
+           "Another Race" = percent_of_pwd_who_are_of_another_race) %>% 
+    pivot_longer(cols = Black:`Another Race`,
+                 names_to = "Race",
+                 values_to = "Percent") %>% 
+    mutate(state_abbv = as_factor(state_abbv)) %>% 
+    ggplot(aes(x = fct_rev(state_abbv), y = Percent, fill = Race)) +
+      geom_bar(stat = "identity", width = 0.5) +
+      ylim(0 ,100) +
+      labs(x = "State", y = "Percent") +
+      coord_flip() +
+      ggplot_theme_selected()
+  
+})
+
+
+```
+
 Row {data-height=100}
 -----------------------------------------------------------------------
 
@@ -607,7 +639,7 @@ Row {data-height=100}
 
 #### Gender
 
-##### Percent of Population with Disability
+##### Percent of Persons with Disabilities
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -644,30 +676,30 @@ demo_gender_selected <- reactive({
   
 })
 
-# State map
-output$demo4map <- renderLeaflet({
-  
-    pal <- reactive ({ 
+pal_demo4 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette, 
                  domain = pull(demo_gender_data, !!sym(demo_gender_selected())))
                  
   })
+    
+# State map
+output$demo4map <- renderLeaflet({
   
   # Map
   demo4map <- demo_gender_map_data %>%
-     mutate(map_focus = !!sym(demo_gender_selected())) %>% 
+    mutate(map_focus = !!sym(demo_gender_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_demo4()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_demo4(),
               values = ~map_focus,
               title = paste0("PWD (%),<br>", input$demo_gender_type))
   
@@ -751,7 +783,7 @@ Row {data-height=100}
 
 #### Type of Disability
 
-##### Percent of Population with Disability
+##### Percent of Persons with Disabilities
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -797,15 +829,15 @@ demo_distype_selected <- reactive({
   
 })
 
-# State map
-output$demo5map <- renderLeaflet({
-  
-    pal <- reactive ({ 
+pal_demo5 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette,
                  domain = pull(demo_distype_data, !!sym(demo_distype_selected())))
                  
   })
+    
+# State map
+output$demo5map <- renderLeaflet({
   
   # Map
   demo5map <- demo_distype_map_data %>%
@@ -814,13 +846,13 @@ output$demo5map <- renderLeaflet({
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_demo5()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_demo5(),
               values = ~map_focus,
               title = paste0("PWD (%),<br>", input$demo_distype_type))
   
@@ -907,7 +939,7 @@ DT::renderDataTable({
 
 
 
-Community Living {data-navmenu="National" data-icon="fa-list"}
+Community Living {data-navmenu="National" data-icon="fa-home"}
 ======================================================================
 
 Row {data-height=100}
@@ -917,7 +949,7 @@ Row {data-height=100}
 
 #### Where People with Disabilities Live in the Community
 
-##### Percent of Population with Disability
+##### Percent of Persons with Disabilities
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -958,15 +990,15 @@ cl_live_selected <- reactive({
   
 })
 
-# State map
-output$cl1map <- renderLeaflet({
-  
-  pal <- reactive ({ 
+pal_cl1 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette, 
                  domain = pull(cl_live_data, !!sym(cl_live_selected())))
                  
   })
+  
+# State map
+output$cl1map <- renderLeaflet({
   
   # Map
   cl1map <- cl_live_map_data %>%
@@ -975,13 +1007,13 @@ output$cl1map <- renderLeaflet({
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_cl1()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_cl1(),
               values = ~map_focus,
               title = paste0("PWD (%),<br>", input$cl_live_type))
   
@@ -1108,16 +1140,16 @@ cl_nursing_selected <- reactive({
 
 })
 
-# State map
-output$cl2map <- renderLeaflet({
-  
-  pal <- reactive ({ 
+pal_cl2 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette, 
                  domain = pull(cl_nursing_data, !!sym(cl_nursing_selected())))
                  
   })
-
+  
+# State map
+output$cl2map <- renderLeaflet({
+  
   # Map
   cl2map <- cl_nursing_map_data %>%
     mutate(map_focus = !!sym(cl_nursing_selected())) %>% 
@@ -1125,13 +1157,13 @@ output$cl2map <- renderLeaflet({
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_cl2()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_cl2(),
               values = ~map_focus,
               title = paste0("2014 (%)"))
   
@@ -1253,16 +1285,16 @@ cl_ps_selected <- reactive({
   
 })
 
-# State map
-output$cl3map <- renderLeaflet({
-  
-  pal <- reactive ({ 
+pal_cl3 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette, 
                  domain = pull(cl_ps_data, !!sym(cl_ps_selected())))
                  
   })
-
+  
+# State map
+output$cl3map <- renderLeaflet({
+  
   # Map
   cl3map <- cl_ps_map_data %>% 
     mutate(map_focus = !!sym(cl_ps_selected())) %>% 
@@ -1270,12 +1302,12 @@ output$cl3map <- renderLeaflet({
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_cl3()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                round(map_focus, 2)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_cl3(),
               values = ~map_focus,
               title = paste0("Per 10K People,<br>", input$cl_ps_type))
   
@@ -1355,18 +1387,7 @@ DT::renderDataTable({
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Community Participation {data-navmenu="National" data-icon="fa-list"}
+Community Participation {data-navmenu="National" data-icon="fa-vote-yea"}
 ======================================================================
 
 Row {data-height=100}
@@ -1374,9 +1395,9 @@ Row {data-height=100}
 
 ### {.section-divider}
 
-#### Where People with Disabilities Live in the Community
+#### Health Coverage
 
-##### Percent of Population with Disability
+##### Percent of Persons with or without Disabilities
 
 Row {data-height=500}
 -----------------------------------------------------------------------
@@ -1389,7 +1410,7 @@ Row {data-height=500}
 cp_insurance_data <- community_participation %>% 
   filter(is.na(city)) %>% 
   select("state_name" = state, "state_abbv" = abbrev, 
-         tot_pop_19_64:percent_pwod_65_private_health_insurance) %>% 
+         tot_pop_19_64:percent_people_enrolled_in_medicaid_pwod_kff_acs) %>% 
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
@@ -1400,48 +1421,60 @@ cp_insurance_map_data <- cp_insurance_data %>%
 # Input for column to map
 selectInput("cp_insurance_type", 
             label = "Select a category", 
-            choices = c("PWD / 19-64 / Private Health Insurance",
-                        "PWD / 19-64 / No Health Insurance",
-                        "PWD / 65+ / Private Health Insurance",
-                        "PWD / 65+ / No Health Insurance",
-                        "PWOD / 19-64 / Private Health Insurance",
-                        "PWOD / 19-64 / No Health Insurance",
-                        "PWOD / 65+ / Private Health Insurance",
-                        "PWOD / 65+ / No Health Insurance"),
-            selected = "PWD / 19-64 / Private Health Insurance",
+            choices = c("PWD // 19-64 // Private Health Insurance",
+                        "PWD // 19-64 // No Health Insurance",
+                        "PWD // 65+ // Private Health Insurance",
+                        "PWD // 65+ // No Health Insurance",
+                        "PWD // Enrolled in Medicare Part A and/or B",
+                        "PWD // Enrolled in Medicaid",
+                        "PWOD // 19-64 // Private Health Insurance",
+                        "PWOD // 19-64 // No Health Insurance",
+                        "PWOD // 65+ // Private Health Insurance",
+                        "PWOD // 65+ // No Health Insurance",
+                        "PWOD // Enrolled in Medicare Part A and/or B",
+                        "PWOD // Enrolled in Medicaid"),
+            selected = "PWD // 19-64 // Private Health Insurance",
             width = "400px")
 
 cp_insurance_selected <- reactive({
   
-  if (input$cp_insurance_type == "PWD / 19-64 / Private Health Insurance"){
+  if (input$cp_insurance_type == "PWD // 19-64 // Private Health Insurance"){
     "percent_pwd_19_64_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD / 19-64 / No Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // 19-64 // No Health Insurance"){
     "percent_pwd_19_64_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWD / 65+ / Private Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // 65+ // Private Health Insurance"){
     "percent_pwd_65_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD / 65+ / No Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // 65+ // No Health Insurance"){
     "percent_pwd_65_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD / 19-64 / Private Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicare Part A and/or B"){
+    "percent_people_enrolled_in_medicare_part_a_and_or_b_pwd_2017_cms_acs"
+  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicaid"){
+    "percent_people_enrolled_in_medicaid_pwd_kff_acs"
+  } else if (input$cp_insurance_type == "PWOD // 19-64 // Private Health Insurance"){
     "percent_pwod_19_64_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD / 19-64 / No Health Insurance"){
+  } else if (input$cp_insurance_type == "PWOD // 19-64 // No Health Insurance"){
     "percent_pwod_19_64_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD / 65+ / Private Health Insurance"){
+  } else if (input$cp_insurance_type == "PWOD // 65+ // Private Health Insurance"){
     "percent_pwod_65_private_health_insurance"
-  } else {
+  } else if (input$cp_insurance_type == "PWOD // 65+ // No Health Insurance"){
     "percent_pwod_65_no_health_insurance"
+  } else if (input$cp_insurance_type == "PWOD // Enrolled in Medicare Part A and/or B"){
+    "percent_people_enrolled_in_medicare_part_a_and_or_b_pwod_2017_cms_acs"
+  } else {
+    "percent_people_enrolled_in_medicaid_pwod_kff_acs"
   }
   
 })
 
-# State map
-output$cp1map <- renderLeaflet({
-  
-  pal <- reactive ({ 
+pal_cp1 <- reactive ({ 
     
-    colorNumeric(palette = "Oranges", 
+    colorNumeric(palette = input$access_map_palette, 
                  domain = pull(cp_insurance_data, !!sym(cp_insurance_selected())))
                  
   })
+  
+# State map
+output$cp1map <- renderLeaflet({
   
   # Map
   cp1map <- cp_insurance_map_data %>%
@@ -1450,16 +1483,16 @@ output$cp1map <- renderLeaflet({
     clearShapes() %>%
     addResetMapButton() %>% 
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal()(map_focus),
+                fillColor = ~pal_cp1()(map_focus),
                 fillOpacity = 1,
                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
                                percent(map_focus,
                                        scale = 1, accuracy = 0.1)),
                 layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal(),
+    addLegend(position = "topright", pal = pal_cp1(),
               values = ~map_focus,
               title = paste0(str_replace_all(input$cp_insurance_type,
-                                             " / ", "<br>"),
+                                             " // ", "<br>"),
                              " (%)"))
   
   cp1map
@@ -1512,22 +1545,30 @@ leafletOutput("cp1map")
 # Columns to show
 cp_insurance_cols_selected <- reactive({
              
-  if (input$cp_insurance_type == "PWD / 19-64 / Private Health Insurance"){
+  if (input$cp_insurance_type == "PWD // 19-64 // Private Health Insurance"){
     "pwd.*19_64.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD / 19-64 / No Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // 19-64 // No Health Insurance"){
     "pwd.*19_64.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWD / 65+ / Private Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // 65+ // Private Health Insurance"){
     "pwd.*65.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD / 65+ / No Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // 65+ // No Health Insurance"){
     "pwd.*65.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD / 19-64 / Private Health Insurance"){
+  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicare Part A and/or B"){
+    "pwd.*medicare"
+  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicaid"){
+    "pwd.*medicaid"
+  } else if (input$cp_insurance_type == "PWOD // 19-64 // Private Health Insurance"){
     "pwod.*19_64.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD / 19-64 / No Health Insurance"){
+  } else if (input$cp_insurance_type == "PWOD // 19-64 // No Health Insurance"){
     "pwod.*19_64.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD / 65+ / Private Health Insurance"){
+  } else if (input$cp_insurance_type == "PWOD // 65+ // Private Health Insurance"){
     "pwod.*65.*private_health_insurance"
-  } else {
+  } else if (input$cp_insurance_type == "PWOD // 65+ // No Health Insurance"){
     "pwod.*65.*no_health_insurance"
+  } else if (input$cp_insurance_type == "PWOD // Enrolled in Medicare Part A and/or B"){
+    "pwod.*medicare"
+  } else {
+    "pwod.*medicaid"
   }
   
 })
@@ -1547,8 +1588,635 @@ DT::renderDataTable({
 
 ```
 
+Row {data-height=100}
+-----------------------------------------------------------------------
 
-Work/Economic {data-navmenu="National" data-icon="fa-list"}
+### {.section-divider}
+
+#### Community Based Subsidized Housing
+
+##### Percent of Residents or Households with Disability
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, community participation housing map}
+
+# Data for this section
+cp_housing_data <- community_participation %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, 
+         percent_of_households_in_public_housing_with_residents_that_are_disabled_hud_picture_2019:percent_of_households_with_a_tenant_based_voucher_that_have_a_disabled_resident_09_1_18_12_31_19) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+cp_housing_map_data <- cp_housing_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("cp_housing_type", 
+            label = "Select a category", 
+            choices = c("Residents in Public Housing with a Disability",
+                        "Residents with a Housing Choice Voucher (Section 8) with a Disability",
+                        "Households in Public Housing with a Resident who has a Disability",
+                        "Households with a Housing Choice Voucher with a Resident who has a Disability"),
+            selected = "Residents in Public Housing with a Disability",
+            width = "400px")
+
+cp_housing_selected <- reactive({
+  
+  if (input$cp_housing_type == "Residents in Public Housing with a Disability"){
+    "percent_of_households_in_public_housing_with_residents_that_are_disabled_hud_picture_2019"
+  } else if (input$cp_housing_type == "Residents with a Housing Choice Voucher (Section 8) with a Disability"){
+    "percent_residents_with_housing_choice_vouchers_who_are_disabled_hud_picture_2018"
+  } else if (input$cp_housing_type == "Households in Public Housing with a Resident who has a Disability"){
+    "percent_households_in_public_housing_that_have_a_disabled_resident_09_1_18_12_31_19"
+  } else {
+    "percent_of_households_with_a_tenant_based_voucher_that_have_a_disabled_resident_09_1_18_12_31_19"
+  }
+  
+})
+
+pal_cp2 <- reactive ({ 
+    
+    colorNumeric(palette = input$access_map_palette, 
+                 domain = pull(cp_housing_data, !!sym(cp_housing_selected())))
+                 
+  })
+  
+# State map
+output$cp2map <- renderLeaflet({
+  
+  # Map
+  cp2map <- cp_housing_map_data %>%
+     mutate(map_focus = !!sym(cp_housing_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_cp2()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_cp2(),
+              values = ~map_focus,
+              title = paste0(str_replace_all(input$cp_housing_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  cp2map
+  
+})
+
+# Click event for the map
+click_cp2map <- eventReactive(input$cp2map_shape_click, {
+  
+  x <- input$cp2map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_cp2map())
+  
+  cp2map <- leafletProxy("cp2map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = cp_housing_map_data[cp_housing_map_data$state_name == click_cp2map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+cp_housing_data_selected <- reactive({
+  
+  if(is.null(input$cp2map_shape_click)){
+    cp_housing_data
+  } else {
+    cp_housing_data %>% 
+      filter(state_name == click_cp2map())
+  }
+  
+})
+
+leafletOutput("cp2map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, community participation housing table }
+
+# Columns to show
+cp_housing_cols_selected <- reactive({
+             
+  if (input$cp_housing_type == "Residents in Public Housing with a Disability"){
+    "public_housing.*residents"
+  } else if (input$cp_housing_type == "Residents with a Housing Choice Voucher (Section 8) with a Disability"){
+    "residents.*housing_choice_voucher"
+  } else if (input$cp_housing_type == "Households in Public Housing with a Resident who has a Disability"){
+    "public_housing.*disabled_resident"
+  } else {
+    "voucher.*disabled_resident"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    cp_housing_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(cp_housing_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+Row {data-height=100}
+-----------------------------------------------------------------------
+
+### {.section-divider}
+
+#### Transit Usage - Commuting
+
+##### Percent of Persons with or without Disabilities
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, community participation transit map}
+
+# Data for this section
+cp_transit_data <- community_participation %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, 
+         percent_pwd_that_commute_to_work_by_public_transit_age_16:percent_pwod_that_commute_to_work_by_car_drove_alone_age_16) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+cp_transit_map_data <- cp_transit_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("cp_transit_type", 
+            label = "Select a category", 
+            choices = c("PWD // Public Transit",
+                        "PWD // Drive Alone",
+                        "PWOD // Public Transit",
+                        "PWOD // Drive Alone"),
+            selected = "PWD // Public Transit",
+            width = "400px")
+
+cp_transit_selected <- reactive({
+  
+  if (input$cp_transit_type == "PWD // Public Transit"){
+    "percent_pwd_that_commute_to_work_by_public_transit_age_16"
+  } else if (input$cp_transit_type == "PWD // Drive Alone"){
+    "percent_pwd_that_commute_to_work_by_car_drove_alone_age_16"
+  } else if (input$cp_transit_type == "PWOD // Public Transit"){
+    "percent_pwod_that_commute_to_work_by_public_transit_age_16"
+  } else {
+    "percent_pwod_that_commute_to_work_by_car_drove_alone_age_16"
+  }
+  
+})
+
+pal_cp3 <- reactive ({ 
+    
+    colorNumeric(palette = input$access_map_palette, 
+                 domain = pull(cp_transit_data, !!sym(cp_transit_selected())))
+                 
+  })
+  
+# State map
+output$cp3map <- renderLeaflet({
+  
+  # Map
+  cp3map <- cp_transit_map_data %>%
+     mutate(map_focus = !!sym(cp_transit_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_cp3()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_cp3(),
+              values = ~map_focus,
+              title = paste0(str_replace_all(input$cp_transit_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  cp3map
+  
+})
+
+# Click event for the map
+click_cp3map <- eventReactive(input$cp3map_shape_click, {
+  
+  x <- input$cp3map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_cp3map())
+  
+  cp3map <- leafletProxy("cp3map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = cp_transit_map_data[cp_transit_map_data$state_name == click_cp3map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+cp_transit_data_selected <- reactive({
+  
+  if(is.null(input$cp3map_shape_click)){
+    cp_transit_data
+  } else {
+    cp_transit_data %>% 
+      filter(state_name == click_cp3map())
+  }
+  
+})
+
+leafletOutput("cp3map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, community participation transit table }
+
+# Columns to show
+cp_transit_cols_selected <- reactive({
+             
+  if (input$cp_transit_type == "PWD // Public Transit"){
+    "pwd.*transit"
+  } else if (input$cp_transit_type == "PWD // Drive Alone"){
+    "pwd.*drove_alone"
+  } else if (input$cp_transit_type == "PWOD // Public Transit"){
+    "pwod.*transit"
+  } else {
+    "pwod.*drove_alone"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    cp_transit_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(cp_transit_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+Row {data-height=100}
+-----------------------------------------------------------------------
+
+### {.section-divider}
+
+#### Crime
+
+##### Per 10,000 People
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+```{r, community participation crime map}
+
+# Data for this section
+cp_crime_data <- community_participation %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, 
+         total_population:number_of_violent_crimes_per_10_000_people) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+cp_crime_map_data <- cp_crime_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("cp_crime_type", 
+            label = "Select a category", 
+            choices = c("Property",
+                        "Violent"),
+            selected = "Property",
+            width = "400px")
+
+cp_crime_selected <- reactive({
+  
+  if (input$cp_crime_type == "Property"){
+    "number_of_property_crimes_per_10_000_people"
+  } else {
+    "number_of_violent_crimes_per_10_000_people"
+  }
+  
+})
+
+pal_cp4 <- reactive ({ 
+    
+    colorNumeric(palette = input$access_map_palette, 
+                 domain = pull(cp_crime_data, !!sym(cp_crime_selected())))
+                 
+  })
+  
+# State map
+output$cp4map <- renderLeaflet({
+  
+  # Map
+  cp4map <- cp_crime_map_data %>%
+     mutate(map_focus = !!sym(cp_crime_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_cp4()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_cp4(),
+              values = ~map_focus,
+              title = paste0(str_replace_all(input$cp_crime_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  cp4map
+  
+})
+
+# Click event for the map
+click_cp4map <- eventReactive(input$cp4map_shape_click, {
+  
+  x <- input$cp4map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_cp4map())
+  
+  cp4map <- leafletProxy("cp4map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = cp_crime_map_data[cp_crime_map_data$state_name == click_cp4map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+cp_crime_data_selected <- reactive({
+  
+  if(is.null(input$cp4map_shape_click)){
+    cp_crime_data
+  } else {
+    cp_crime_data %>% 
+      filter(state_name == click_cp4map())
+  }
+  
+})
+
+leafletOutput("cp4map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, community participation crime table }
+
+# Columns to show
+cp_crime_cols_selected <- reactive({
+             
+  if (input$cp_crime_type == "Property"){
+    "property"
+  } else {
+    "violent"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    cp_crime_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(cp_crime_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+Row {data-height=100}
+-----------------------------------------------------------------------
+
+### {.section-divider}
+
+#### Voter Turnout
+
+##### Percent of Persons with or without Disabilities
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, community participation voting map}
+
+# Data for this section
+cp_voting_data <- community_participation %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, 
+         pwd_voter_turnout_2012:change_in_disability_gap) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+cp_voting_map_data <- cp_voting_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("cp_voting_type", 
+            label = "Select a category", 
+            choices = c("PWD // Voter Turnout (2018)",
+                        "PWOD // Voter Turnout (2018)",
+                        "Disability Gap (2018)"),
+            selected = "PWD // Voter Turnout (2018)",
+            width = "400px")
+
+cp_voting_selected <- reactive({
+  
+  if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
+    "pwd_voter_turnout_2018"
+  } else if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
+    "pwod_voter_turnout_2018"
+  } else {
+    "disability_gap_2018"
+  }
+  
+})
+
+pal_cp6 <- reactive ({ 
+    
+    colorNumeric(palette = input$access_map_palette, 
+                 domain = pull(cp_voting_data, !!sym(cp_voting_selected())))
+                 
+  })
+  
+# State map
+output$cp6map <- renderLeaflet({
+  
+  # Map
+  cp6map <- cp_voting_map_data %>%
+     mutate(map_focus = !!sym(cp_voting_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_cp6()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_cp6(),
+              values = ~map_focus,
+              title = paste0(str_replace_all(input$cp_voting_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  cp6map
+  
+})
+
+# Click event for the map
+click_cp6map <- eventReactive(input$cp6map_shape_click, {
+  
+  x <- input$cp6map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_cp6map())
+  
+  cp6map <- leafletProxy("cp6map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = cp_voting_map_data[cp_voting_map_data$state_name == click_cp6map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+cp_voting_data_selected <- reactive({
+  
+  if(is.null(input$cp6map_shape_click)){
+    cp_voting_data
+  } else {
+    cp_voting_data %>% 
+      filter(state_name == click_cp6map())
+  }
+  
+})
+
+leafletOutput("cp6map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, community participation voting table }
+
+# Columns to show
+cp_voting_cols_selected <- reactive({
+             
+  if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
+    "(pwd.*turnout_2018|change_in_pwd_voter_turnout)"
+  } else if (input$cp_voting_type == "PWOD // Voter Turnout (2018)"){
+    "(pwod.*turnout_2018|change_in_pwod_turnout)"
+  } else {
+    "(pwod.*disability_gap_2018|change_in_disability_gap)"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    cp_voting_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(cp_voting_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Work/Economic {data-navmenu="National" data-icon="fa-tools"}
 ======================================================================
 
 
@@ -1593,7 +2261,7 @@ Row
 
 
 
-Data {data-navmenu="Download" data-icon="fa-list"}
+Data {data-navmenu="Download" data-icon="fa-database"}
 ======================================================================
 
 Sidebar {.sidebar}
@@ -1659,7 +2327,7 @@ DT::dataTableOutput("data_download_table", width = 50)
 
 
 
-Fact Sheets {data-navmenu="Download" data-icon="fa-list"}
+Fact Sheets {data-navmenu="Download" data-icon="fa-file-alt"}
 ======================================================================
 
 Sidebar {.sidebar}
@@ -1789,6 +2457,56 @@ stat_subset <- reactive({
 ```
 
 
+
+Accessibility
+======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### 
+
+<br>
+
+```{r}
+
+# Map palette
+selectInput(inputId = "access_map_palette",
+            label = "Select a color palette for maps:",
+            choices = c("Oranges", "Blues", "Greens", "Purples", "Reds"),
+            selected = "Oranges")
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### 
+
+<br>
+
+```{r}
+
+# GGplot themes
+access_ggplot_themes <- list("The Economist" = theme_economist(),
+                             "Five Thirty Eight" = theme_fivethirtyeight(),
+                             "Highcharts" = theme_hc(),
+                             "Ipsum" = theme_ipsum(),
+                             "Light" = theme_light(),
+                             "Minimal" = theme_minimal(),
+                             "Stata" = theme_stata())
+
+selectInput(inputId = "access_ggplot_theme", 
+            label = "Select theme for plots:", 
+            choices = names(access_ggplot_themes),
+            selected = "Ipsum")
+
+ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]] })
+ 
+```
+
+
+
 <!-- CSS for dashboard  -->
 <style  type="text/css">
 
@@ -1802,7 +2520,7 @@ h2,h3,h4,h5 {
 }
 
 /* #################### */
-/* Div */
+/* Coloring */
 /* #################### */
 
 /* Section dividers */
@@ -1810,6 +2528,35 @@ h2,h3,h4,h5 {
   background-color: #CCCCCC;
   color: #000000;
 }
+
+/* Colors for map palette dropdown */
+#access_map_palette ~ .selectize-control .option[data-value=Oranges]{ 
+  background-image: linear-gradient(to right, white , #e6550d) !important;
+  background-size: auto !important;
+}
+
+#access_map_palette ~ .selectize-control .option[data-value=Blues]{ 
+  background-image: linear-gradient(to right, white , #3182bd) !important;
+  background-size: auto !important;
+}
+
+#access_map_palette ~ .selectize-control .option[data-value=Greens]{ 
+  background-image: linear-gradient(to right, white , #31a354) !important;
+  background-size: auto !important;
+}
+
+#access_map_palette ~ .selectize-control .option[data-value=Purples]{ 
+  background-image: linear-gradient(to right, white , #756bb1) !important;
+  background-size: auto !important;
+}
+#access_map_palette ~ .selectize-control .option[data-value=Reds]{ 
+  background-image: linear-gradient(to right, white , #de2d26) !important;
+  background-size: auto !important;
+}
+
+/* #################### */
+/* Containers */
+/* #################### */
 
 /* Have dropdowns display on top of Leaflet */
 .selectize-dropdown {
