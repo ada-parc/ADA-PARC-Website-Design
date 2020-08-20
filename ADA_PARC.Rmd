@@ -53,7 +53,7 @@ Use the **Accessibility** tab to set color palettes for the visualizations in th
 
 Application author:
 
-[Sean Connelly](https://sean-connelly.github.io/) 
+[Sean Connelly](https://sean-connelly.github.io/) and Ethan Jantz
 
 [Voorhees Center](https://voorheescenter.uic.edu/)
 
@@ -195,8 +195,9 @@ demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" 
 
 pal_demo1 <- reactive ({ 
   
-  colorNumeric(palette = input$access_map_palette, 
-               domain = pull(demo_gen_data, !!sym(demo_gen_selected())))
+  colorQuantile(palette = input$access_map_palette, 
+                domain = pull(demo_gen_data, !!sym(demo_gen_selected())),
+                n = 4)
   
 })
   
@@ -218,6 +219,10 @@ output$demo1map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_demo1(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("PWD (%),<br>", input$demo_gen_type))
   
   demo1map
@@ -331,8 +336,9 @@ demo_age_selected <- reactive({
 
 pal_demo2 <- reactive ({ 
   
-  colorNumeric(palette = input$access_map_palette, 
-               domain = pull(demo_age_data, !!sym(demo_age_selected())))
+  colorQuantile(palette = input$access_map_palette, 
+                domain = pull(demo_age_data, !!sym(demo_age_selected())),
+                n = 4)
   
 })
     
@@ -354,6 +360,10 @@ output$demo2map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_demo2(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("PWD (%),<br>", input$demo_age_type))
   
   demo2map
@@ -488,8 +498,9 @@ demo_race_selected <- reactive({
 
 pal_demo3 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(demo_race_data, !!sym(demo_race_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(demo_race_data, !!sym(demo_race_selected())),
+                  n = 4)
                  
   })
     
@@ -511,6 +522,10 @@ output$demo3map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_demo3(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("PWD (%),<br>", input$demo_race_type))
   
   demo3map
@@ -600,18 +615,20 @@ DT::renderDataTable({
 
 ```
 
-Row {data-height=800}
+Row
 -----------------------------------------------------------------------
 
-### Racial Composition of Persons with Disabilities
+### Racial Composition of Persons with Disabilities, Selected State (Click on Map to Show Chart)
 
 ```{r, demographics race plot}
 
 # Plot
 renderPlot({
   
-  demo_race_data %>% 
-    select(state_name, state_abbv,
+  req(click_demo3map())
+  
+  demo_race_data_selected() %>% 
+    select(state_name,
            "Black" = percent_of_pwd_who_are_black_african_american,
            "White, Non-Hispanic" = percent_of_pwd_who_are_white_non_hispanic,
            "Hispanic" = percent_of_pwd_who_are_hispanic,
@@ -619,13 +636,15 @@ renderPlot({
     pivot_longer(cols = Black:`Another Race`,
                  names_to = "Race",
                  values_to = "Percent") %>% 
-    mutate(state_abbv = as_factor(state_abbv)) %>% 
-    ggplot(aes(x = fct_rev(state_abbv), y = Percent, fill = Race)) +
+    mutate(state_name = as_factor(state_name)) %>% 
+    ggplot(aes(x = fct_rev(state_name), y = Percent, fill = Race)) +
       geom_bar(stat = "identity", width = 0.5) +
       ylim(0 ,100) +
       labs(x = "State", y = "Percent") +
       coord_flip() +
-      ggplot_theme_selected()
+      ggplot_fill_selected() +
+      ggplot_theme_selected() +
+      theme(legend.position = "top")
   
 })
 
@@ -678,8 +697,9 @@ demo_gender_selected <- reactive({
 
 pal_demo4 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(demo_gender_data, !!sym(demo_gender_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(demo_gender_data, !!sym(demo_gender_selected())),
+                  n = 4)
                  
   })
     
@@ -701,6 +721,10 @@ output$demo4map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_demo4(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("PWD (%),<br>", input$demo_gender_type))
   
   demo4map
@@ -831,8 +855,9 @@ demo_distype_selected <- reactive({
 
 pal_demo5 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette,
-                 domain = pull(demo_distype_data, !!sym(demo_distype_selected())))
+    colorQuantile(palette = input$access_map_palette,
+                  domain = pull(demo_distype_data, !!sym(demo_distype_selected())),
+                  n = 4)
                  
   })
     
@@ -841,7 +866,7 @@ output$demo5map <- renderLeaflet({
   
   # Map
   demo5map <- demo_distype_map_data %>%
-     mutate(map_focus = !!sym(demo_distype_selected())) %>% 
+    mutate(map_focus = !!sym(demo_distype_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -854,6 +879,10 @@ output$demo5map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_demo5(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("PWD (%),<br>", input$demo_distype_type))
   
   demo5map
@@ -992,8 +1021,9 @@ cl_live_selected <- reactive({
 
 pal_cl1 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cl_live_data, !!sym(cl_live_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cl_live_data, !!sym(cl_live_selected())),
+                  n = 4)
                  
   })
   
@@ -1002,7 +1032,7 @@ output$cl1map <- renderLeaflet({
   
   # Map
   cl1map <- cl_live_map_data %>%
-     mutate(map_focus = !!sym(cl_live_selected())) %>% 
+    mutate(map_focus = !!sym(cl_live_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -1015,6 +1045,10 @@ output$cl1map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cl1(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("PWD (%),<br>", input$cl_live_type))
   
   cl1map
@@ -1142,8 +1176,9 @@ cl_nursing_selected <- reactive({
 
 pal_cl2 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cl_nursing_data, !!sym(cl_nursing_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cl_nursing_data, !!sym(cl_nursing_selected())),
+                  n = 4)
                  
   })
   
@@ -1165,6 +1200,10 @@ output$cl2map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cl2(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("2014 (%)"))
   
   cl2map
@@ -1287,8 +1326,9 @@ cl_ps_selected <- reactive({
 
 pal_cl3 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cl_ps_data, !!sym(cl_ps_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cl_ps_data, !!sym(cl_ps_selected())),
+                  n = 4)
                  
   })
   
@@ -1309,6 +1349,10 @@ output$cl3map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cl3(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0("Per 10K People,<br>", input$cl_ps_type))
   
   cl3map
@@ -1468,8 +1512,9 @@ cp_insurance_selected <- reactive({
 
 pal_cp1 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cp_insurance_data, !!sym(cp_insurance_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cp_insurance_data, !!sym(cp_insurance_selected())),
+                  n = 4)
                  
   })
   
@@ -1478,7 +1523,7 @@ output$cp1map <- renderLeaflet({
   
   # Map
   cp1map <- cp_insurance_map_data %>%
-     mutate(map_focus = !!sym(cp_insurance_selected())) %>% 
+    mutate(map_focus = !!sym(cp_insurance_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -1491,6 +1536,10 @@ output$cp1map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cp1(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0(str_replace_all(input$cp_insurance_type,
                                              " // ", "<br>"),
                              " (%)"))
@@ -1642,8 +1691,9 @@ cp_housing_selected <- reactive({
 
 pal_cp2 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cp_housing_data, !!sym(cp_housing_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cp_housing_data, !!sym(cp_housing_selected())),
+                  n = 4)
                  
   })
   
@@ -1652,7 +1702,7 @@ output$cp2map <- renderLeaflet({
   
   # Map
   cp2map <- cp_housing_map_data %>%
-     mutate(map_focus = !!sym(cp_housing_selected())) %>% 
+    mutate(map_focus = !!sym(cp_housing_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -1665,6 +1715,10 @@ output$cp2map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cp2(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0(str_replace_all(input$cp_housing_type,
                                              " // ", "<br>"),
                              " (%)"))
@@ -1800,8 +1854,9 @@ cp_transit_selected <- reactive({
 
 pal_cp3 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cp_transit_data, !!sym(cp_transit_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cp_transit_data, !!sym(cp_transit_selected())),
+                  n = 4)
                  
   })
   
@@ -1810,7 +1865,7 @@ output$cp3map <- renderLeaflet({
   
   # Map
   cp3map <- cp_transit_map_data %>%
-     mutate(map_focus = !!sym(cp_transit_selected())) %>% 
+    mutate(map_focus = !!sym(cp_transit_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -1823,6 +1878,10 @@ output$cp3map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cp3(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0(str_replace_all(input$cp_transit_type,
                                              " // ", "<br>"),
                              " (%)"))
@@ -1950,8 +2009,9 @@ cp_crime_selected <- reactive({
 
 pal_cp4 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cp_crime_data, !!sym(cp_crime_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cp_crime_data, !!sym(cp_crime_selected())),
+                  n = 4)
                  
   })
   
@@ -1960,7 +2020,7 @@ output$cp4map <- renderLeaflet({
   
   # Map
   cp4map <- cp_crime_map_data %>%
-     mutate(map_focus = !!sym(cp_crime_selected())) %>% 
+    mutate(map_focus = !!sym(cp_crime_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -1973,6 +2033,10 @@ output$cp4map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cp4(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0(str_replace_all(input$cp_crime_type,
                                              " // ", "<br>"),
                              " (%)"))
@@ -2055,6 +2119,189 @@ Row {data-height=100}
 
 ### {.section-divider}
 
+#### Educational Attainment
+
+##### Percent of Persons with or without Disabilities
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, community participation education map}
+
+# Data for this section
+cp_education_data <- community_participation %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, 
+         percent_pwd_less_than_high_school_age_25:percent_pwod_bachelors_degree_or_higher_age_25) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+cp_education_map_data <- cp_education_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("cp_education_type", 
+            label = "Select a category", 
+            choices = c("PWD // Less Than High School",
+                        "PWD // HS or GED",
+                        "PWD // Associate's Degree",
+                        "PWD // Bachelor's Degree or Higher",
+                        "PWOD // Less Than High School",
+                        "PWOD // HS or GED",
+                        "PWOD // Associate's Degree",
+                        "PWOD // Bachelor's Degree or Higher"),
+            selected = "PWD // Less Than High School",
+            width = "400px")
+
+cp_education_selected <- reactive({
+  
+  if (input$cp_education_type == "PWD // Less Than High School"){
+    "percent_pwd_less_than_high_school_age_25"
+  } else if (input$cp_education_type == "PWD // HS or GED"){
+    "percent_pwd_hs_or_ged_age_25"
+  } else if (input$cp_education_type == "PWD // Associate's Degree"){
+    "percent_pwd_college_or_assoc_degree_age_25"
+  } else if (input$cp_education_type == "PWD // Bachelor's Degree or Higher"){
+    "percent_pwd_bachelors_degree_or_higher_age_25"
+  } else if (input$cp_education_type == "PWOD // Less Than High School"){
+    "percent_pwod_less_than_high_school_age_25"
+  } else if (input$cp_education_type == "PWOD // HS or GED"){
+    "percent_pwod_hs_or_ged_age_25"
+  } else if (input$cp_education_type == "PWOD // Associate's Degree"){
+    "percent_pwod_college_or_assoc_degree_age_25"
+  } else {
+    "percent_pwod_bachelors_degree_or_higher_age_25"
+  }
+  
+})
+
+pal_cp5 <- reactive ({ 
+    
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cp_education_data, !!sym(cp_education_selected())),
+                  n = 4)
+                 
+  })
+  
+# State map
+output$cp5map <- renderLeaflet({
+  
+  # Map
+  cp5map <- cp_education_map_data %>%
+    mutate(map_focus = !!sym(cp_education_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_cp5()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_cp5(),
+              values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = paste0(str_replace_all(input$cp_education_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  cp5map
+  
+})
+
+# Click event for the map
+click_cp5map <- eventReactive(input$cp5map_shape_click, {
+  
+  x <- input$cp5map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_cp5map())
+  
+  cp5map <- leafletProxy("cp5map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = cp_education_map_data[cp_education_map_data$state_name == click_cp5map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+cp_education_data_selected <- reactive({
+  
+  if(is.null(input$cp5map_shape_click)){
+    cp_education_data
+  } else {
+    cp_education_data %>% 
+      filter(state_name == click_cp5map())
+  }
+  
+})
+
+leafletOutput("cp5map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, community participation education table }
+
+# Columns to show
+cp_education_cols_selected <- reactive({
+             
+  if (input$cp_education_type == "PWD // Less Than High School"){
+    "pwd.*less_than_high_school"
+  } else if (input$cp_education_type == "PWD // HS or GED"){
+    "pwd.*hs_or_ged"
+  } else if (input$cp_education_type == "PWD // Associate's Degree"){
+    "pwd.*college_or_assoc"
+  } else if (input$cp_education_type == "PWD // Bachelor's Degree or Higher"){
+    "pwd.*bachelors"
+  } else if (input$cp_education_type == "PWOD // Less Than High School"){
+    "pwod.*less_than_high_school"
+  } else if (input$cp_education_type == "PWOD // HS or GED"){
+    "pwod.*hs_or_ged"
+  } else if (input$cp_education_type == "PWOD // Associate's Degree"){
+    "pwod.*college_or_assoc"
+  } else {
+    "pwod.*bachelors"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    cp_education_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(cp_education_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+Row {data-height=100}
+-----------------------------------------------------------------------
+
+### {.section-divider}
+
 #### Voter Turnout
 
 ##### Percent of Persons with or without Disabilities
@@ -2091,7 +2338,7 @@ cp_voting_selected <- reactive({
   
   if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
     "pwd_voter_turnout_2018"
-  } else if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
+  } else if (input$cp_voting_type == "PWOD // Voter Turnout (2018)"){
     "pwod_voter_turnout_2018"
   } else {
     "disability_gap_2018"
@@ -2101,8 +2348,9 @@ cp_voting_selected <- reactive({
 
 pal_cp6 <- reactive ({ 
     
-    colorNumeric(palette = input$access_map_palette, 
-                 domain = pull(cp_voting_data, !!sym(cp_voting_selected())))
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(cp_voting_data, !!sym(cp_voting_selected())),
+                  n = 4)
                  
   })
   
@@ -2111,7 +2359,7 @@ output$cp6map <- renderLeaflet({
   
   # Map
   cp6map <- cp_voting_map_data %>%
-     mutate(map_focus = !!sym(cp_voting_selected())) %>% 
+    mutate(map_focus = !!sym(cp_voting_selected())) %>% 
     leaflet() %>%
     clearShapes() %>%
     addResetMapButton() %>% 
@@ -2124,6 +2372,10 @@ output$cp6map <- renderLeaflet({
                 layerId = ~state_name) %>% 
     addLegend(position = "topright", pal = pal_cp6(),
               values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
               title = paste0(str_replace_all(input$cp_voting_type,
                                              " // ", "<br>"),
                              " (%)"))
@@ -2464,45 +2716,36 @@ Accessibility
 Row
 -----------------------------------------------------------------------
 
-### 
-
-<br>
+###  {.long-row}
 
 ```{r}
 
 # Map palette
 selectInput(inputId = "access_map_palette",
-            label = "Select a color palette for maps:",
+            label = h5("Select a color palette for maps:"),
             choices = c("Oranges", "Blues", "Greens", "Purples", "Reds"),
             selected = "Oranges")
 
-```
 
-Row 
------------------------------------------------------------------------
-
-### 
-
-<br>
-
-```{r}
-
-# GGplot themes
-access_ggplot_themes <- list("The Economist" = theme_economist(),
-                             "Five Thirty Eight" = theme_fivethirtyeight(),
-                             "Highcharts" = theme_hc(),
-                             "Ipsum" = theme_ipsum(),
-                             "Light" = theme_light(),
-                             "Minimal" = theme_minimal(),
-                             "Stata" = theme_stata())
+# GGplot themes and colors
+access_ggplot_themes <- list(
+  "The Economist" = list(theme_economist(), scale_fill_economist(), scale_color_economist()),
+  "Five Thirty Eight" = list(theme_fivethirtyeight(), scale_fill_economist(), scale_color_fivethirtyeight()),
+  "Highcharts" = list(theme_hc(), scale_fill_hc(), scale_color_hc()),
+  "Ipsum" = list(theme_ipsum(), scale_fill_ipsum(), scale_color_ipsum()),
+  "Light" = list(theme_light(), scale_fill_colorblind(), scale_color_colorblind()),
+  "Minimal" = list(theme_minimal(),scale_fill_ordinal(), scale_color_ordinal()),
+  "Stata" = list(theme_stata(), scale_fill_stata(), scale_color_stata()))
 
 selectInput(inputId = "access_ggplot_theme", 
-            label = "Select theme for plots:", 
+            label = h5("Select a theme for plots:"), 
             choices = names(access_ggplot_themes),
             selected = "Ipsum")
 
-ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]] })
- 
+ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][1] })
+ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][2] }) 
+ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
+
 ```
 
 
@@ -2558,9 +2801,20 @@ h2,h3,h4,h5 {
 /* Containers */
 /* #################### */
 
+/* Set max length for dropdowns */
+.selectize-dropdown-content {
+padding: 10px;
+}
+
+/* Allow dropdowns to be visible for short containers */
+#access_ggplot_theme+ div>.selectize-dropdown, #access_map_palette+ div>.selectize-dropdown {
+  position: static;
+}
+
 /* Have dropdowns display on top of Leaflet */
 .selectize-dropdown {
-  z-index: 10000
+  z-index: 10000;
+  overflow-y: auto;
 }
 
 /* Leaflet map */
