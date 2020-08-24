@@ -25,6 +25,21 @@ library(scales); library(hrbrthemes); library(ggthemes)
 # install.packages("devtools")
 # devtools::install_github("UrbanInstitute/urbnmapr")
 
+# Not 100% sure on where to put this, so it goes here for now
+# The tag template for titling the maps
+tag.map.title <- tags$style(HTML("
+  .leaflet-control.map-title { 
+    transform: translate(-50%,20%);
+    position: fixed !important;
+    left: 25%;
+    text-align: center;
+    padding-left: 10px; 
+    padding-right: 10px; 
+    background: rgba(255,255,255,0.75);
+    font-weight: bold;
+    font-size: 28px;
+  }
+"))
 ```
 
 
@@ -53,7 +68,7 @@ Use the **Accessibility** tab to set color palettes for the visualizations in th
 
 Application author:
 
-[Sean Connelly](https://sean-connelly.github.io/) and Ethan Jantz
+[Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz](https://ethanjantz.github.io/)
 
 [Voorhees Center](https://voorheescenter.uic.edu/)
 
@@ -200,6 +215,11 @@ pal_demo1 <- reactive ({
                 n = 4)
   
 })
+
+# used in tandem with the template in setup
+title <- tags$div(
+  tag.map.title, HTML("Percent with Disabilities")
+)  
   
 # State map
 output$demo1map <- renderLeaflet({
@@ -223,7 +243,8 @@ output$demo1map <- renderLeaflet({
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
               },
-              title = paste0("PWD (%),<br>", input$demo_gen_type))
+              title = paste0("PWD (%),<br>", input$demo_gen_type)) %>%
+    addControl(title, position = "topleft", className="map-title") # final piece for adding the title
   
   demo1map
   
@@ -2492,7 +2513,10 @@ Sidebar {.sidebar}
 #   
 # })
 
-# Hi everyone
+### Input descriptions
+# Metro-Area selectInput dropdown
+# Variable for viz dropdown (such as demographics, transportation access, etc)
+# 
 
 ```
 <br>
@@ -2505,6 +2529,10 @@ Row
 -----------------------------------------------------------------------
 
 ### Map
+```{r }
+### leaflet map of census tracts w/in metro area, thematic map of selected variable
+### 
+```
 
 ### Chart
 
