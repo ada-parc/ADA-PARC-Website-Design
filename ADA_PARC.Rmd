@@ -2516,7 +2516,7 @@ Sidebar {.sidebar}
 
 ### Input descriptions
 # Metro-Area selectInput dropdown
-# Variable for viz dropdown (such as demographics, transportation access, etc)
+# Variable for viz dropdown (Age, Race, Type of Disability, Gender)
 # 
 
 ```
@@ -2532,7 +2532,8 @@ Row
 ### Map
 ```{r }
 ### leaflet map of census tracts w/in metro area, thematic map of selected variable
-### 
+# Though the current data is at the metro level, so this wouldn't be easily implemented.
+# 
 ```
 
 ### Chart
@@ -2558,12 +2559,21 @@ DT::renderDataTable({
     options(scrollX = "200px"))
   
 })
+
+### Alternative idea, we could have the metro selected in the sidebar and have the chart show the full datasheet for the selected metro
+### Transposing the data with Age, Race, Disability, and Gender categories are the rows with corresponding values
 ```
 
 Row
 -----------------------------------------------------------------------
 
 ### Interactive Viz
+
+```{r }
+### 
+# I'm thinking that we implement a scatterplot here with labeled points. Organizing it by x = population total, y = pwd possibly
+
+```
 
 
 

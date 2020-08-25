@@ -30,7 +30,7 @@ demo_gen_data <- demographics %>%
 
 
 # Data table
-DT::renderDataTable({
+# DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -42,4 +42,8 @@ DT::renderDataTable({
              total_pop = comma(total_pop)),
     options(scrollX = "200px"))
   
-})
+# })
+
+# demo_gen_data %>%
+#   leaflet() %>%
+  
