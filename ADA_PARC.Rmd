@@ -218,9 +218,9 @@ pal_demo1 <- reactive ({
 
 # used in tandem with the template in setup, the title for the map
 # as discussed, we can replace this with a built-in title function using leaflet
-title <- tags$div(
-  tag.map.title, HTML("Percent with Disabilities")
-)  
+# title <- tags$div(
+#   tag.map.title, HTML("Percent with Disabilities")
+# )  
   
 # State map
 output$demo1map <- renderLeaflet({
@@ -244,8 +244,7 @@ output$demo1map <- renderLeaflet({
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
               },
-              title = paste0("PWD (%),<br>", input$demo_gen_type)) %>%
-    addControl(title, position = "topleft", className="map-title") # final piece for adding the title
+              title = paste0("PWD (%),<br>", input$demo_gen_type))
   
   demo1map
   
@@ -2830,6 +2829,19 @@ h2,h3,h4,h5 {
 /* Coloring */
 /* #################### */
 
+/* Leaflet border */
+.leaflet .legend i{
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+}
+
+/* Leaflet background */
+.leaflet-container {
+  background: #696969;
+}
+
 /* Section dividers */
 .section-divider { 
   background-color: #CCCCCC;
@@ -2879,11 +2891,6 @@ padding: 10px;
 .selectize-dropdown {
   z-index: 10000;
   overflow-y: auto;
-}
-
-/* Leaflet map */
-.leaflet-container {
-  background: #696969;
 }
 
 /* Scroll overflow for DT */
