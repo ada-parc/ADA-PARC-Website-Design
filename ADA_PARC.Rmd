@@ -25,21 +25,6 @@ library(scales); library(hrbrthemes); library(ggthemes)
 # install.packages("devtools")
 # devtools::install_github("UrbanInstitute/urbnmapr")
 
-# Not 100% sure on where to put this, so it goes here for now
-# The tag template for titling the maps
-tag.map.title <- tags$style(HTML("
-  .leaflet-control.map-title { 
-    transform: translate(-50%,20%);
-    position: fixed !important;
-    left: 25%;
-    text-align: center;
-    padding-left: 10px; 
-    padding-right: 10px; 
-    background: rgba(255,255,255,0.75);
-    font-weight: bold;
-    font-size: 28px;
-  }
-"))
 ```
 
 
@@ -1452,7 +1437,7 @@ DT::renderDataTable({
 
 
 
-Community Participation {data-navmenu="National" data-icon="fa-vote-yea"}
+Community Participation {data-navmenu="National" data-icon="fa-group"}
 ======================================================================
 
 Row {data-height=100}
@@ -2489,8 +2474,221 @@ DT::renderDataTable({
 
 
 
-Work/Economic {data-navmenu="National" data-icon="fa-tools"}
+Work/Economic {data-navmenu="National" data-icon="fa-wrench"}
 ======================================================================
+
+Row {data-height=100}
+-----------------------------------------------------------------------
+
+### {.section-divider}
+
+#### Employment
+
+##### Percent of Persons with or without Disabilities
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, work economic employment map}
+
+# Data for this section
+we_employ_data <- work_economic %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = state_abbreviation, 
+         total_population:percent_pwod_not_in_the_labor_force,
+         population_worked_full_time_year_round:pwod_did_not_work,
+         pwd_percentage_of_people_working_from_home:pwod_percentage_of_people_working_from_home) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+we_employ_map_data <- we_employ_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("we_employ_type", 
+            label = "Select a category", 
+            choices = c("PWD // 18-64 // Employed",
+                        "PWD // 18-64 // Unemployed",
+                        "PWD // 18-64 // Not in Labor Force",
+                        "PWD // 18-64 // Work Full Time",
+                        "PWD // 18-64 // Work Part Time",
+                        "PWD // 16-64 // Work From Home",
+                        "PWOD // 18-64 // Employed",
+                        "PWOD // 18-64 // Unemployed",
+                        "PWOD // 18-64 // Not in Labor Force",
+                        "PWOD // 18-64 // Work Full Time",
+                        "PWOD // 18-64 // Work Part Time",
+                        "PWOD // 16-64 // Work From Home"),
+            selected = "PWD // 18-64 // Employed",
+            width = "400px")
+
+we_employ_selected <- reactive({
+  
+  if (input$we_employ_type == "PWD // 18-64 // Employed"){
+    "percent_pwd_employed"
+  } else if (input$we_employ_type == "PWD // 18-64 // Unemployed"){
+    "percent_pwd_unemployed"
+  } else if (input$we_employ_type == "PWD // 18-64 // Not in Labor Force"){
+    "percent_pwd_not_in_the_labor_force"
+  } else if (input$we_employ_type == "PWD // 18-64 // Work Full Time"){
+    "pwd_full_time"
+  } else if (input$we_employ_type == "PWD // 18-64 // Work Part Time"){
+    "pwd_part_time"
+  } else if (input$we_employ_type == "PWD // 18-64 // Work From Home"){
+    "pwd_percentage_of_people_working_from_home"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Employed"){
+    "percent_pwod_employed"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Unemployed"){
+    "percent_pwod_unemployed"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Not in Labor Force"){
+    "percent_pwod_not_in_the_labor_force"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Work Full Time"){
+    "pwod_full_time"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Work Part Time"){
+    "pwod_part_time"
+  } else {
+    "pwod_percentage_of_people_working_from_home"
+  }
+  
+})
+
+pal_we1 <- reactive ({ 
+    
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(we_employ_data, !!sym(we_employ_selected())),
+                  n = 4)
+                 
+  })
+  
+# State map
+output$we1map <- renderLeaflet({
+  
+  # Map
+  we1map <- we_employ_map_data %>%
+    mutate(map_focus = !!sym(we_employ_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_we1()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_we1(),
+              values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = paste0(str_replace_all(input$we_employ_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  we1map
+  
+})
+
+# Click event for the map
+click_we1map <- eventReactive(input$we1map_shape_click, {
+  
+  x <- input$we1map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_we1map())
+  
+  we1map <- leafletProxy("we1map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = we_employ_map_data[we_employ_map_data$state_name == click_we1map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+we_employ_data_selected <- reactive({
+  
+  if(is.null(input$we1map_shape_click)){
+    we_employ_data
+  } else {
+    we_employ_data %>% 
+      filter(state_name == click_we1map())
+  }
+  
+})
+
+leafletOutput("we1map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, work economic employment table }
+
+# Columns to show
+we_employ_cols_selected <- reactive({
+             
+  if (input$we_employ_type == "PWD // 18-64 // Employed"){
+    "pwd.*(?<!un)employed"
+  } else if (input$we_employ_type == "PWD // 18-64 // Unemployed"){
+    "pwd.*unemployed"
+  } else if (input$we_employ_type == "PWD // 18-64 // Not in Labor Force"){
+    "pwd.*not_in_the_labor_force"
+  } else if (input$we_employ_type == "PWD // 18-64 // Work Full Time"){
+    "(population_worked_full_time_year_round_with_a_disability|pwd_full_time)"
+  } else if (input$we_employ_type == "PWD // 18-64 // Work Part Time"){
+    "(population_worked_less_than_full_time_year_round_with_a_disability|pwod_part_time)"
+  } else if (input$we_employ_type == "PWD // 18-64 // Work From Home"){
+    "pwd_percentage_of_people_working_from_home"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Employed"){
+    "pwod.*(?<!un)employed"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Unemployed"){
+    "pwod.*unemployed"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Not in Labor Force"){
+    "pwod.*not_in_the_labor_force"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Work Full Time"){
+    "(population_worked_full_time_year_round_without_a_disability|pwod_full_time)"
+  } else if (input$we_employ_type == "PWOD // 18-64 // Work Part Time"){
+    "(population_worked_less_than_full_time_year_round_without_a_disability|pwod_part_time)"
+  } else {
+    "pwod_percentage_of_people_working_from_home"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    we_employ_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(we_employ_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+
+
+
+
+
+
+
 
 
 
@@ -2786,8 +2984,10 @@ Row
 # Map palette
 selectInput(inputId = "access_map_palette",
             label = h5("Select a color palette for maps:"),
-            choices = c("Oranges", "Blues", "Greens", "Purples", "Reds"),
-            selected = "Oranges")
+            choices = list("Yellow-Orange-Brown" = "YlOrBr", 
+                           "Yellow-Orange-Red" = "YlOrRd", 
+                           "Green-Blue" = "GnBu"),
+            selected = "Yellow-Orange-Brown")
 
 
 # GGplot themes and colors
@@ -2849,29 +3049,22 @@ h2,h3,h4,h5 {
 }
 
 /* Colors for map palette dropdown */
-#access_map_palette ~ .selectize-control .option[data-value=Oranges]{ 
-  background-image: linear-gradient(to right, white , #e6550d) !important;
+#access_map_palette ~ .selectize-control .option[data-value=YlOrBr]{ 
+  background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
   background-size: auto !important;
 }
 
-#access_map_palette ~ .selectize-control .option[data-value=Blues]{ 
-  background-image: linear-gradient(to right, white , #3182bd) !important;
+#access_map_palette ~ .selectize-control .option[data-value=YlOrRd]{ 
+  background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
   background-size: auto !important;
 }
 
-#access_map_palette ~ .selectize-control .option[data-value=Greens]{ 
-  background-image: linear-gradient(to right, white , #31a354) !important;
+#access_map_palette ~ .selectize-control .option[data-value=GnBu]{ 
+  background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
   background-size: auto !important;
 }
 
-#access_map_palette ~ .selectize-control .option[data-value=Purples]{ 
-  background-image: linear-gradient(to right, white , #756bb1) !important;
-  background-size: auto !important;
-}
-#access_map_palette ~ .selectize-control .option[data-value=Reds]{ 
-  background-image: linear-gradient(to right, white , #de2d26) !important;
-  background-size: auto !important;
-}
+
 
 /* #################### */
 /* Containers */
