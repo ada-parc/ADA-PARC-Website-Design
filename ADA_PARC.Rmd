@@ -2500,11 +2500,16 @@ By Metro
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
+```{r metro import}
+demo_metro_data <- demographics %>% 
+  filter(is.na(city) == FALSE) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, city,
+         pwd, total_population, contains("percent")) %>%  # This is clearner than listing out every variable
+  mutate_if(is.numeric, round, 1)
+```
+
 ```{r}
 
-# # Define inputs
-# selectInput('metro_name', label = 'Select a metropolitan area', choices = lookup, selected = 19100L)
-# 
 # # Set up data download
 # data_for_dl <- reactive({
 #   
@@ -2513,10 +2518,15 @@ Sidebar {.sidebar}
 #   
 # })
 
-### Input descriptions
-# Metro-Area selectInput dropdown
-# Variable for viz dropdown (Age, Race, Type of Disability, Gender)
-# 
+metro_name <- data.frame(city = demo_metro_data$city, state = demo_metro_data$state_abbv, full = paste(demo_metro_data$city, ",", demo_metro_data$state_abbv))
+demographic_var <- data.frame(option = names(demo_metro_data %>% select(pwd:percent_pwd_female))) # Probably not efficient, and would need to be changed if the table-column order changed, but it'll work for now.
+
+selectInput('metro_name', label = "Select a metropolitan area", choices = metro_name$full, selected = metro_name[[1]]) 
+selectInput('metro_var', label = "Select a demographic variable", choices = demographic_var, selected = demographic_var[[1]])
+
+### Make DT respond to the selectInputs above
+
+### Implement GGPlot of the two selected items in the Interactive Viz box
 
 ```
 <br>
@@ -2538,18 +2548,12 @@ Row
 ### Chart
 
 ```{r }
-demo_gen_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, city,
-         percent_of_total_population_with_a_disability, pwd, total_population) %>% 
-  mutate(percent_of_total_population_with_a_disability =
-           round(percent_of_total_population_with_a_disability, 1))
 
 DT::renderDataTable({
   
   # Table
   DT::datatable(
-    demo_gen_data %>% 
+    demo_metro_data %>% 
       rename("percent_pwd" = percent_of_total_population_with_a_disability,
              "total_pop" = total_population) %>% 
       mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
