@@ -47,3 +47,26 @@ demo_gen_data <- demographics %>%
 # demo_gen_data %>%
 #   leaflet() %>%
   
+  metros <- c("Albuquerque", "Anchorage")
+  var_select <- "percent_people_18_64_with_a_disability"
+  
+  demo_metro_data %>% 
+    mutate(full = paste(city, ",", state_abbv)) %>%
+    select(full, city, state_abbv, pwd, total_population, sym(var_select)) %>%
+    filter(city %in% metros) %>%
+    rename("total_pop" = total_population) %>% 
+    mutate(percent_pwd = percent((pwd/total_pop), scale = 1, accuracy = 0.1),
+           pwd = comma(pwd),
+           total_pop = comma(total_pop)) %>%
+    tibble:view()
+  
+### Goal: vizualize this table for one metro area in a meaningful way
+demo_metro_data %>% 
+    rename("percent_pwd" = percent_of_total_population_with_a_disability,
+           "total_pop" = total_population) %>% 
+    mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
+           pwd = comma(pwd),
+           total_pop = comma(total_pop)) %>%
+    ggplot() + 
+    geom_col()
+  
