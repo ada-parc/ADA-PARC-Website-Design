@@ -3109,7 +3109,7 @@ Row
 <!-- #  -->
 <!-- ``` -->
 
-### Chart
+### Table
 
 ```{r }
 
@@ -3141,7 +3141,7 @@ DT::renderDataTable({
 Row
 -----------------------------------------------------------------------
 
-### Interactive Viz
+### Chart
 
 ```{r }
 
@@ -3154,7 +3154,7 @@ output$metro_plot <- renderPlot({
       filter(City %in% metro_select(), City != "United States, USA") %>%
       ggplot(aes(x = reorder(City, !!sym(var_select()[1])), y = !!sym(var_select()[1]))) + ### I think there's a way to abstract this instead of calling the first column after full, but I'll do it later
       geom_col() + 
-      labs(y = var_select()[1], x = "City") +
+      labs(y = str_to_title(gsub("_", " ", var_select()[1])), x = "City") +
       coord_flip()
 
 })
