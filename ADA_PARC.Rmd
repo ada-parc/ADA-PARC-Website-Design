@@ -161,6 +161,7 @@ work_economic <- read_excel(path = db_path,
 states_sf <- get_urbn_map(map = "states", sf = TRUE)
 
 ```
+
 Row {data-height=100}
 -----------------------------------------------------------------------
 
@@ -2681,8 +2682,356 @@ DT::renderDataTable({
 
 ```
 
+Row {data-height=100}
+-----------------------------------------------------------------------
 
+### {.section-divider}
 
+#### Economic Status
+
+##### Percent of Persons with or without Disabilities
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, work economic status map}
+
+# Data for this section
+we_status_data <- work_economic %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = state_abbreviation,
+         pwd_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars:pwod_median_household_income_include_any_working_age_people_age_21_64_us_dollars,
+         pwd_income_in_past_12_months_below_poverty_level:percent_pwod_above_poverty_level,
+         percent_of_total_population_receiving_ssi:ssi_as_percent_median_income_percentage,
+         number_of_ssi_beneficiaries_18_64:percent_pop_18_64_receiving_ssdi) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+we_status_map_data <- we_status_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("we_status_type", 
+            label = "Select a category", 
+            choices = c("PWD // 16+ // Median Individual Income",
+                        "PWD // 21-64 // Median Household Income",
+                        "PWD // 18-64 // Below the Poverty Level",
+                        "PWOD // 16+ // Median Individual Income",
+                        "PWOD // 21-64 // Median Household Income",
+                        "PWOD // 18-64 // Below the Poverty Level",
+                        "SSI // Percent of Total Population",
+                        "SSI // Monthly Payment",
+                        "SSI // Percent of Monthly Income",
+                        "SSDI // Percent of Total Population"),
+            selected = "PWD // 16+ // Median Individual Income",
+            width = "400px")
+
+we_status_selected <- reactive({
+  
+  if (input$we_status_type == "PWD // 16+ // Median Individual Income"){
+    "pwd_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
+  } else if (input$we_status_type == "PWD // 21-64 // Median Household Income"){
+    "pwd_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
+  } else if (input$we_status_type == "PWD // 18-64 // Below the Poverty Level"){
+    "percent_pwd_below_poverty_level"
+  } else if (input$we_status_type == "PWOD // 16+ // Median Individual Income"){
+    "pwod_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
+  } else if (input$we_status_type == "PWOD // 21-64 // Median Household Income"){
+    "pwod_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
+  } else if (input$we_status_type == "PWOD // 18-64 // Below the Poverty Level"){
+    "percent_pwod_below_poverty_level"
+  } else if (input$we_status_type == "SSI // Percent of Total Population"){
+    "percent_of_total_population_receiving_ssi"
+  } else if (input$we_status_type == "SSI // Monthly Payment"){
+    "ssi_monthly_payment_us_dollars"
+  } else if (input$we_status_type == "SSI // Percent of Monthly Income"){
+    "ssi_as_percent_median_income_percentage"
+  } else {
+    "percent_pop_18_64_receiving_ssdi"
+  }
+  
+})
+
+pal_we2 <- reactive ({ 
+    
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(we_status_data, !!sym(we_status_selected())),
+                  n = 4)
+                 
+  })
+  
+# State map
+output$we2map <- renderLeaflet({
+  
+  # Map
+  we2map <- we_status_map_data %>%
+    mutate(map_focus = !!sym(we_status_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_we2()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_we2(),
+              values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = paste0(str_replace_all(input$we_status_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  we2map
+  
+})
+
+# Click event for the map
+click_we2map <- eventReactive(input$we2map_shape_click, {
+  
+  x <- input$we2map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_we2map())
+  
+  we2map <- leafletProxy("we2map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = we_status_map_data[we_status_map_data$state_name == click_we2map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+we_status_data_selected <- reactive({
+  
+  if(is.null(input$we2map_shape_click)){
+    we_status_data
+  } else {
+    we_status_data %>% 
+      filter(state_name == click_we2map())
+  }
+  
+})
+
+leafletOutput("we2map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, work economic status table }
+
+# Columns to show
+we_status_cols_selected <- reactive({
+             
+    if (input$we_status_type == "PWD // 16+ // Median Individual Income"){
+    "pwd_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
+  } else if (input$we_status_type == "PWD // 21-64 // Median Household Income"){
+    "pwd_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
+  } else if (input$we_status_type == "PWD // 18-64 // Below the Poverty Level"){
+    "pwd.*below_poverty_level"
+  } else if (input$we_status_type == "PWOD // 16+ // Median Individual Income"){
+    "pwod_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
+  } else if (input$we_status_type == "PWOD // 21-64 // Median Household Income"){
+    "pwod_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
+  } else if (input$we_status_type == "PWOD // 18-64 // Below the Poverty Level"){
+    "pwod.*below_poverty_level"
+  } else if (input$we_status_type %in% c("SSI // Percent of Total Population", "SSI // Monthly Payment", "SSI // Percent of Monthly Income")){
+    "ssi"
+  } else {
+    "ssdi"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    we_status_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(we_status_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
+
+Row {data-height=100}
+-----------------------------------------------------------------------
+
+### {.section-divider}
+
+#### Economic Status
+
+##### Percent of Persons with or without Disabilities
+
+Row {data-height=500}
+-----------------------------------------------------------------------
+
+### Map {data-width=500}
+
+```{r, work economic affordability map}
+
+# Data for this section
+we_afford_data <- work_economic %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = state_abbreviation,
+         percent_ssi_for_1_bedroom_percentage, percent_ssi_for_efficiency_apt_percentage,
+         x2_bedroom_rental_unit_housing_wage_us_dollars_from_nlihc_org_fy_2019) %>% 
+  mutate(across(starts_with("percent"), round, 1))
+
+# SF data and palette
+we_afford_map_data <- we_afford_data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+  
+# Input for column to map
+selectInput("we_afford_type", 
+            label = "Select a category", 
+            choices = c("SSI // Percent Needed for Efficiency Apt at FMR",
+                        "SSI // Percent Needed for 1-BR Apt at FMR",
+                        "Hourly Wage // Needed for 2-BR Apt at FMR"),
+            selected = "SSI // Percent Needed for Efficiency Apt at FMR",
+            width = "400px")
+
+we_afford_selected <- reactive({
+  
+  if (input$we_afford_type == "SSI // Percent Needed for Efficiency Apt at FMR"){
+    "percent_ssi_for_efficiency_apt_percentage"
+  } else if (input$we_afford_type == "SSI // Percent Needed for 1-BR Apt at FMR"){
+    "percent_ssi_for_1_bedroom_percentage"
+  } else {
+    "x2_bedroom_rental_unit_housing_wage_us_dollars_from_nlihc_org_fy_2019"
+  }
+  
+})
+
+pal_we3 <- reactive ({ 
+    
+    colorQuantile(palette = input$access_map_palette, 
+                  domain = pull(we_afford_data, !!sym(we_afford_selected())),
+                  n = 4)
+                 
+  })
+  
+# State map
+output$we3map <- renderLeaflet({
+  
+  # Map
+  we3map <- we_afford_map_data %>%
+    mutate(map_focus = !!sym(we_afford_selected())) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~pal_we3()(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = pal_we3(),
+              values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = paste0(str_replace_all(input$we_afford_type,
+                                             " // ", "<br>"),
+                             " (%)"))
+  
+  we3map
+  
+})
+
+# Click event for the map
+click_we3map <- eventReactive(input$we3map_shape_click, {
+  
+  x <- input$we3map_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_we3map())
+  
+  we3map <- leafletProxy("we3map") %>%
+    removeShape("highlight_state") %>%
+    addPolygons(data = we_afford_map_data[we_afford_map_data$state_name == click_we3map(), ], 
+                fill = FALSE, weight = 3,
+                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+  
+})
+
+# Fetch data for the clicked state
+we_afford_data_selected <- reactive({
+  
+  if(is.null(input$we3map_shape_click)){
+    we_afford_data
+  } else {
+    we_afford_data %>% 
+      filter(state_name == click_we3map())
+  }
+  
+})
+
+leafletOutput("we3map")  
+
+```
+
+### Table {.wide-DT data-width=500}
+
+```{r, work economic affordability table }
+
+# Columns to show
+we_afford_cols_selected <- reactive({
+             
+    if (input$we_afford_type == "SSI // Percent Needed for Efficiency Apt at FMR"){
+    "percent_ssi_for_efficiency_apt_percentage"
+  } else if (input$we_afford_type == "SSI // Percent Needed for 1-BR Apt at FMR"){
+    "percent_ssi_for_1_bedroom_percentage"
+  } else {
+    "x2_bedroom_rental_unit_housing_wage_us_dollars_from_nlihc_org_fy_2019"
+  }
+  
+})
+
+# Data table (scroll function for wide data)
+DT::renderDataTable({
+  
+  # Table
+  DT::datatable(
+    we_afford_data_selected() %>%
+      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
+             across(where(is.numeric), comma)) %>% 
+      select(starts_with("state"), matches(we_afford_cols_selected(), perl = TRUE)),
+   options(scrollX = "200px"))
+  
+})
+
+```
 
 
 
@@ -3038,7 +3387,7 @@ access_ggplot_themes <- list(
   "The Economist" = list(theme_economist(), scale_fill_economist(), scale_color_economist()),
   "Five Thirty Eight" = list(theme_fivethirtyeight(), scale_fill_economist(), scale_color_fivethirtyeight()),
   "Highcharts" = list(theme_hc(), scale_fill_hc(), scale_color_hc()),
-  "Ipsum" = list(theme_ipsum(), scale_fill_ipsum(), scale_color_ipsum()),
+  "Ipsum" = list(theme_ipsum(), scale_fill_colorblind(), scale_color_colorblind()),
   "Light" = list(theme_light(), scale_fill_colorblind(), scale_color_colorblind()),
   "Minimal" = list(theme_minimal(),scale_fill_ordinal(), scale_color_ordinal()),
   "Stata" = list(theme_stata(), scale_fill_stata(), scale_color_stata()))
