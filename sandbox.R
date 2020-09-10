@@ -21,10 +21,10 @@ demographics <- read_excel(path = db_path,
   mutate(across(-c(state:city), as.numeric))
 
 # City dataa
-demo_gen_data <- demographics %>% 
+demo_metro_data <- demographics %>% 
   filter(is.na(city) == FALSE) %>% 
   select("state_name" = state, "state_abbv" = abbrev, city,
-         percent_of_total_population_with_a_disability, pwd, total_population) %>% 
+         percent_of_total_population_with_a_disability, pwd, total_population, everything()) %>% 
   mutate(percent_of_total_population_with_a_disability =
            round(percent_of_total_population_with_a_disability, 1))
 
@@ -33,40 +33,33 @@ demo_gen_data <- demographics %>%
 # DT::renderDataTable({
   
   # Table
-  DT::datatable(
-    demo_gen_data %>% 
-      rename("percent_pwd" = percent_of_total_population_with_a_disability,
-             "total_pop" = total_population) %>% 
-      mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
-             pwd = comma(pwd),
-             total_pop = comma(total_pop)),
-    options(scrollX = "200px"))
-  
+  # DT::datatable(
+  #   demo_metro_data %>% 
+  #     rename("percent_pwd" = percent_of_total_population_with_a_disability,
+  #            "total_pop" = total_population) %>% 
+  #     mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
+  #            pwd = comma(pwd),
+  #            total_pop = comma(total_pop)),
+  #   options(scrollX = "200px"))
+  # 
 # })
 
 # demo_gen_data %>%
 #   leaflet() %>%
-  
-  metros <- c("Albuquerque", "Anchorage")
-  var_select <- "percent_people_18_64_with_a_disability"
+### Testing out the selectize - ggplot conversio in the by Metro tab  
+  metro_select <- c("Albuquerque, NM", "Anchorage, AK")
+  var_select <- c("pwd", "total_population","percent_people_18_64_with_a_disability")
   
   demo_metro_data %>% 
-    mutate(full = paste(city, ",", state_abbv)) %>%
-    select(full, city, state_abbv, pwd, total_population, sym(var_select)) %>%
-    filter(city %in% metros) %>%
-    rename("total_pop" = total_population) %>% 
-    mutate(percent_pwd = percent((pwd/total_pop), scale = 1, accuracy = 0.1),
-           pwd = comma(pwd),
-           total_pop = comma(total_pop)) %>%
-    tibble:view()
-  
-### Goal: vizualize this table for one metro area in a meaningful way
-demo_metro_data %>% 
-    rename("percent_pwd" = percent_of_total_population_with_a_disability,
-           "total_pop" = total_population) %>% 
-    mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
-           pwd = comma(pwd),
-           total_pop = comma(total_pop)) %>%
-    ggplot() + 
+    mutate(full = paste0(city, ", ", state_abbv)) %>%
+    select(full, var_select) %>%
+    rename("City" = full) %>%
+    filter(City %in% metro_select) %>%
+    ggplot(aes(x = City, y = var_select[1])) +
     geom_col()
+  
+### Since the var_select can be infinitely large, I'm thinking that creating a ggplot() + geom_col() string using something like this: 
+  for(i in seq(1, length(var_select))) {
+    paste
+  }
   
