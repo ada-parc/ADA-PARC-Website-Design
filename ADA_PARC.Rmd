@@ -3146,17 +3146,17 @@ Row
 ```{r }
 
 output$metro_plot <- renderPlot({
-
-    demo_metro_data %>%
-      mutate(full = paste0(city, ", ", state_abbv)) %>%
-      select(full, var_select()) %>%
-      rename("City" = full) %>%
-      filter(City %in% metro_select(), City != "United States, USA") %>%
-      ggplot(aes(x = reorder(City, !!sym(var_select()[1])), y = !!sym(var_select()[1]))) + ### I think there's a way to abstract this instead of calling the first column after full, but I'll do it later
-      geom_col() + 
-      labs(y = str_to_title(gsub("_", " ", var_select()[1])), x = "City") +
-      coord_flip()
-
+  demo_metro_data %>%
+    mutate(full = paste0(city, ", ", state_abbv)) %>%
+    select(full, var_select()) %>%
+    rename("City" = full) %>%
+    filter(City %in% metro_select(), City != "United States, USA") %>%
+    ggplot(aes(x = reorder(City, !!sym(var_select()[1])), y = !!sym(var_select()[1]))) +    ### I think there's a way to abstract this instead of calling the first column after full, but I'll do it later
+    geom_col() + 
+    labs(y = str_to_title(gsub("_", " ", var_select()[1])), x = "City") +
+    coord_flip() + 
+    ggplot_fill_selected() +
+    ggplot_theme_selected()
 })
 
 
