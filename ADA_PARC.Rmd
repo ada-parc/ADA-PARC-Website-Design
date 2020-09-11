@@ -19,11 +19,14 @@ library(tidyverse); library(readxl); library(openxlsx); library(summarytools); l
 library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
 library(colourpicker); library(DT); library(highcharter);
-library(scales); library(hrbrthemes); library(ggthemes)
+library(scales); library(hrbrthemes); library(ggthemes); library(extrafont)
 
 # Must install urbnmapr via GitHUb if is not already installed
 # install.packages("devtools")
 # devtools::install_github("UrbanInstitute/urbnmapr")
+
+# Load fonts
+loadfonts(device = "win", quiet = TRUE)
 
 ```
 
@@ -3046,60 +3049,66 @@ By Metro
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
-```{r metro import}
-demo_metro_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, city,
-         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
-  mutate_if(is.numeric, round, 1)
-```
-
-```{r}
-
-# # Set up data download
-# data_for_dl <- reactive({
-#   
-#   dat <- select(metro()@data, GEOID, state, county, white, black, hispanic, asian, total, 
-#                 entropy, distmeters = distance, distmiles)
-#   
-# })
-
-rm_opt <- list('plugins' = list('remove_button'), # Adds removal "x" to selectize inputs
-               'create' = TRUE,
-               'persist' = FALSE)
-
-metro_name <- data.frame(city = demo_metro_data$city, state = demo_metro_data$state_abbv, full = paste0(demo_metro_data$city, ", ", demo_metro_data$state_abbv))
-demographic_var <- data.frame(option = names(demo_metro_data %>% select(pwd:percent_pwd_female))) # Probably not efficient, and would need to be changed if the table-column order changed, but it'll work for now.
-
-# selectInput('metro_name', label = "Select a metropolitan area", choices = metro_name$full, selected = metro_name[[1]])
-select
-selectizeInput('metro_select', 'Select Metro Areas to Compare', choices = metro_name[,3], multiple = TRUE, options = rm_opt)
-selectizeInput('var_select', label = "Select a demographic variable", choices = demographic_var, multiple = TRUE, options = rm_opt)
-
-metro_select <- reactive({ 
-  if(is.null(input$metro_select)){ ### I think that this logic works, and requires less input from the user
-    metro_name$full
-  }else{
-      input$metro_select
-    }
-})
-
-var_select <- reactive ({
-  if(is.null(input$var_select)){
-      demographic_var$option
-    }else{
-      input$var_select
-    }
-})
-
-```
 <br>
 
-Some type of checkbox/dropdown input that allows the map/chart to be dependent on selected metro
+```{r metro import}
 
-Sidebars are great places to include download links (csv, shp, etc) for users to access
+# Import city level data
+metro_demo_data <- demographics %>% 
+  filter(is.na(city) == FALSE) %>% 
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+  select(metro_state,
+         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
+  mutate_if(is.numeric, round, 1)
 
-Row
+# Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
+
+```
+
+```{r metro sidebar}
+
+# Define inputs
+# Metro
+selectizeInput(inputId = "metro_select", 
+               label = "Select Metro Areas to Compare", 
+               choices = metro_demo_data %>% select(metro_state), 
+               multiple = TRUE, 
+               options = list("plugins" = list("remove_button"), 
+                              "create" = TRUE,
+                              "persist" = FALSE))
+
+# Variable of interest
+selectizeInput(inputId = "var_select", 
+               label = "Select a demographic variable", 
+               choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)), 
+               selected = names(metro_demo_data %>% select(pwd)),
+               multiple = TRUE, 
+               options = list("plugins" = list("remove_button"), 
+                              "create" = TRUE,
+                              "persist" = FALSE))
+
+# Logic for conditionals not needed given magic of selectize, see below
+# metro_select <- reactive({ 
+#   
+#   if(is.null(input$metro_select)){ ### I think that this logic works, and requires less input from the user
+#     metro_demo_data %>% select(metro_state)
+#   }else{
+#       input$metro_select
+#     }
+# })
+# 
+# var_select <- reactive ({
+#   
+#   if(is.null(input$var_select)){
+#       demographic_var$option
+#     }else{
+#       input$var_select
+#     }
+# })
+
+```
+
+Row {data-height=400}
 -----------------------------------------------------------------------
 
 <!-- ### Map -->
@@ -3109,31 +3118,31 @@ Row
 <!-- #  -->
 <!-- ``` -->
 
-### Table
+### Table {.download-DT}
 
-```{r }
+```{r metro overview table}
 
 DT::renderDataTable({
   
-  if(is.null(metro_select()) & is.null(var_select())){
+  if(is.null(input$metro_select)){
     DT::datatable(
-      demo_metro_data %>% 
-        mutate(full = paste0(city, ", ", state_abbv)) %>%
-        select(full, demographic_var$option) %>%
-        rename("City" = full),
-      options(scrollX = "200px")
-      )
+      metro_demo_data %>% 
+        rename("City" = metro_state),
+      options(list(scrollX = "200px",
+                   pageLength = 5,
+                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
+    )
   }else{
-     DT::datatable(
-      demo_metro_data %>% 
-        mutate(full = paste0(city, ", ", state_abbv)) %>%
-        select(full, var_select()) %>%
-        rename("City" = full) %>%
-        filter(City %in% metro_select()),
-      options(scrollX = "200px")
-      )
+    DT::datatable(
+      metro_demo_data %>% 
+        filter(metro_state %in% input$metro_select) %>% 
+        select("City" = metro_state, input$var_select),
+      options(list(scrollX = "200px", 
+                   pageLength = 5,
+                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
+    )
   }
-
+  
 })
 
 ```
@@ -3141,24 +3150,34 @@ DT::renderDataTable({
 Row
 -----------------------------------------------------------------------
 
-### Chart
+### Selected Variables by Metro
 
-```{r }
+```{r metro overview chart}
 
 output$metro_plot <- renderPlot({
-
-    demo_metro_data %>%
-      mutate(full = paste0(city, ", ", state_abbv)) %>%
-      select(full, var_select()) %>%
-      rename("City" = full) %>%
-      filter(City %in% metro_select(), City != "United States, USA") %>%
-      ggplot(aes(x = reorder(City, !!sym(var_select()[1])), y = !!sym(var_select()[1]))) + ### I think there's a way to abstract this instead of calling the first column after full, but I'll do it later
-      geom_col() + 
-      labs(y = str_to_title(gsub("_", " ", var_select()[1])), x = "City") +
-      coord_flip()
-
+    
+  # Require input action and non-null variable before plotting chart
+  req(input$metro_select)
+  req(!is.null(input$var_select))
+  
+  # Plot
+  metro_demo_data %>%
+    filter(metro_state %in% input$metro_select) %>%
+    select(metro_state, input$var_select) %>% 
+    pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% 
+    mutate(variable = str_replace_all(variable, "_", " "),
+           value = as.numeric(value)) %>% 
+    ggplot(aes(x = variable, y = value, fill = metro_state)) +
+    geom_bar(stat = "identity", width = 0.8,
+             position = position_dodge2(width = 0.6, preserve = "single")) +
+    labs(x = "Variable", y = "Value") +
+    scale_y_comma() +
+    coord_flip() +
+    ggplot_fill_selected() +
+    ggplot_theme_selected() +
+    theme(legend.position = "top")
+  
 })
-
 
 plotOutput("metro_plot")
 
