@@ -25,9 +25,6 @@ library(scales); library(hrbrthemes); library(ggthemes); library(extrafont)
 # install.packages("devtools")
 # devtools::install_github("UrbanInstitute/urbnmapr")
 
-# Load fonts
-loadfonts(device = "win", quiet = TRUE)
-
 ```
 
 
