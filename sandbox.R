@@ -21,12 +21,12 @@ demographics <- read_excel(path = db_path,
   mutate(across(-c(state:city), as.numeric))
 
 # City dataa
-demo_metro_data <- demographics %>% 
+metro_demo_data <- demographics %>% 
   filter(is.na(city) == FALSE) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, city,
-         percent_of_total_population_with_a_disability, pwd, total_population, everything()) %>% 
-  mutate(percent_of_total_population_with_a_disability =
-           round(percent_of_total_population_with_a_disability, 1))
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+  select(metro_state,
+         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
+  mutate_if(is.numeric, round, 1)
 
 
 # Data table
@@ -57,6 +57,14 @@ demo_metro_data <- demographics %>%
     filter(City %in% metro_select) %>%
     ggplot(aes(x = City, y = var_select[1])) +
     geom_col()
+  
+  ### Comparison example, not final version. Use as reference
+  
+  metro_demo_data %>% 
+    filter(metro_state %in% metro_select) %>% 
+    select("City" = metro_state, everything()) %>%
+    t()
+    
   
 ### Since the var_select can be infinitely large, I'm thinking that creating a ggplot() + geom_col() string using something like this: 
   for(i in seq(1, length(var_select))) {
