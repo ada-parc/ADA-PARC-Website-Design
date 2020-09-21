@@ -3218,7 +3218,7 @@ selectizeInput(inputId = "compare",
 
 ```
 
-Row {data-height=400}
+Row
 -----------------------------------------------------------------------
 
 
@@ -3233,19 +3233,22 @@ if(is.null(input$compare)){
     DT::datatable(
       metro_demo_data %>% 
         rename("City" = metro_state),
-      options(list(scrollX = "200px",
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
+      options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))
     )
   }else{
     DT::datatable(
       metro_demo_data %>% 
         filter(metro_state %in% input$compare) %>% 
         select("City" = metro_state, everything()) %>%
-        t(),
-      options(list(scrollX = "200px", 
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
+        pivot_longer(
+          cols = -"City",
+          names_to = "Variable"
+          ) %>%
+        pivot_wider(
+          id_cols = Variable,
+          names_from = City
+          ),
+      options (pageLength = 50)
     )
   }
   

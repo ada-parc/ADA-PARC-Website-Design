@@ -63,7 +63,14 @@ metro_demo_data <- demographics %>%
   metro_demo_data %>% 
     filter(metro_state %in% metro_select) %>% 
     select("City" = metro_state, everything()) %>%
-    t()
+    pivot_longer(
+      cols = -"City",
+      names_to = "Variable"
+    ) %>%
+    pivot_wider(
+      id_cols = Variable,
+      names_from = City
+    )
     
   
 ### Since the var_select can be infinitely large, I'm thinking that creating a ggplot() + geom_col() string using something like this: 
