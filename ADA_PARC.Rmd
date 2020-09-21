@@ -157,6 +157,15 @@ work_economic <- read_excel(path = db_path,
   remove_empty(c("rows", "cols")) %>% 
   mutate(across(-c(state:city), as.numeric))
 
+# Metro Data
+metro_demo_data <- demographics %>% 
+  filter(is.na(city) == FALSE) %>% 
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+  select(metro_state,
+         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
+  mutate_if(is.numeric, round, 1)
+
+
 # Read in spatial data
 states_sf <- get_urbn_map(map = "states", sf = TRUE)
 
@@ -3051,12 +3060,6 @@ Sidebar {.sidebar}
 ```{r metro import}
 
 # Import city level data
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
-  mutate_if(is.numeric, round, 1)
 
 # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
 
@@ -3190,15 +3193,6 @@ Sidebar {.sidebar}
 <br>
 
 ```{r }
-
-# Import city level data
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
-  mutate_if(is.numeric, round, 1)
-
 # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
 
 ```
@@ -3207,7 +3201,7 @@ metro_demo_data <- demographics %>%
 
 # Define inputs
 # Metro
-selectizeInput(inputId = "comp", 
+selectizeInput(inputId = "compare", 
                label = "Select Metro Areas to Compare", 
                choices = metro_demo_data %>% select(metro_state),
                multiple = TRUE,
@@ -3235,7 +3229,7 @@ Row {data-height=400}
 
 DT::renderDataTable({
   
-if(is.null(input$comp)){
+if(is.null(input$compare)){
     DT::datatable(
       metro_demo_data %>% 
         rename("City" = metro_state),
@@ -3246,7 +3240,7 @@ if(is.null(input$comp)){
   }else{
     DT::datatable(
       metro_demo_data %>% 
-        filter(metro_state %in% input$comp) %>% 
+        filter(metro_state %in% input$compare) %>% 
         select("City" = metro_state, everything()) %>%
         t(),
       options(list(scrollX = "200px", 
@@ -3258,42 +3252,6 @@ if(is.null(input$comp)){
 })
 
 ```
-
-Row
------------------------------------------------------------------------
-
-### Selected Variables by Metro
-
-```{r }
-output$metro_plot <- renderPlot({
-    
-  # Require input action and non-null variable before plotting chart
-  req(input$metro_select)
-  req(!is.null(input$var_select))
-  
-  # Plot
-  metro_demo_data %>%
-    filter(metro_state %in% input$metro_select) %>%
-    select(metro_state, input$var_select) %>% 
-    pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% 
-    mutate(variable = str_replace_all(variable, "_", " "),
-           value = as.numeric(value)) %>% 
-    ggplot(aes(x = variable, y = value, fill = metro_state)) +
-    geom_bar(stat = "identity", width = 0.8,
-             position = position_dodge2(width = 0.6, preserve = "single")) +
-    labs(x = "Variable", y = "Value") +
-    scale_y_comma() +
-    coord_flip() +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
-  
-})
-
-plotOutput("metro_plot")
-
-```
-
 
 
 Data {data-navmenu="Download" data-icon="fa-database"}
