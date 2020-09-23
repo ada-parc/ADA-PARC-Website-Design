@@ -19,7 +19,7 @@ library(tidyverse); library(readxl); library(openxlsx); library(summarytools); l
 library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
 library(colourpicker); library(DT); library(highcharter);
-library(scales); library(hrbrthemes); library(ggthemes); library(extrafont)
+library(scales); library(hrbrthemes); library(ggthemes); library(extrafont); library(plotly)
 
 # Must install urbnmapr via GitHUb if is not already installed
 # install.packages("devtools")
@@ -162,7 +162,7 @@ metro_demo_data <- demographics %>%
   filter(is.na(city) == FALSE) %>% 
   mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
   select(metro_state,
-         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
+         pwd, total_population, everything()) %>%  # This is cleaner than listing out every variable
   mutate_if(is.numeric, round, 1)
 
 
@@ -3060,7 +3060,12 @@ Sidebar {.sidebar}
 ```{r metro import}
 
 # Import city level data
-
+metro_demo_data <- demographics %>% 
+  filter(is.na(city) == FALSE) %>% 
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+  select(metro_state,
+         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
+  mutate_if(is.numeric, round, 1)
 # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
 
 ```
@@ -3154,32 +3159,42 @@ Row
 
 ```{r metro overview chart}
 
-output$metro_plot <- renderPlot({
-    
+output$metro_plot <- renderPlotly({
+
   # Require input action and non-null variable before plotting chart
   req(input$metro_select)
   req(!is.null(input$var_select))
-  
+
   # Plot
-  metro_demo_data %>%
-    filter(metro_state %in% input$metro_select) %>%
-    select(metro_state, input$var_select) %>% 
-    pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% 
-    mutate(variable = str_replace_all(variable, "_", " "),
-           value = as.numeric(value)) %>% 
-    ggplot(aes(x = variable, y = value, fill = metro_state)) +
-    geom_bar(stat = "identity", width = 0.8,
-             position = position_dodge2(width = 0.6, preserve = "single")) +
-    labs(x = "Variable", y = "Value") +
-    scale_y_comma() +
-    coord_flip() +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
+  plotly::ggplotly(
+    metro_demo_data %>%
+      filter(metro_state %in% input$metro_select) %>%
+      select(metro_state, input$var_select) %>%
+      pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>%
+      mutate(variable = str_replace_all(variable, "_", " "),
+             value = as.numeric(value)) %>%
+      ggplot(aes(x = variable, y = value, fill = metro_state)) +
+      geom_bar(stat = "identity", width = 0.8,
+               position = position_dodge2(width = 0.6, preserve = "single")) +
+      labs(x = "Variable", y = "Value") +
+      scale_y_comma() +
+      coord_flip() +
+      ggplot_fill_selected() +
+      ggplot_theme_selected() +
+      theme(legend.position = "top")
+  )
+  # 
   
+  # plotly::ggplotly(
+  # metro_demo_data %>% filter(metro_state != "United States, USA") %>%
+  #   ggplot(aes(x = total_population, y = percent_of_total_population_with_a_disability,
+  #              label = metro_state, color = state)) + 
+  #   geom_jitter() +
+  #   scale_x_log10()
+  # )
 })
 
-plotOutput("metro_plot")
+plotlyOutput("metro_plot")
 
 ```
 
@@ -3247,7 +3262,8 @@ if(is.null(input$compare)){
         pivot_wider(
           id_cols = Variable,
           names_from = City
-          ),
+          ) %>%
+        select(" " = Variable, everything()),
       options (pageLength = 50)
     )
   }

@@ -72,9 +72,16 @@ metro_demo_data <- demographics %>%
       names_from = City
     )
     
-  
-### Since the var_select can be infinitely large, I'm thinking that creating a ggplot() + geom_col() string using something like this: 
-  for(i in seq(1, length(var_select))) {
-    paste
-  }
-  
+
+metro_demo_data %>% filter(metro_state != "United States, USA") %>%
+  ggplot(aes(x = total_population, y = percent_of_total_population_with_a_disability)) + 
+  geom_jitter() 
+
+metro_demo_data %>% filter(metro_state != "United States, USA") %>%
+  plotly::plot_ly(x = ~total_population, y = ~percent_of_total_population_with_a_disability, text = ~paste(metro_state)) %>% 
+  plotly::add_markers() %>% 
+  plotly::layout(xaxis = list(type = "log"))
+
+
+
+names(metro_demo_data)
