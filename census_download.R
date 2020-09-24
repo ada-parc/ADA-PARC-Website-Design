@@ -75,7 +75,7 @@ ref_vars <- load_variables(2018, "acs5", cache = TRUE)
 
 # Get variables in table C21007
 vars <- ref_vars %>% 
-  filter(name == "B00001_001" | str_detect(concept, pattern = "DISABILITY STATUS"))
+  filter(str_detect(name, pattern = "^C21007_*"))
 
 
 # Get spatial data for block groups ---------------------------------------
@@ -89,16 +89,13 @@ block_groups_sf <- pmap_df(places_counties %>%
                              unique(),
                            .f = ~(get_acs(geography = "block group",
                                           year = 2018,
-                                          variable = vars %>% 
-                                            filter(name == "B00001_001") %>% pull(name),
+                                          variables = "B00001_001",
                                           survey = "acs5",
                                           state = ..1, 
                                           county = ..2,
-                                          geometry = TRUE))) %>%
-  left_join(., vars, by = c("variable" = "name")) %>% 
-  mutate(table_name = gsub( "_.*$", "", variable),
-         label = gsub("!!", "; ", label)) %>% 
-  filter(grepl("\\d$", table_name))
+                                          geometry = TRUE,
+                                          output = "wide"))) %>% 
+  rename("total_population" = B00001_001E)
 
 # Filter to block groups to those within CDPs
 block_groups_sf <- block_groups_sf %>% 
@@ -123,13 +120,27 @@ dbWriteTable(conn = conn,
              name = "geo_block_group", 
              value = block_groups_sf %>% 
                select("block_group_fips" = GEOID, "block_group_name" = NAME,
-                      place_fips:metro_state,
-                      concept, table_name, variable, label, estimate), 
+                      place_fips:metro_state, total_population), 
              overwrite = TRUE)
 
 
 # Get tabular data for block groups ---------------------------------------
 
+# Example for getting Subject Tables at Tract level
+# tracts_raw <- pmap_df(expand_grid(places_counties %>%
+#                                     select("state_fips" = STATEFP.y,
+#                                            "county_fips" = COUNTYFP) %>% 
+#                                     st_drop_geometry() %>% 
+#                                     unique(), 
+#                                   table = c("S1810", "S1811")),
+#                       .f = ~(get_acs(geography = "tract",
+#                                      year = 2018,
+#                                      table = ..3,
+#                                      survey = "acs5",
+#                                      state = ..1, 
+#                                      county = ..2,
+#                                      geometry = FALSE,
+#                                      wide = TRUE)))
 
 # Get disability data for block groups in counties/states
 block_groups_raw <- pmap_df(places_counties %>%
@@ -138,8 +149,8 @@ block_groups_raw <- pmap_df(places_counties %>%
                               st_drop_geometry() %>% 
                               unique(),
                             .f = ~(get_acs(geography = "block group",
-                                           variables = vars %>% pull(name),
                                            year = 2018,
+                                           variables = vars %>% pull(name),
                                            survey = "acs5",
                                            state = ..1, 
                                            county = ..2,
@@ -161,27 +172,67 @@ lookup_var <- block_groups_raw %>%
 
 # Write to database
 dbWriteTable(conn = conn, 
-             name = "asc_variable_lu", 
+             name = "acs_variable_lu", 
              value = lookup_var, 
              overwrite = TRUE)
+
+
+# Calculate PWD estimates -------------------------------------------------
+
+
+#Total estimates
+block_groups_total <- block_groups_raw %>%
+  filter(variable == "C21007_001") %>%
+  group_by(GEOID, NAME) %>% 
+  summarize("total_est" = sum(estimate), 
+            total_moe = moe_sum(moe = moe, 
+                                estimate = estimate))
+
+#Disability estimates
+block_groups_pwd <- block_groups_raw %>%
+  filter(str_detect(label, pattern = "With a disability$")) %>%
+  group_by(GEOID, NAME) %>% 
+  summarize("pwd_est" = sum(estimate), 
+            "pwd_moe" = moe_sum(moe = moe, 
+                                estimate = estimate))
+
+#Join totals per block group to disability estimates
+block_groups_pwd <- left_join(block_groups_pwd, block_groups_total, 
+                        by = c("GEOID", "NAME"))
+
+#Calculate % disability
+block_groups_pwd <- block_groups_pwd %>%
+  ungroup() %>% 
+  mutate("pwd_perc_est" = pwd_est/total_est,
+         "pwd_perc_moe" = moe_ratio(num = pwd_est, 
+                                    denom = total_est,
+                                    moe_num = pwd_moe, 
+                                    moe_denom = total_moe))
 
 
 # Write other tabular data to database ------------------------------------
 
 
+# Example of writing several variables out to separate tables by code
+# map(.x = block_groups_raw %>% 
+#       select(table_name) %>% 
+#       distinct() %>% 
+#       pull(),
+#     .f = ~(dbWriteTable(conn = conn, 
+#                         name = paste0("acs_", .x), 
+#                         value = block_groups_raw %>% 
+#                           filter(table_name == .x) %>% 
+#                           select(concept, 
+#                                  "block_group_fips" = GEOID, "block_group_name" = NAME,
+#                                  variable, label, estimate) %>% 
+#                           pivot_wider(names_from = ), 
+#                         overwrite = TRUE)))
+
 # Write each ACS table to database separately
-map(.x = block_groups_raw %>% 
-      select(table_name) %>% 
-      distinct() %>% 
-      pull(),
-    .f = ~(dbWriteTable(conn = conn, 
-                        name = paste0("acs_", .x), 
-                        value = block_groups_raw %>% 
-                          filter(table_name == .x) %>% 
-                          select(concept, 
-                                 "block_group_fips" = GEOID, "block_group_name" = NAME,
-                                 variable, label, estimate), 
-                        overwrite = TRUE)))
+dbWriteTable(conn = conn, 
+             name = "acs_C21007", 
+             value = block_groups_pwd, 
+             overwrite = TRUE)
 
 # Disconnect
 dbDisconnect(con)
