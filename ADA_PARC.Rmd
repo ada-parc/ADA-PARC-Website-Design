@@ -18,12 +18,17 @@ output:
 library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor); 
 library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
-library(colourpicker); library(DT); library(highcharter);
-library(scales); library(hrbrthemes); library(ggthemes); library(extrafont); library(plotly)
+library(colourpicker); library(DT); library(gghighlight); library(highcharter);
+library(scales); library(hrbrthemes); library(ggthemes); 
+library(extrafont); library(plotly)
+library(mongolite)
 
 # Must install urbnmapr via GitHUb if is not already installed
 # install.packages("devtools")
 # devtools::install_github("UrbanInstitute/urbnmapr")
+
+# Load API keys and database connection information
+source("secret.R", local = TRUE)
 
 ```
 
@@ -3049,154 +3054,173 @@ DT::renderDataTable({
 
 
 
-Overview {data-navmenu="By Metro"}
+
+
+
+Snapshot {data-navmenu="By Metro"}
 ======================================================================
+
+```{r metro data import}
+
+# Import city level data
+# Demographics
+metro_demo_data <- demographics %>% 
+  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+  select(metro_state,
+         pwd, total_population, contains("percent")) %>%
+  mutate_if(is.numeric, round, 1)
+
+# Community Participation
+metro_cp_data <- community_participation %>% 
+  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+  mutate_if(is.numeric, round, 1)
+
+# Work/Economic
+metro_we_data <- work_economic %>% 
+  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
+  mutate(metro_state = paste0(city, ", ", state_abbreviation)) %>% 
+  mutate_if(is.numeric, round, 1)
+
+```
 
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
 <br>
 
-```{r metro import}
-
-# Import city level data
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, contains("percent")) %>%  # This is cleaner than listing out every variable
-  mutate_if(is.numeric, round, 1)
-# Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
-
-```
-
-```{r metro sidebar}
+```{r metro snapshot input}
 
 # Define inputs
-# Metro
-selectizeInput(inputId = "metro_select", 
-               label = "Select Metro Areas to Compare", 
-               choices = metro_demo_data %>% select(metro_state), 
-               multiple = TRUE, 
-               options = list("plugins" = list("remove_button"), 
-                              "create" = TRUE,
-                              "persist" = FALSE))
+selectInput(inputId = "metro_snapshot", 
+            label = "Select a Metro or Town", 
+            choices = metro_demo_data %>% select(metro_state))
 
-# Variable of interest
-selectizeInput(inputId = "var_select", 
-               label = "Select a demographic variable", 
-               choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)), 
-               selected = names(metro_demo_data %>% select(pwd)),
-               multiple = TRUE, 
-               options = list("plugins" = list("remove_button"), 
-                              "create" = TRUE,
-                              "persist" = FALSE))
+# Pull Census block group data for selected metro
+# Spatial
+mongo_conn_sf <- mongo_connect(collection_name = "geo_block_group",
+                               database_name = "ADA-PARC")
 
-# Logic for conditionals not needed given magic of selectize, see below
-# metro_select <- reactive({ 
-#   
-#   if(is.null(input$metro_select)){ ### I think that this logic works, and requires less input from the user
-#     metro_demo_data %>% select(metro_state)
-#   }else{
-#       input$metro_select
-#     }
-# })
-# 
-# var_select <- reactive ({
-#   
-#   if(is.null(input$var_select)){
-#       demographic_var$option
-#     }else{
-#       input$var_select
-#     }
-# })
+metro_snapshot_block_sf <- reactive({
+  
+  temp_metro <-  list(temp_metro = input$metro_snapshot)
+  temp_geo <- mongo_conn_sf$iterate(query = sprintf('{ "properties.metro_state" : "%s" }',
+                                                    temp_metro))
+  temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
+  return(temp_sf)
+  
+})
+
+# Tabular
+mongo_conn <- mongo_connect(collection_name = "acs_C21007",
+                            database_name = "ADA-PARC")
+metro_snapshot_block <- mongo_conn$find()
 
 ```
 
 Row {data-height=400}
 -----------------------------------------------------------------------
 
-<!-- ### Map -->
-<!-- ```{r } -->
-<!-- ### leaflet map of census tracts w/in metro area, thematic map of selected variable -->
-<!-- # Though the current data is at the metro level, so this wouldn't be easily implemented. -->
-<!-- #  -->
-<!-- ``` -->
+### Overview 
 
-### Table {.download-DT}
+```{r metro snapshot overview text}
 
-```{r metro overview table}
-
-DT::renderDataTable({
+renderUI({
   
-  if(is.null(input$metro_select)){
-    DT::datatable(
-      metro_demo_data %>% 
-        rename("City" = metro_state),
-      options(list(scrollX = "200px",
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
-    )
-  }else{
-    DT::datatable(
-      metro_demo_data %>% 
-        filter(metro_state %in% input$metro_select) %>% 
-        select("City" = metro_state, input$var_select),
-      options(list(scrollX = "200px", 
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
-    )
-  }
+    HTML(paste0("<h4>You have selected: ", input$metro_snapshot, "</h4>"))
   
 })
 
 ```
 
-Row
+### Persons With Disabilities Map
+
+```{r metro snapshot overview map}
+
+pal_metro_snapshot <- reactive ({
+
+    colorQuantile(palette = input$access_map_palette,
+                  domain = pull(metro_snapshot_block, pwd_est),
+                  n = 4)
+
+  })
+
+# State map
+renderLeaflet({
+
+  left_join(metro_snapshot_block_sf(),
+            metro_snapshot_block,
+            by = c("GEOID", "NAME")) %>%
+    leaflet() %>%
+    clearShapes() %>%
+    addProviderTiles(providers$Esri, group = "Esri") %>%
+    addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
+    addResetMapButton() %>%
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
+                fillColor = ~pal_metro_snapshot()(pwd_est),
+                fillOpacity = 0.7,
+                popup = ~paste(str_replace(NAME, ", ", "<br>"),
+                               "PWD: ", scales::comma(pwd_est),
+                               "PWD (%): ", percent(pwd_perc_est,
+                                                    accuracy = 0.1))) %>%
+    addLegend(position = "topright", pal = pal_metro_snapshot(),
+              values = ~pwd_est,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = "PWD") %>% 
+    addLayersControl(position = "bottomright",
+                     baseGroups = c("Esri", "CartoDB"),
+                     options = layersControlOptions(collapsed = FALSE))
+
+})
+
+```
+
+Row {.tabset .tabset-fade data-height=400}
 -----------------------------------------------------------------------
 
-### Selected Variables by Metro
+### Demographics 
 
-```{r metro overview chart}
+```{r metro snapshot demo plot}
 
-output$metro_plot <- renderPlotly({
-
-  # Require input action and non-null variable before plotting chart
-  req(input$metro_select)
-  req(!is.null(input$var_select))
+output$metro_snapshot_demo_plot <- renderPlotly({
 
   # Plot
-  plotly::ggplotly(
-    metro_demo_data %>%
-      filter(metro_state %in% input$metro_select) %>%
-      select(metro_state, input$var_select) %>%
-      pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>%
-      mutate(variable = str_replace_all(variable, "_", " "),
-             value = as.numeric(value)) %>%
-      ggplot(aes(x = variable, y = value, fill = metro_state)) +
-      geom_bar(stat = "identity", width = 0.8,
-               position = position_dodge2(width = 0.6, preserve = "single")) +
-      labs(x = "Variable", y = "Value") +
-      scale_y_comma() +
-      coord_flip() +
-      ggplot_fill_selected() +
-      ggplot_theme_selected() +
-      theme(legend.position = "top")
-  )
-  # 
+  gg <- metro_demo_data %>%
+    select(metro_state, 
+           "pwd" = pwd,
+           "total_pop" = total_population,
+           "pwd_perc" = percent_of_total_population_with_a_disability) %>%
+    mutate(pwd_perc = coalesce(pwd_perc, round((pwd / total_pop) * 100, 1))) %>% 
+    ggplot(aes(x = total_pop, y = pwd_perc,
+               text = paste0("Metro: ", metro_state, 
+                             "\nPWD: " = scales::comma(pwd),
+                             "\nTotal Pop.: " = scales::comma(total_pop),
+                             "\nPWD (%): " = paste0(pwd_perc, "%")))) +
+    geom_point() +
+    gghighlight(metro_state %in% input$metro_snapshot) +
+    labs(x = "Total Population", y = "PWD (%)") +
+    scale_x_log10(labels = scales::comma) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    ggplot_fill_selected() +
+    ggplot_theme_selected() +
+    theme(legend.position = "top")
   
-  # plotly::ggplotly(
-  # metro_demo_data %>% filter(metro_state != "United States, USA") %>%
-  #   ggplot(aes(x = total_population, y = percent_of_total_population_with_a_disability,
-  #              label = metro_state, color = state)) + 
-  #   geom_jitter() +
-  #   scale_x_log10()
-  # )
+  plotly::ggplotly(gg, tooltip = "text")
+  
 })
 
-plotlyOutput("metro_plot")
+plotlyOutput("metro_snapshot_demo_plot")
 
 ```
+
+### Community Participation 
+
+### Work/Economic 
+
 
 
 Comparison {data-navmenu="By Metro"}
@@ -3271,6 +3295,111 @@ if(is.null(input$compare)){
 })
 
 ```
+
+
+
+Explore {data-navmenu="By Metro"}
+======================================================================
+
+Sidebar {.sidebar}
+-----------------------------------------------------------------------
+
+<br>
+
+```{r metro explore sidebar}
+
+# Define inputs
+# Metro
+selectizeInput(inputId = "metro_explore_select", 
+               label = "Select Metro Areas to explore", 
+               choices = metro_demo_data %>% select(metro_state), 
+               multiple = TRUE, 
+               options = list("plugins" = list("remove_button"), 
+                              "create" = TRUE,
+                              "persist" = FALSE))
+
+# Variable of interest
+selectizeInput(inputId = "var_explore_select", 
+               label = "Select a demographic variable", 
+               choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)), 
+               selected = names(metro_demo_data %>% select(pwd)),
+               multiple = TRUE, 
+               options = list("plugins" = list("remove_button"), 
+                              "create" = TRUE,
+                              "persist" = FALSE))
+
+```
+
+Row {data-height=400}
+-----------------------------------------------------------------------
+
+### Table {.download-DT}
+
+```{r metro explore table}
+
+DT::renderDataTable({
+  
+  if(is.null(input$metro_explore_select)){
+    DT::datatable(
+      metro_demo_data %>% 
+        rename("City" = metro_state),
+      options(list(scrollX = "200px",
+                   pageLength = 5,
+                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
+    )
+  }else{
+    DT::datatable(
+      metro_demo_data %>% 
+        filter(metro_state %in% input$metro_explore_select) %>% 
+        select("City" = metro_state, input$var_explore_select),
+      options(list(scrollX = "200px", 
+                   pageLength = 5,
+                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
+    )
+  }
+  
+})
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Selected Variables by Metro
+
+```{r metro overview chart}
+
+output$metro_explore_plot <- renderPlotly({
+
+  # Require input action and non-null variable before plotting chart
+  req(input$metro_explore_select)
+  req(!is.null(input$var_explore_select))
+
+  # Plot
+  plotly::ggplotly(
+    metro_demo_data %>%
+      filter(metro_state %in% input$metro_explore_select) %>%
+      select(metro_state, input$var_explore_select) %>%
+      pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>%
+      mutate(variable = str_replace_all(variable, "_", " "),
+             value = as.numeric(value)) %>%
+      ggplot(aes(x = variable, y = value, fill = metro_state)) +
+      geom_bar(stat = "identity", width = 0.8,
+               position = position_dodge2(width = 0.6, preserve = "single")) +
+      labs(x = "Variable", y = "Value") +
+      scale_y_comma() +
+      coord_flip() +
+      ggplot_fill_selected() +
+      ggplot_theme_selected() +
+      theme(legend.position = "top")
+  )
+
+})
+
+plotlyOutput("metro_explore_plot")
+
+```
+
 
 
 Data {data-navmenu="Download" data-icon="fa-database"}

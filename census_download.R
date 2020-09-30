@@ -2,12 +2,13 @@ library(tidyverse);library(readxl)
 library(tigris);library(sf);library(janitor)
 library(tidycensus);library(viridis);library(tmap)
 library(RPostgres);library(RPostgreSQL);library(DBI)
+library(geojsonsf);library(mongolite)
 
 # Set tigris option to TRUE for Census geometries
 # to load with ACS data call in first section of script
 options(tigris_use_cache = TRUE)
 
-# Must load census API key to call data
+# Load API keys and database connection information
 source("secret.R", local = TRUE)
 census_api_key(api_key_census)
 
@@ -107,24 +108,22 @@ block_groups_sf <- block_groups_sf %>%
 # Write spatial data to database ------------------------------------------
 
 
-# Connect to local database, can get properties from pgAdmin 
-conn <- dbConnect(RPostgres::Postgres(), 
-                  dbname = "ADA-PARC", 
-                  host = "localhost", 
-                  port = "5432",
-                  user = "postgres", 
-                  password = "Voorhees1")
+# Connect to MongoDB database/collection
+mongo_conn <- mongo_connect(collection_name = "geo_block_group",
+                            database_name = "ADA-PARC")
 
-# Write to database
-dbWriteTable(conn = conn, 
-             name = "geo_block_group", 
-             value = block_groups_sf %>% 
-               select("block_group_fips" = GEOID, "block_group_name" = NAME,
-                      place_fips:metro_state, total_population), 
-             overwrite = TRUE)
+# Write to database and add spatial index
+temp_geo <- geojsonsf::sf_geojson(block_groups_sf, atomise = TRUE) 
+mongo_conn$insert(temp_geo)
+mongo_conn$index((add = '{"geometry" : "2dsphere"}'))
+
+# Disconnect
+rm(temp_geo)
+rm(mongo_conn)
 
 
 # Get tabular data for block groups ---------------------------------------
+
 
 # Example for getting Subject Tables at Tract level
 # tracts_raw <- pmap_df(expand_grid(places_counties %>%
@@ -170,11 +169,15 @@ lookup_var <- block_groups_raw %>%
   select(table_name, concept, variable, label) %>% 
   distinct()
 
-# Write to database
-dbWriteTable(conn = conn, 
-             name = "acs_variable_lu", 
-             value = lookup_var, 
-             overwrite = TRUE)
+# Connect to MongoDB database/collection
+mongo_conn <- mongo_connect(collection_name = "acs_variable_lu",
+                            database_name = "ADA-PARC")
+
+# Write to database and add spatial index
+mongo_conn$insert(lookup_var)
+
+# Disconnect
+rm(mongo_conn)
 
 
 # Calculate PWD estimates -------------------------------------------------
@@ -228,33 +231,49 @@ block_groups_pwd <- block_groups_pwd %>%
 #                           pivot_wider(names_from = ), 
 #                         overwrite = TRUE)))
 
-# Write each ACS table to database separately
-dbWriteTable(conn = conn, 
-             name = "acs_C21007", 
-             value = block_groups_pwd, 
-             overwrite = TRUE)
+# Connect to MongoDB database/collection
+mongo_conn <- mongo_connect(collection_name = "acs_C21007",
+                            database_name = "ADA-PARC")
+
+# Write to database and add spatial index
+mongo_conn$insert(block_groups_pwd)
 
 # Disconnect
-dbDisconnect(con)
+rm(mongo_conn)
+  
+
+# RPostgreSQL connections -------------------------------------------------
 
 
-# Map ---------------------------------------------------------------------
-
-
-# #Plot persons w/ disabilities in Albuquerque, NM
-# tm_shape(block_groups_sf %>% 
-#            select(GEOID, metro_state) %>% 
-#            filter(metro_state == "Albuquerque, NM") %>% 
-#            left_join(., 
-#                      block_groups_raw %>%
-#                        filter(table_name == "B00001",
-#                               variable == "B00001_001"), 
-#                      by = "GEOID"), 
-#          projection = 4326) +
-#   tm_polygons("estimate",
-#               style = "quantile",
-#               palette = "Oranges") +
-#   tm_legend(legend.position = c("left", "bottom")) +
-#   tm_scale_bar() +
-#   tm_compass() +
-#   tm_layout(inner.margins = c(0.1, 0.1, 0.1, 0.1))
+# # Connect to local database, can get properties from pgAdmin
+# conn <- dbConnect(RPostgres::Postgres(),
+#                   dbname = "ADA-PARC",
+#                   host = "localhost",
+#                   port = "5432",
+#                   user = "postgres",
+#                   password = "Voorhees1")
+# 
+# # Write to database
+# dbWriteTable(conn = conn,
+#              name = "geo_block_group",
+#              value = block_groups_sf %>%
+#                select("block_group_fips" = GEOID, "block_group_name" = NAME,
+#                       place_fips:metro_state, total_population),
+#              overwrite = TRUE)
+# 
+# # Write to database
+# dbWriteTable(conn = conn,
+#              name = "acs_variable_lu",
+#              value = lookup_var,
+#              overwrite = TRUE)
+# 
+# # Write each ACS table to database separately
+# dbWriteTable(conn = conn,
+#              name = "acs_C21007",
+#              value = block_groups_pwd,
+#              overwrite = TRUE)
+# 
+# # Load data from Postgres database
+# block_groups_sf <- st_read(conn, layer = "geo_block_group")
+# lookup_var <- dbGetQuery(conn, "SELECT * FROM acs_variable_lu")
+# block_groups_pwd <- dbGetQuery(conn, 'SELECT * FROM public."acs_C21007"')
