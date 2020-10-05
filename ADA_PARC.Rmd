@@ -3128,7 +3128,9 @@ Row {data-height=400}
 
 renderUI({
   
-    HTML(paste0("<h4>You have selected: ", input$metro_snapshot, "</h4>"))
+    HTML(paste0("<h3>", input$metro_snapshot, "</h3>", "<br>",
+                "Based on ACS 2018 5-Year Estimates, <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(pwd) %>% scales::comma(.), "</b> of the city's <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(total_population) %>% scales::comma(.), "</b> residents (<b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(percent_of_total_population_with_a_disability), "%</b>) are persons with disabilities."))
+  
   
 })
 
@@ -3191,16 +3193,16 @@ output$metro_snapshot_demo_plot <- renderPlotly({
   # Plot
   gg <- metro_demo_data %>%
     select(metro_state, 
-           "pwd" = pwd,
-           "total_pop" = total_population,
+           pwd,
+           total_population,
            "pwd_perc" = percent_of_total_population_with_a_disability) %>%
-    mutate(pwd_perc = coalesce(pwd_perc, round((pwd / total_pop) * 100, 1))) %>% 
-    ggplot(aes(x = total_pop, y = pwd_perc,
-               text = paste0("Metro: ", metro_state, 
-                             "\nPWD: " = scales::comma(pwd),
-                             "\nTotal Pop.: " = scales::comma(total_pop),
-                             "\nPWD (%): " = paste0(pwd_perc, "%")))) +
-    geom_point() +
+    mutate("pwd_perc" = coalesce(pwd_perc, round((pwd_perc / total_population) * 100, 1))) %>% 
+    ggplot(aes(text = paste0("City: ", metro_state, 
+                             "<br>PWD: ", pwd, 
+                             " (", pwd_perc, "%)",
+                             "<br>Total Pop.", total_population))) +
+    geom_point(stat = "identity",
+               aes(x = total_population, y = pwd_perc)) +
     gghighlight(metro_state %in% input$metro_snapshot) +
     labs(x = "Total Population", y = "PWD (%)") +
     scale_x_log10(labels = scales::comma) +
