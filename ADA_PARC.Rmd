@@ -3100,9 +3100,41 @@ Row {data-height=400}
 
 renderUI({
   
-    HTML(paste0("<h3>", input$metro_snapshot, "</h3>", "<br>",
-                "Based on ACS 2018 5-Year Estimates, <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(pwd) %>% scales::comma(.), "</b> of the city's <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(total_population) %>% scales::comma(.), "</b> residents (<b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(percent_of_total_population_with_a_disability), "%</b>) are persons with disabilities."))
+  # Overview text  
+  metro_snap_overview_text <- paste0(
+    "<h3>", input$metro_snapshot, "</h3>", "<br>",
+    "Based on ACS 2018 5-Year Estimates, <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(pwd) %>% scales::comma(.), "</b> of the city's <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(total_population) %>% scales::comma(.), "</b> residents (<b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(percent_of_total_population_with_a_disability), "%</b>) are persons with disabilities.<br>")
   
+  # Conditional text based on selected tab
+  metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
+    
+    "Demographics text/table/etc"
+
+# DT::renderDataTable({
+# 
+#   DT::datatable(
+#     metro_demo_data %>%
+#       filter(metro_state %in% input$metro_snapshot) %>%
+#       select(percent_of_pwd_who_are_black_african_american:percent_of_pwd_who_are_white_non_hispanic) %>%
+#       pivot_longer(everything(),
+#                    names_to = "Race",
+#                    values_to = "PWD (%)") %>%
+#       mutate(Race = str_remove_all(Race, pattern = "percent_of_pwd_who_are_")))
+# 
+# })
+
+  } else if (input$active_tab == 1) {
+    
+    "Community Participation text/table/etc"
+    
+  } else {
+    
+    "Work/Economic text/table/etc"
+    
+  }
+  
+  # UI Output
+  HTML(paste(metro_snap_overview_text, metro_snap_cond_text, sep = "<br>"))
   
 })
 
@@ -3170,9 +3202,9 @@ output$metro_snapshot_demo_plot <- renderPlotly({
            "pwd_perc" = percent_of_total_population_with_a_disability) %>%
     mutate("pwd_perc" = coalesce(pwd_perc, round((pwd_perc / total_population) * 100, 1))) %>% 
     ggplot(aes(text = paste0("City: ", metro_state, 
-                             "<br>PWD: ", pwd, 
+                             "<br>PWD: ", scales::comma(pwd), 
                              " (", pwd_perc, "%)",
-                             "<br>Total Pop.", total_population))) +
+                             "<br>Total Pop.", scales::comma(total_population)))) +
     geom_point(stat = "identity",
                aes(x = total_population, y = pwd_perc)) +
     gghighlight(metro_state %in% input$metro_snapshot) +
@@ -3193,9 +3225,45 @@ plotlyOutput("metro_snapshot_demo_plot")
 
 ### Community Participation 
 
+
+
 ### Work/Economic 
 
+```{r metro snapshot employment plot}
 
+output$metro_snapshot_we_plot <- renderPlotly({
+
+  # Plot
+  gg <- metro_we_data %>%
+    mutate("percent_pwd_unemployed" = coalesce(
+      percent_pwd_unemployed, 
+      round((pwd_unemployed /
+               people_with_disabilities) * 100, 1))) %>% 
+    select(metro_state,
+           pwd_unemployed,
+           percent_pwd_unemployed,
+           "pwd" = people_with_disabilities) %>%
+    ggplot(aes(text = paste0("City: ", metro_state, 
+                             "<br>PWD Unemployed: ", scales::comma(pwd_unemployed), 
+                             " (", percent_pwd_unemployed, "%)",
+                             "<br>PWD", scales::comma(pwd)))) +
+    geom_point(stat = "identity",
+               aes(x = pwd, y = percent_pwd_unemployed)) +
+    gghighlight(metro_state %in% input$metro_snapshot) +
+    labs(x = "People with Disabilities", y = "PWD Unemployment Rate (%)") +
+    scale_x_log10(labels = scales::comma) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    ggplot_fill_selected() +
+    ggplot_theme_selected() +
+    theme(legend.position = "top")
+  
+  plotly::ggplotly(gg, tooltip = "text")
+  
+})
+
+plotlyOutput("metro_snapshot_we_plot")
+
+```
 
 Comparison {data-navmenu="By Metro"}
 ======================================================================
@@ -3612,6 +3680,15 @@ ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_the
 ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
 
 ```
+
+
+
+<!-- Custom Javascript  -->
+<script>
+$("body").on("shown.bs.tab", "a[data-toggle='tab']", function(e) {
+   Shiny.setInputValue("active_tab", $(e.target).parent().index());
+})
+</script>
 
 
 
