@@ -30,6 +30,12 @@ library(mongolite)
 # Load API keys and database connection information
 source("secret.R", local = TRUE)
 
+map_data <- function(data) {
+  data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+}
+
 ```
 
 
@@ -201,9 +207,7 @@ demo_gen_data <- demographics %>%
            round(percent_of_total_population_with_a_disability, 1))
 
 # SF data and palette
-demo_gen_map_data <- demo_gen_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+demo_gen_map_data <- map_data(demo_gen_data)
 
 demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
 
@@ -334,9 +338,7 @@ demo_age_data <- demographics %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-demo_age_map_data <- demo_age_data %>%
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>%
-    st_transform(4326)
+demo_age_map_data <- map_data(demo_age_data)
 
 # Input for column to map
 selectInput("demo_age_type",
@@ -489,9 +491,7 @@ demo_race_data <- demographics %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-demo_race_map_data <- demo_race_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+demo_race_map_data <- map_data(demo_race_data)
   
 # Input for column to map
 selectInput("demo_race_type", 
@@ -695,9 +695,7 @@ demo_gender_data <- demographics %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-demo_gender_map_data <- demo_gender_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+demo_gender_map_data <- map_data(demo_gender_data)
   
 # Input for column to map
 selectInput("demo_gender_type", 
@@ -844,9 +842,7 @@ demo_distype_data <- demographics %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-demo_distype_map_data <- demo_distype_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+demo_distype_map_data <- map_data(demo_distype_data)
   
 # Input for column to map
 selectInput("demo_distype_type", 
@@ -1017,9 +1013,7 @@ cl_live_data <- community_living %>%
            pwd_in_non_institutional_group_quarters)
 
 # SF data and palette
-cl_live_map_data <- cl_live_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cl_live_map_data <- map_data(cl_live_data)
   
 # Input for column to map
 selectInput("cl_live_type", 
@@ -1170,9 +1164,7 @@ cl_nursing_data <- community_living %>%
   mutate(across(starts_with("percent"), round, 3))
 
 # SF data and palette
-cl_nursing_map_data <- cl_nursing_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cl_nursing_map_data <- map_data(cl_nursing_data)
   
 # # Input for column to map
 # selectInput("cl_nursing_type", 
@@ -1324,9 +1316,7 @@ cl_ps_data <- community_living %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cl_ps_map_data <- cl_ps_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cl_ps_map_data <- map_data(cl_ps_data)
   
 # Input for column to map
 selectInput("cl_ps_type", 
@@ -1478,9 +1468,7 @@ cp_insurance_data <- community_participation %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cp_insurance_map_data <- cp_insurance_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cp_insurance_map_data <- map_data(cp_insurance_data)
   
 # Input for column to map
 selectInput("cp_insurance_type", 
@@ -1681,9 +1669,7 @@ cp_housing_data <- community_participation %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cp_housing_map_data <- cp_housing_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cp_housing_map_data <- map_data(cp_housing_data)
   
 # Input for column to map
 selectInput("cp_housing_type", 
@@ -1844,9 +1830,7 @@ cp_transit_data <- community_participation %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cp_transit_map_data <- cp_transit_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cp_transit_map_data <- map_data(cp_transit_data)
   
 # Input for column to map
 selectInput("cp_transit_type", 
@@ -2005,9 +1989,7 @@ cp_crime_data <- community_participation %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cp_crime_map_data <- cp_crime_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cp_crime_map_data <- map_data(cp_crime_data)
   
 # Input for column to map
 selectInput("cp_crime_type", 
@@ -2158,9 +2140,7 @@ cp_education_data <- community_participation %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cp_education_map_data <- cp_education_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cp_education_map_data <- map_data(cp_education_data)
   
 # Input for column to map
 selectInput("cp_education_type", 
@@ -2341,9 +2321,7 @@ cp_voting_data <- community_participation %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-cp_voting_map_data <- cp_voting_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+cp_voting_map_data <- map_data(cp_voting_data)
   
 # Input for column to map
 selectInput("cp_voting_type", 
@@ -2517,9 +2495,7 @@ we_employ_data <- work_economic %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-we_employ_map_data <- we_employ_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+we_employ_map_data <- map_data(we_employ_data)
   
 # Input for column to map
 selectInput("we_employ_type", 
@@ -2723,9 +2699,7 @@ we_status_data <- work_economic %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-we_status_map_data <- we_status_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+we_status_map_data <- map_data(we_status_data)
   
 # Input for column to map
 selectInput("we_status_type", 
@@ -2913,9 +2887,7 @@ we_afford_data <- work_economic %>%
   mutate(across(starts_with("percent"), round, 1))
 
 # SF data and palette
-we_afford_map_data <- we_afford_data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+we_afford_map_data <- map_data(we_afford_data)
   
 # Input for column to map
 selectInput("we_afford_type", 

@@ -85,3 +85,40 @@ metro_demo_data %>% filter(metro_state != "United States, USA") %>%
 
 
 names(metro_demo_data)
+
+
+map_data <- function(data) { ### This works, the render_map and create_palette functions don't work yet
+  data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+}
+
+render_map <- function(data, selected) {
+  map <- data %>%
+    mutate(map_focus = !!sym(selected)) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~create_palette(data, selected)(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = create_palette(data, selected),
+              values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = paste0("PWD (%),<br>", input$demo_gen_type))
+  
+  map
+}
+
+create_palette <- function(data, selected) {
+  colorQuantile(palette = input$access_map_palette, 
+                domain = pull(data, !!sym(selected)),
+                n = 4)
+}
