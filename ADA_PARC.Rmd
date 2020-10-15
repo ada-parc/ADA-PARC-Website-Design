@@ -36,6 +36,36 @@ map_data <- function(data) {
     st_transform(4326)
 }
 
+create_palette <- function(data, selected) {
+  colorQuantile(palette = input$access_map_palette, 
+                domain = pull(data, !!sym(selected)),
+                n = 4)
+}
+
+render_map <- function(data, selected, palette, title) {
+  map <- data %>%
+    mutate(map_focus = !!sym(selected)) %>% 
+    leaflet() %>%
+    clearShapes() %>%
+    addResetMapButton() %>% 
+    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+                fillColor = ~palette(map_focus),
+                fillOpacity = 1,
+                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+                               percent(map_focus,
+                                       scale = 1, accuracy = 0.1)),
+                layerId = ~state_name) %>% 
+    addLegend(position = "topright", pal = palette,
+              values = ~map_focus,
+              labFormat =  function(type, cuts, p) {
+                n = length(cuts)
+                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+              },
+              title = paste0("PWD (%),<br>", title))
+  
+  map
+}
+
 ```
 
 
@@ -213,44 +243,13 @@ demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" 
 
 pal_demo1 <- reactive ({ 
   
-  colorQuantile(palette = input$access_map_palette, 
-                domain = pull(demo_gen_data, !!sym(demo_gen_selected())),
-                n = 4)
+  create_palette(demo_gen_map_data, demo_gen_selected())
   
 })
-
-# used in tandem with the template in setup, the title for the map
-# as discussed, we can replace this with a built-in title function using leaflet
-# title <- tags$div(
-#   tag.map.title, HTML("Percent with Disabilities")
-# )  
   
 # State map
 output$demo1map <- renderLeaflet({
-  
-  # Map
-  demo1map <- demo_gen_map_data %>%
-    mutate(map_focus = !!sym(demo_gen_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_demo1()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_demo1(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("PWD (%),<br>", input$demo_gen_type))
-  
-  demo1map
-  
+  render_map(demo_gen_map_data, demo_gen_selected(), pal_demo1(), input$demo_gen_type)
 })
 
 # Click event for the map
@@ -358,9 +357,7 @@ demo_age_selected <- reactive({
 
 pal_demo2 <- reactive ({ 
   
-  colorQuantile(palette = input$access_map_palette, 
-                domain = pull(demo_age_data, !!sym(demo_age_selected())),
-                n = 4)
+  create_palette(demo_age_data, demo_age_selected())
   
 })
     
@@ -368,27 +365,7 @@ pal_demo2 <- reactive ({
 output$demo2map <- renderLeaflet({
   
   # Map
-  demo2map <- demo_age_map_data %>%
-    mutate(map_focus = !!sym(demo_age_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_demo2()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_demo2(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("PWD (%),<br>", input$demo_age_type))
-  
-  demo2map
+  render_map(demo_age_map_data, demo_age_selected(), pal_demo2(), input$demo_age_type)
 
 })
 
@@ -518,9 +495,7 @@ demo_race_selected <- reactive({
 
 pal_demo3 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(demo_race_data, !!sym(demo_race_selected())),
-                  n = 4)
+    create_palette(demo_race_data, demo_race_selected())
                  
   })
     
@@ -528,27 +503,7 @@ pal_demo3 <- reactive ({
 output$demo3map <- renderLeaflet({
   
   # Map
-  demo3map <- demo_race_map_data %>%
-    mutate(map_focus = !!sym(demo_race_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_demo3()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_demo3(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("PWD (%),<br>", input$demo_race_type))
-  
-  demo3map
+  render_map(demo_race_map_data, demo_race_selected(), pal_demo3(), input$demo_race_type)
 
 })
 
@@ -715,9 +670,7 @@ demo_gender_selected <- reactive({
 
 pal_demo4 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(demo_gender_data, !!sym(demo_gender_selected())),
-                  n = 4)
+    create_palette(demo_gender_data, demo_gender_selected())
                  
   })
     
@@ -725,27 +678,7 @@ pal_demo4 <- reactive ({
 output$demo4map <- renderLeaflet({
   
   # Map
-  demo4map <- demo_gender_map_data %>%
-    mutate(map_focus = !!sym(demo_gender_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_demo4()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_demo4(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("PWD (%),<br>", input$demo_gender_type))
-  
-  demo4map
+  render_map(demo_gender_map_data, demo_gender_selected(), pal_demo4(), input$demo_gender_type)
 
 })
 
@@ -871,9 +804,7 @@ demo_distype_selected <- reactive({
 
 pal_demo5 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette,
-                  domain = pull(demo_distype_data, !!sym(demo_distype_selected())),
-                  n = 4)
+    create_palette(demo_distype_data, demo_distype_selected())
                  
   })
     
@@ -881,27 +812,7 @@ pal_demo5 <- reactive ({
 output$demo5map <- renderLeaflet({
   
   # Map
-  demo5map <- demo_distype_map_data %>%
-    mutate(map_focus = !!sym(demo_distype_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_demo5()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_demo5(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("PWD (%),<br>", input$demo_distype_type))
-  
-  demo5map
+  render_map(demo_distype_map_data, demo_distype_selected(), pal_demo5(), input$demo_distype_type)
 
 })
 
@@ -1035,37 +946,14 @@ cl_live_selected <- reactive({
 
 pal_cl1 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cl_live_data, !!sym(cl_live_selected())),
-                  n = 4)
+    create_palette(cl_live_data, cl_live_selected())
                  
   })
   
 # State map
 output$cl1map <- renderLeaflet({
   
-  # Map
-  cl1map <- cl_live_map_data %>%
-    mutate(map_focus = !!sym(cl_live_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cl1()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cl1(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("PWD (%),<br>", input$cl_live_type))
-  
-  cl1map
+  render_map(cl_live_map_data, cl_live_selected(), pal_cl1(), input$cl_live_type)
   
 })
 
@@ -1188,37 +1076,14 @@ cl_nursing_selected <- reactive({
 
 pal_cl2 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cl_nursing_data, !!sym(cl_nursing_selected())),
-                  n = 4)
+    create_palette(cl_nursing_data, cl_nursing_selected())
                  
   })
   
 # State map
 output$cl2map <- renderLeaflet({
   
-  # Map
-  cl2map <- cl_nursing_map_data %>%
-    mutate(map_focus = !!sym(cl_nursing_selected())) %>% 
-    leaflet() %>% 
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cl2()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cl2(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("2014 (%)"))
-  
-  cl2map
+  render_map(cl_nursing_map_data, cl_nursing_selected(), pal_cl2(), input$cl_nursing_type)
   
 })
 
@@ -1336,36 +1201,14 @@ cl_ps_selected <- reactive({
 
 pal_cl3 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cl_ps_data, !!sym(cl_ps_selected())),
-                  n = 4)
+    create_palette(cl_ps_data, cl_ps_selected())
                  
   })
   
 # State map
 output$cl3map <- renderLeaflet({
   
-  # Map
-  cl3map <- cl_ps_map_data %>% 
-    mutate(map_focus = !!sym(cl_ps_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cl3()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               round(map_focus, 2)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cl3(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0("Per 10K People,<br>", input$cl_ps_type))
-  
-  cl3map
+  render_map(cl_ps_map_data, cl_ps_selected(), pal_cl3(), input$cl_ps_type)
   
 })
 
@@ -1520,9 +1363,7 @@ cp_insurance_selected <- reactive({
 
 pal_cp1 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cp_insurance_data, !!sym(cp_insurance_selected())),
-                  n = 4)
+    create_palette(cp_insurance_data, cp_insurance_selected())
                  
   })
   
@@ -1530,29 +1371,7 @@ pal_cp1 <- reactive ({
 output$cp1map <- renderLeaflet({
   
   # Map
-  cp1map <- cp_insurance_map_data %>%
-    mutate(map_focus = !!sym(cp_insurance_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cp1()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cp1(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$cp_insurance_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  cp1map
+  render_map(cp_insurance_map_data, cp_insurance_selected(), pal_cp1(), input$cp_insurance_type)
   
 })
 
@@ -1697,39 +1516,14 @@ cp_housing_selected <- reactive({
 
 pal_cp2 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cp_housing_data, !!sym(cp_housing_selected())),
-                  n = 4)
+    create_palette(cp_housing_data, cp_housing_selected())
                  
   })
   
 # State map
 output$cp2map <- renderLeaflet({
   
-  # Map
-  cp2map <- cp_housing_map_data %>%
-    mutate(map_focus = !!sym(cp_housing_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cp2()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cp2(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$cp_housing_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  cp2map
+  render_map(cp_housing_map_data, cp_housing_selected(), pal_cp2(), input$cp_housing_type)
   
 })
 
@@ -1858,39 +1652,14 @@ cp_transit_selected <- reactive({
 
 pal_cp3 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cp_transit_data, !!sym(cp_transit_selected())),
-                  n = 4)
+    create_palette(cp_transit_data, cp_transit_selected())
                  
   })
   
 # State map
 output$cp3map <- renderLeaflet({
   
-  # Map
-  cp3map <- cp_transit_map_data %>%
-    mutate(map_focus = !!sym(cp_transit_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cp3()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cp3(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$cp_transit_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  cp3map
+  render_map(cp_transit_map_data, cp_transit_selected(), pal_cp3(), input$cp_transit_type)
   
 })
 
@@ -2011,9 +1780,7 @@ cp_crime_selected <- reactive({
 
 pal_cp4 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cp_crime_data, !!sym(cp_crime_selected())),
-                  n = 4)
+    create_palette(cp_crime_data, cp_crime_selected())
                  
   })
   
@@ -2021,29 +1788,7 @@ pal_cp4 <- reactive ({
 output$cp4map <- renderLeaflet({
   
   # Map
-  cp4map <- cp_crime_map_data %>%
-    mutate(map_focus = !!sym(cp_crime_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cp4()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cp4(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$cp_crime_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  cp4map
+  render_map(cp_crime_map_data, cp_crime_selected(), pal_cp4(), input$cp_crime_type)
   
 })
 
@@ -2180,39 +1925,14 @@ cp_education_selected <- reactive({
 
 pal_cp5 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cp_education_data, !!sym(cp_education_selected())),
-                  n = 4)
+    create_palette(cp_education_data, cp_education_selected())
                  
   })
   
 # State map
 output$cp5map <- renderLeaflet({
   
-  # Map
-  cp5map <- cp_education_map_data %>%
-    mutate(map_focus = !!sym(cp_education_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cp5()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cp5(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$cp_education_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  cp5map
+  render_map(cp_education_map_data, cp_education_selected(), pal_cp5(), input$cp_education_type)
   
 })
 
@@ -2346,39 +2066,14 @@ cp_voting_selected <- reactive({
 
 pal_cp6 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(cp_voting_data, !!sym(cp_voting_selected())),
-                  n = 4)
+    create_palette(cp_voting_data, cp_voting_selected())
                  
   })
   
 # State map
 output$cp6map <- renderLeaflet({
   
-  # Map
-  cp6map <- cp_voting_map_data %>%
-    mutate(map_focus = !!sym(cp_voting_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_cp6()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_cp6(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$cp_voting_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  cp6map
+  render_map(cp_voting_map_data, cp_voting_selected(), pal_cp6(), input$cp_voting_type)
   
 })
 
@@ -2547,39 +2242,14 @@ we_employ_selected <- reactive({
 
 pal_we1 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(we_employ_data, !!sym(we_employ_selected())),
-                  n = 4)
+    create_palette(we_employ_data, we_employ_selected())
                  
   })
   
 # State map
 output$we1map <- renderLeaflet({
   
-  # Map
-  we1map <- we_employ_map_data %>%
-    mutate(map_focus = !!sym(we_employ_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_we1()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_we1(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$we_employ_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  we1map
+  render_map(we_employ_map_data, we_employ_selected(), pal_we1(), input$we_employ_type)
   
 })
 
@@ -2745,39 +2415,14 @@ we_status_selected <- reactive({
 
 pal_we2 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(we_status_data, !!sym(we_status_selected())),
-                  n = 4)
+    create_palette(we_status_data, we_status_selected())
                  
   })
   
 # State map
 output$we2map <- renderLeaflet({
   
-  # Map
-  we2map <- we_status_map_data %>%
-    mutate(map_focus = !!sym(we_status_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_we2()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_we2(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$we_status_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  we2map
+  render_map(we_status_map_data, we_status_selected(), pal_we2(), input$we_status_type)
   
 })
 
@@ -2912,39 +2557,14 @@ we_afford_selected <- reactive({
 
 pal_we3 <- reactive ({ 
     
-    colorQuantile(palette = input$access_map_palette, 
-                  domain = pull(we_afford_data, !!sym(we_afford_selected())),
-                  n = 4)
+    create_palette(we_afford_data, we_afford_selected())
                  
   })
   
 # State map
 output$we3map <- renderLeaflet({
   
-  # Map
-  we3map <- we_afford_map_data %>%
-    mutate(map_focus = !!sym(we_afford_selected())) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~pal_we3()(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = pal_we3(),
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = paste0(str_replace_all(input$we_afford_type,
-                                             " // ", "<br>"),
-                             " (%)"))
-  
-  we3map
+  render_map(we_afford_map_data, we_afford_selected(), pal_we3(), input$we_afford_type)
   
 })
 
