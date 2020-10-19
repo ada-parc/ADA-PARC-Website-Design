@@ -78,6 +78,58 @@ ref_vars <- load_variables(2018, "acs5", cache = TRUE)
 vars <- ref_vars %>% 
   filter(str_detect(name, pattern = "^C21007_*"))
 
+### From ACS5/subject
+
+ref_vars_subject <- load_variables(2018, "acs5/subject", cache = TRUE)
+
+# Disability Characteristics
+
+acs5_vars <- function(vars_table, vars_name) {
+  vars_table %>%
+    filter(str_detect(name, vars_name)) %>%
+    mutate(
+      clean_label = gsub("Estimate!!Total!!Subject!!|Estimate!!Total!!Subject!![A-Z].*!!|Estimate!!With a disability!!Subject!!|Estimate!!With a disability!!Subject!![A-Z].*!!|Estimate!!Percent with a disability!!Subject!!|Estimate!!Percent with a disability!!Subject!![A-Z].*!!", "", label)
+    ) %>%
+    select(name, label, clean_label)
+}
+
+# Demographics
+vars_disability_demo_totalpop <- acs5_vars(ref_vars_subject, "S1810_C01_*")
+  
+vars_disability_demo_count <- acs5_vars(ref_vars_subject, "S1810_C02_*")
+
+vars_disability_demo_pct <- acs5_vars(ref_vars_subject, "S1810_C03_*")
+
+# Community Living
+
+# Community Participation
+
+# Work Employment
+### From ACS5 
+
+# Sex by Age by Disability Status "B18101_*"
+
+# Receipt of Food Stamps/SNAP in past 12 Monthys by Disability Status of Household "B22010_*"
+
+# Group Quarters Type (5 Types) by Age by Disability status "B26208_*"
+
+# Group Quarters Type (3 Types) by Age by Disability Status "B26108_*"
+
+# Employment status by disability status "C18120_*"
+
+# Age by Disability Status (White, not hispanic/latino) "B18101H_*"
+
+# Age by disability status (white alone) "B18101A_*"
+
+# Age by Disability Status (Hispanic/Latino) "B18101I_*"
+
+# Age by Disability STatus (Black Alone) "B18101B_*"
+
+# Age by Disability STatus (Asian alone) "B18101D_*"
+
+# Age by Disability Status by Poverty Status "C18130_*"
+
+# Work Experience by Disability status "C18121_*"
 
 # Get spatial data for block groups ---------------------------------------
 
