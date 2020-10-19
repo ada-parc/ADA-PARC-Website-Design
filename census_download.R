@@ -88,23 +88,40 @@ acs5_vars <- function(vars_table, vars_name) {
   vars_table %>%
     filter(str_detect(name, vars_name)) %>%
     mutate(
-      clean_label = gsub("Estimate!!Total!!Subject!!|Estimate!!Total!!Subject!![A-Z].*!!|Estimate!!With a disability!!Subject!!|Estimate!!With a disability!!Subject!![A-Z].*!!|Estimate!!Percent with a disability!!Subject!!|Estimate!!Percent with a disability!!Subject!![A-Z].*!!", "", label)
+      clean_label = gsub("^(.*?[A-Z]!!)", "", label)
     ) %>%
     select(name, label, clean_label)
 }
 
 # Demographics
+
 vars_disability_demo_totalpop <- acs5_vars(ref_vars_subject, "S1810_C01_*")
   
-vars_disability_demo_count <- acs5_vars(ref_vars_subject, "S1810_C02_*")
+vars_disability_demo_pwdcount <- acs5_vars(ref_vars_subject, "S1810_C02_*")
 
-vars_disability_demo_pct <- acs5_vars(ref_vars_subject, "S1810_C03_*")
+vars_disability_demo_pwdpct <- acs5_vars(ref_vars_subject, "S1810_C03_*")
 
 # Community Living
+
+vars_disability_cl_totalpop <- acs5_vars(ref_vars_subject, "S2601A_C01_*") %>%
+  filter(str_detect(label, "DISABILITY"))
+
+vars_disability_cl_totalgrouppop <- acs5_vars(ref_vars_subject, "S2601A_C02_*") %>%
+  filter(str_detect(label, "DISABILITY"))
+
+vars_disability_cl_totalinstitutionalizedgrouppop <- acs5_vars(ref_vars_subject, "S2601A_C03_*") %>%
+  filter(str_detect(label, "DISABILITY"))
+
+vars_disability_cl_totalnoninstitutionalizedgrouppop <- acs5_vars(ref_vars_subject, "S2601A_C04_*") %>%
+  filter(str_detect(label, "DISABILITY"))
+
+vars_disability_cl_nursinghome <- acs5_vars(ref_vars_subject, "S2602_C04_*") %>%
+  filter(str_detect(label, "DISABILITY"))
 
 # Community Participation
 
 # Work Employment
+
 ### From ACS5 
 
 # Sex by Age by Disability Status "B18101_*"
