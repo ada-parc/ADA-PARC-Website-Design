@@ -42,7 +42,9 @@ create_palette <- function(data, selected) {
                 n = 4)
 }
 
-render_map <- function(data, selected, palette, title) {
+render_map <- function(data, selected, palette) {
+  title <- selected
+  
   map <- data %>%
     mutate(map_focus = !!sym(selected)) %>% 
     leaflet() %>%
@@ -61,7 +63,7 @@ render_map <- function(data, selected, palette, title) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
               },
-              title = paste0("PWD (%),<br>", title))
+              title = title)
   
   map
 }
@@ -249,7 +251,7 @@ pal_demo1 <- reactive ({
   
 # State map
 output$demo1map <- renderLeaflet({
-  render_map(demo_gen_map_data, demo_gen_selected(), pal_demo1(), input$demo_gen_type)
+  render_map(demo_gen_map_data, demo_gen_selected(), pal_demo1())
 })
 
 # Click event for the map
@@ -365,7 +367,7 @@ pal_demo2 <- reactive ({
 output$demo2map <- renderLeaflet({
   
   # Map
-  render_map(demo_age_map_data, demo_age_selected(), pal_demo2(), input$demo_age_type)
+  render_map(demo_age_map_data, demo_age_selected(), pal_demo2())
 
 })
 
@@ -503,7 +505,7 @@ pal_demo3 <- reactive ({
 output$demo3map <- renderLeaflet({
   
   # Map
-  render_map(demo_race_map_data, demo_race_selected(), pal_demo3(), input$demo_race_type)
+  render_map(demo_race_map_data, demo_race_selected(), pal_demo3())
 
 })
 
@@ -678,7 +680,7 @@ pal_demo4 <- reactive ({
 output$demo4map <- renderLeaflet({
   
   # Map
-  render_map(demo_gender_map_data, demo_gender_selected(), pal_demo4(), input$demo_gender_type)
+  render_map(demo_gender_map_data, demo_gender_selected(), pal_demo4())
 
 })
 
@@ -812,7 +814,7 @@ pal_demo5 <- reactive ({
 output$demo5map <- renderLeaflet({
   
   # Map
-  render_map(demo_distype_map_data, demo_distype_selected(), pal_demo5(), input$demo_distype_type)
+  render_map(demo_distype_map_data, demo_distype_selected(), pal_demo5())
 
 })
 
@@ -953,7 +955,7 @@ pal_cl1 <- reactive ({
 # State map
 output$cl1map <- renderLeaflet({
   
-  render_map(cl_live_map_data, cl_live_selected(), pal_cl1(), input$cl_live_type)
+  render_map(cl_live_map_data, cl_live_selected(), pal_cl1())
   
 })
 
@@ -1083,7 +1085,7 @@ pal_cl2 <- reactive ({
 # State map
 output$cl2map <- renderLeaflet({
   
-  render_map(cl_nursing_map_data, cl_nursing_selected(), pal_cl2(), input$cl_nursing_type)
+  render_map(cl_nursing_map_data, cl_nursing_selected(), pal_cl2())
   
 })
 
@@ -1208,7 +1210,7 @@ pal_cl3 <- reactive ({
 # State map
 output$cl3map <- renderLeaflet({
   
-  render_map(cl_ps_map_data, cl_ps_selected(), pal_cl3(), input$cl_ps_type)
+  render_map(cl_ps_map_data, cl_ps_selected(), pal_cl3())
   
 })
 
@@ -1371,7 +1373,7 @@ pal_cp1 <- reactive ({
 output$cp1map <- renderLeaflet({
   
   # Map
-  render_map(cp_insurance_map_data, cp_insurance_selected(), pal_cp1(), input$cp_insurance_type)
+  render_map(cp_insurance_map_data, cp_insurance_selected(), pal_cp1())
   
 })
 
@@ -1523,7 +1525,7 @@ pal_cp2 <- reactive ({
 # State map
 output$cp2map <- renderLeaflet({
   
-  render_map(cp_housing_map_data, cp_housing_selected(), pal_cp2(), input$cp_housing_type)
+  render_map(cp_housing_map_data, cp_housing_selected(), pal_cp2())
   
 })
 
@@ -1659,7 +1661,7 @@ pal_cp3 <- reactive ({
 # State map
 output$cp3map <- renderLeaflet({
   
-  render_map(cp_transit_map_data, cp_transit_selected(), pal_cp3(), input$cp_transit_type)
+  render_map(cp_transit_map_data, cp_transit_selected(), pal_cp3())
   
 })
 
@@ -1788,7 +1790,7 @@ pal_cp4 <- reactive ({
 output$cp4map <- renderLeaflet({
   
   # Map
-  render_map(cp_crime_map_data, cp_crime_selected(), pal_cp4(), input$cp_crime_type)
+  render_map(cp_crime_map_data, cp_crime_selected(), pal_cp4())
   
 })
 
@@ -1932,7 +1934,7 @@ pal_cp5 <- reactive ({
 # State map
 output$cp5map <- renderLeaflet({
   
-  render_map(cp_education_map_data, cp_education_selected(), pal_cp5(), input$cp_education_type)
+  render_map(cp_education_map_data, cp_education_selected(), pal_cp5())
   
 })
 
@@ -2073,7 +2075,7 @@ pal_cp6 <- reactive ({
 # State map
 output$cp6map <- renderLeaflet({
   
-  render_map(cp_voting_map_data, cp_voting_selected(), pal_cp6(), input$cp_voting_type)
+  render_map(cp_voting_map_data, cp_voting_selected(), pal_cp6())
   
 })
 
@@ -2249,7 +2251,7 @@ pal_we1 <- reactive ({
 # State map
 output$we1map <- renderLeaflet({
   
-  render_map(we_employ_map_data, we_employ_selected(), pal_we1(), input$we_employ_type)
+  render_map(we_employ_map_data, we_employ_selected(), pal_we1())
   
 })
 
@@ -2422,7 +2424,7 @@ pal_we2 <- reactive ({
 # State map
 output$we2map <- renderLeaflet({
   
-  render_map(we_status_map_data, we_status_selected(), pal_we2(), input$we_status_type)
+  render_map(we_status_map_data, we_status_selected(), pal_we2())
   
 })
 
@@ -2564,7 +2566,7 @@ pal_we3 <- reactive ({
 # State map
 output$we3map <- renderLeaflet({
   
-  render_map(we_afford_map_data, we_afford_selected(), pal_we3(), input$we_afford_type)
+  render_map(we_afford_map_data, we_afford_selected(), pal_we3())
   
 })
 
