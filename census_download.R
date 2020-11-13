@@ -45,130 +45,116 @@ base_existing <- read_excel(path = db_path,
   select(state, abbrev, city, metro_state, everything())
 
 
+# Get most populated places -----------------------------------------------
+
+
+# Restrict to 200 most populated cities
+most_populated <- get_estimates(geography = "place",
+                                year = 2018,
+                                product = "population",
+                                geometry = FALSE,
+                                output = "wide") %>% 
+  arrange(desc(POP)) %>% 
+  head(200)
+  
+
 # Identify states and counties for each Census designated place -----------
 
 
-# Get Census designated places 
-places <- map_df(.x = base_existing %>% pull(abbrev) %>% unique(),
-                 .f = ~(tigris::places(state = .x, cb = TRUE, class = "sf") %>% 
-                          rename("place_fips" = GEOID, "place_name" = NAME) %>% 
-                          mutate("state" = .x,
-                                 "metro_state" = paste0(place_name, ", ", state)) %>% 
-                          select(place_fips, place_name, state, metro_state, everything()))) %>% 
-  semi_join(., base_existing, by = "metro_state")
+# All states and counties
+fips_codes <- force(fips_codes) %>% 
+  mutate("state_code_num" = as.numeric(state_code)) %>% 
+  filter(state_code_num %in% c(1:56)) %>% 
+  distinct(state, state_code, county_code)
+
+# Get Census designated places in established lists
+places <- pmap_df(.l = fips_codes %>% select(state_code, state) %>% distinct(),
+                  .f = ~(tigris::places(state = ..1, cb = TRUE, class = "sf") %>% 
+                           rename("place_fips" = GEOID, "place_name" = NAME) %>% 
+                           mutate("state" = ..2,
+                                  "metro_state" = paste0(place_name, ", ", state)) %>% 
+                           select(place_fips, place_name, state, metro_state, everything()))) %>% 
+  filter(metro_state %in% base_existing$metro_state | place_fips %in% most_populated$GEOID)
 
 # Get counties associated with CDPs
-counties <- map_df(.x = base_existing %>% pull(abbrev) %>% unique(),
-                   .f = ~(tigris::counties(state = .x, cb = TRUE, class = "sf") %>% 
-                            rename("county_fips" = GEOID, "county_name" = NAME) %>% 
-                            mutate("state" = .x) %>% 
-                            select(county_fips, county_name, state, everything())))
+counties <- pmap_df(.l = fips_codes %>% select(state_code, state) %>% distinct(),
+                    .f = ~(tigris::counties(state = ..1, cb = TRUE, class = "sf") %>% 
+                             rename("county_fips" = GEOID, "county_name" = NAME) %>% 
+                             mutate("state" = ..2) %>% 
+                             select(county_fips, county_name, state, everything())))
   
 # Spatial join places and counties to get names of counties that intersect places
 places_counties <- st_join(places, counties) 
 
+# Remove temporary tables
+rm(places, counties)
 
-# Generate vector of ACS variables to pull --------------------------------
+
+# Get place ACS data ------------------------------------------------------
 
 
 # List of variables for reference
-ref_vars <- load_variables(2018, "acs5", cache = TRUE)
-
-# Get variables in table C21007
-vars <- ref_vars %>% 
-  filter(str_detect(name, pattern = "^C21007_*"))
-
-### From ACS5/subject
-
 ref_vars_subject <- load_variables(2018, "acs5/subject", cache = TRUE)
 
-# Disability Characteristics
+# Get variables in subject tables
+acs_place_subject_vars <- ref_vars_subject %>% 
+  filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
+  mutate(table_name = gsub( "_.*$", "", name),
+         label = gsub("!!", "; ", label))
 
-acs5_vars <- function(vars_table, vars_name) {
-  vars_table %>%
-    filter(str_detect(name, vars_name)) %>%
-    mutate(
-      clean_label = gsub("^(.*?[A-Z]!!)", "", label)
-    ) %>%
-    select(name, label, clean_label)
-}
-
-# Demographics
-
-vars_disability_demo_totalpop <- acs5_vars(ref_vars_subject, "S1810_C01_*")
-  
-vars_disability_demo_pwdcount <- acs5_vars(ref_vars_subject, "S1810_C02_*")
-
-vars_disability_demo_pwdpct <- acs5_vars(ref_vars_subject, "S1810_C03_*")
-
-# Community Living
-
-vars_disability_cl_totalpop <- acs5_vars(ref_vars_subject, "S2601A_C01_*") %>%
-  filter(str_detect(label, "DISABILITY"))
-
-vars_disability_cl_totalgrouppop <- acs5_vars(ref_vars_subject, "S2601A_C02_*") %>%
-  filter(str_detect(label, "DISABILITY"))
-
-vars_disability_cl_totalinstitutionalizedgrouppop <- acs5_vars(ref_vars_subject, "S2601A_C03_*") %>%
-  filter(str_detect(label, "DISABILITY"))
-
-vars_disability_cl_totalnoninstitutionalizedgrouppop <- acs5_vars(ref_vars_subject, "S2601A_C04_*") %>%
-  filter(str_detect(label, "DISABILITY"))
-
-vars_disability_cl_nursinghome <- acs5_vars(ref_vars_subject, "S2602_C04_*") %>%
-  filter(str_detect(label, "DISABILITY"))
-
-# Community Participation
-
-# Work Employment
-
-### From ACS5 
-
-# Sex by Age by Disability Status "B18101_*"
-
-# Receipt of Food Stamps/SNAP in past 12 Monthys by Disability Status of Household "B22010_*"
-
-# Group Quarters Type (5 Types) by Age by Disability status "B26208_*"
-
-# Group Quarters Type (3 Types) by Age by Disability Status "B26108_*"
-
-# Employment status by disability status "C18120_*"
-
-# Age by Disability Status (White, not hispanic/latino) "B18101H_*"
-
-# Age by disability status (white alone) "B18101A_*"
-
-# Age by Disability Status (Hispanic/Latino) "B18101I_*"
-
-# Age by Disability STatus (Black Alone) "B18101B_*"
-
-# Age by Disability STatus (Asian alone) "B18101D_*"
-
-# Age by Disability Status by Poverty Status "C18130_*"
-
-# Work Experience by Disability status "C18121_*"
-
-# Get spatial data for block groups ---------------------------------------
+# Grab place level data
+acs_place_subject_raw <- pmap_df(.l = fips_codes %>% select(state_code) %>% distinct(),
+                                 .f = ~(get_acs(geography = "place",
+                                                year = 2018,
+                                                variables = acs_place_subject_vars %>% pull(name),
+                                                survey = "acs5",
+                                                state = ..1, 
+                                                geometry = FALSE,
+                                                wide = TRUE) %>% 
+                                          semi_join(., places, by = c("GEOID" = "place_fips"))))
 
 
-# Restrict block groups to those within CDP
-block_groups_sf <- pmap_df(places_counties %>%
-                             select("state_fips" = STATEFP.y,
-                                    "county_fips" = COUNTYFP) %>% 
-                             st_drop_geometry() %>% 
-                             unique(),
-                           .f = ~(get_acs(geography = "block group",
-                                          year = 2018,
-                                          variables = "B00001_001",
-                                          survey = "acs5",
-                                          state = ..1, 
-                                          county = ..2,
-                                          geometry = TRUE,
-                                          output = "wide"))) %>% 
+# Write variable lookup to database ---------------------------------------
+
+
+# Write variables and names to lookup
+lookup_var <- acs_place_subject_vars %>% 
+  select(concept, table_name, "variable" = name, label) %>% 
+  distinct()
+
+# Connect to MongoDB database/collection
+mongo_conn <- mongo_connect(collection_name = "acs_variable_lu",
+                            database_name = "ADA-PARC")
+
+# Write to database and add spatial index
+mongo_conn$drop()
+mongo_conn$insert(lookup_var)
+
+# Disconnect
+rm(mongo_conn)
+
+
+# Get spatial data for tracts ---------------------------------------------
+
+
+# Restrict tracts to those within CDP
+tracts_sf <- pmap_df(places_counties %>%
+                       select("state_fips" = STATEFP.y,
+                              "county_fips" = COUNTYFP) %>% 
+                       st_drop_geometry() %>% 
+                       unique(),
+                     .f = ~(get_acs(geography = "tract",
+                                    year = 2018,
+                                    variables = "B00001_001",
+                                    survey = "acs5",
+                                    state = ..1, 
+                                    county = ..2,
+                                    geometry = TRUE,
+                                    output = "wide"))) %>% 
   rename("total_population" = B00001_001E)
 
 # Filter to block groups to those within CDPs
-block_groups_sf <- block_groups_sf %>% 
+tracts_sf <- tracts_sf %>% 
   st_filter(., places) %>% 
   st_join(., places %>% select(place_fips, place_name, state, metro_state), 
           largest = TRUE, left = FALSE) 
@@ -178,171 +164,105 @@ block_groups_sf <- block_groups_sf %>%
 
 
 # Connect to MongoDB database/collection
-mongo_conn <- mongo_connect(collection_name = "geo_block_group",
+mongo_conn <- mongo_connect(collection_name = "geo_tract",
                             database_name = "ADA-PARC")
 
 # Write to database and add spatial index
-temp_geo <- geojsonsf::sf_geojson(block_groups_sf, atomise = TRUE) 
+temp_geo <- geojsonsf::sf_geojson(tracts_sf, atomise = TRUE) 
+mongo_conn$drop()
 mongo_conn$insert(temp_geo)
 mongo_conn$index((add = '{"geometry" : "2dsphere"}'))
+
+# Remove temporary tables
+rm(tracts_sf)
 
 # Disconnect
 rm(temp_geo)
 rm(mongo_conn)
 
 
-# Get tabular data for block groups ---------------------------------------
+# Get tabular data for tracts ---------------------------------------------
 
 
-# Example for getting Subject Tables at Tract level
-# tracts_raw <- pmap_df(expand_grid(places_counties %>%
-#                                     select("state_fips" = STATEFP.y,
-#                                            "county_fips" = COUNTYFP) %>% 
-#                                     st_drop_geometry() %>% 
-#                                     unique(), 
-#                                   table = c("S1810", "S1811")),
-#                       .f = ~(get_acs(geography = "tract",
-#                                      year = 2018,
-#                                      table = ..3,
-#                                      survey = "acs5",
-#                                      state = ..1, 
-#                                      county = ..2,
-#                                      geometry = FALSE,
-#                                      wide = TRUE)))
+# Get variables in subject tables (subset of place variables)
+acs_tract_subject_vars <- acs_place_subject_vars %>% 
+  filter(str_detect(name, pattern = "^S181(0|1)_*"))
 
-# Get disability data for block groups in counties/states
-block_groups_raw <- pmap_df(places_counties %>%
-                              select("state_fips" = STATEFP.y,
-                                     "county_fips" = COUNTYFP) %>% 
-                              st_drop_geometry() %>% 
-                              unique(),
-                            .f = ~(get_acs(geography = "block group",
-                                           year = 2018,
-                                           variables = vars %>% pull(name),
-                                           survey = "acs5",
-                                           state = ..1, 
-                                           county = ..2,
-                                           geometry = FALSE))) %>% 
-  semi_join(., block_groups_sf, by = "GEOID") %>% 
-  left_join(., vars, by = c("variable" = "name")) %>% 
-  mutate(table_name = gsub( "_.*$", "", variable),
-         label = gsub("!!", "; ", label)) %>% 
-  filter(grepl("\\d$", table_name))
+# Get subject tables at tract level
+acs_tract_subject_raw <- pmap_df(places_counties %>%
+                                   select("state_fips" = STATEFP.y,
+                                          "county_fips" = COUNTYFP) %>%
+                                   st_drop_geometry() %>%
+                                   unique(),
+                                 .f = ~(get_acs(geography = "tract",
+                                                year = 2018,
+                                                variables = acs_tract_subject_vars %>% pull(name),
+                                                survey = "acs5",
+                                                state = ..1,
+                                                county = ..2,
+                                                geometry = FALSE,
+                                                wide = TRUE) %>% 
+                                          semi_join(., tracts_sf, by = "GEOID")))
+
+# Remove temporary tables
+rm(acs_place_subject_vars, acs_tract_subject_vars)
 
 
-# Write variable lookup to database ---------------------------------------
+# Function to write data efficiently to MongoDB ---------------------------
 
 
-# Write variables and names to lookup
-lookup_var <- block_groups_raw %>% 
-  select(table_name, concept, variable, label) %>% 
-  distinct()
-
-# Connect to MongoDB database/collection
-mongo_conn <- mongo_connect(collection_name = "acs_variable_lu",
-                            database_name = "ADA-PARC")
-
-# Write to database and add spatial index
-mongo_conn$insert(lookup_var)
-
-# Disconnect
-rm(mongo_conn)
-
-
-# Calculate PWD estimates -------------------------------------------------
-
-
-#Total estimates
-block_groups_total <- block_groups_raw %>%
-  filter(variable == "C21007_001") %>%
-  group_by(GEOID, NAME) %>% 
-  summarize("total_est" = sum(estimate), 
-            total_moe = moe_sum(moe = moe, 
-                                estimate = estimate))
-
-#Disability estimates
-block_groups_pwd <- block_groups_raw %>%
-  filter(str_detect(label, pattern = "With a disability$")) %>%
-  group_by(GEOID, NAME) %>% 
-  summarize("pwd_est" = sum(estimate), 
-            "pwd_moe" = moe_sum(moe = moe, 
-                                estimate = estimate))
-
-#Join totals per block group to disability estimates
-block_groups_pwd <- left_join(block_groups_pwd, block_groups_total, 
-                        by = c("GEOID", "NAME"))
-
-#Calculate % disability
-block_groups_pwd <- block_groups_pwd %>%
-  ungroup() %>% 
-  mutate("pwd_perc_est" = pwd_est/total_est,
-         "pwd_perc_moe" = moe_ratio(num = pwd_est, 
-                                    denom = total_est,
-                                    moe_num = pwd_moe, 
-                                    moe_denom = total_moe))
-
-
-# Write other tabular data to database ------------------------------------
-
-
-# Example of writing several variables out to separate tables by code
-# map(.x = block_groups_raw %>% 
-#       select(table_name) %>% 
-#       distinct() %>% 
-#       pull(),
-#     .f = ~(dbWriteTable(conn = conn, 
-#                         name = paste0("acs_", .x), 
-#                         value = block_groups_raw %>% 
-#                           filter(table_name == .x) %>% 
-#                           select(concept, 
-#                                  "block_group_fips" = GEOID, "block_group_name" = NAME,
-#                                  variable, label, estimate) %>% 
-#                           pivot_wider(names_from = ), 
-#                         overwrite = TRUE)))
-
-# Connect to MongoDB database/collection
-mongo_conn <- mongo_connect(collection_name = "acs_C21007",
-                            database_name = "ADA-PARC")
-
-# Write to database and add spatial index
-mongo_conn$insert(block_groups_pwd)
-
-# Disconnect
-rm(mongo_conn)
+# Organize data into list of dfs and export
+fun_write_by_geo_table <- function(df, geo_name) {
   
+  # Group by table name
+  df <- df %>% 
+    left_join(lookup_var %>% select(variable, table_name), by = "variable") %>% 
+    group_by(table_name)
+  
+  # Get table names to rename list elements 
+  df_group_names <- group_keys(df) %>% 
+    mutate("table_name" = paste0("acs_", geo_name, "_", table_name))
+  
+  # Reconfigure into list of dfs for database purposes
+  df_list <- df %>% 
+    group_map( ~{ .x %>% 
+    pivot_wider(names_from = variable, values_from = c(estimate, moe)) },
+    .keep = FALSE)
+  
+  # Set names for list
+  df_list <- df_list %>% 
+    setNames(df_group_names$table_name)
 
-# RPostgreSQL connections -------------------------------------------------
+  # Write to MongoDB function
+  map2(.x = df_list,
+       .y = names(df_list),
+       .f = ~{
+         # Connect to MongoDB database/collection
+         mongo_conn <- mongo_connect(collection_name = .y,
+                                     database_name = "ADA-PARC")
+         
+         # Write to database
+         mongo_conn$drop()
+         mongo_conn$insert(.x)
+         
+         # Message
+         msg <- paste0("Writing ", as.character(nrow(.x)),
+                       " rows to ", .y)
+         print(msg)
+         
+         # Disconnect
+         rm(mongo_conn)
+       }
+  )
+  
+}
 
 
-# # Connect to local database, can get properties from pgAdmin
-# conn <- dbConnect(RPostgres::Postgres(),
-#                   dbname = "ADA-PARC",
-#                   host = "localhost",
-#                   port = "5432",
-#                   user = "postgres",
-#                   password = "Voorhees1")
-# 
-# # Write to database
-# dbWriteTable(conn = conn,
-#              name = "geo_block_group",
-#              value = block_groups_sf %>%
-#                select("block_group_fips" = GEOID, "block_group_name" = NAME,
-#                       place_fips:metro_state, total_population),
-#              overwrite = TRUE)
-# 
-# # Write to database
-# dbWriteTable(conn = conn,
-#              name = "acs_variable_lu",
-#              value = lookup_var,
-#              overwrite = TRUE)
-# 
-# # Write each ACS table to database separately
-# dbWriteTable(conn = conn,
-#              name = "acs_C21007",
-#              value = block_groups_pwd,
-#              overwrite = TRUE)
-# 
-# # Load data from Postgres database
-# block_groups_sf <- st_read(conn, layer = "geo_block_group")
-# lookup_var <- dbGetQuery(conn, "SELECT * FROM acs_variable_lu")
-# block_groups_pwd <- dbGetQuery(conn, 'SELECT * FROM public."acs_C21007"')
+# Export to MongoDB -------------------------------------------------------
+
+
+# Places
+fun_write_by_geo_table(df = acs_place_subject_raw, geo = "place")
+
+# Tracts
+fun_write_by_geo_table(df = acs_tract_subject_raw, geo = "tract")
