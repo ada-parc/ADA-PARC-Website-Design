@@ -15,11 +15,12 @@ output:
 # ====================
 
 # Packages
-library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor); 
+library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor) 
 library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
-library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
-library(colourpicker); library(DT); library(gghighlight); library(highcharter);
-library(scales); library(hrbrthemes); library(ggthemes); 
+library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard)
+library(colourpicker); library(DT); library(gghighlight)
+library(knitr); library(kableExtra)
+library(scales); library(hrbrthemes); library(ggthemes)
 library(extrafont); library(plotly)
 library(mongolite)
 
@@ -97,6 +98,7 @@ Use the **Accessibility** tab to set color palettes for the visualizations in th
 Application author:
 
 [Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz]()
+<br>
 [Voorhees Center](https://voorheescenter.uic.edu/)
 
 Row
@@ -293,7 +295,7 @@ leafletOutput("demo1map")
 
 ```
 
-### Table {.wide-DT}
+### Table {.table-wrapper}
 
 ```{r, demographics general table}
 
@@ -410,7 +412,7 @@ leafletOutput("demo2map")
 
 ```
 
-### Table {.wide-DT}
+### Table {.table-wrapper}
 
 ```{r, demographics age table }
 
@@ -548,7 +550,7 @@ leafletOutput("demo3map")
 
 ```
 
-### Table {.wide-DT}
+### Table {.table-wrapper}
 
 ```{r, demographics race table}
 
@@ -723,7 +725,7 @@ leafletOutput("demo4map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, demographics gender table }
 
@@ -857,7 +859,7 @@ leafletOutput("demo5map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, demographics disability type table }
 
@@ -998,7 +1000,7 @@ leafletOutput("cl1map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community living where people live table }
 
@@ -1128,7 +1130,7 @@ leafletOutput("cl2map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community living nursing home table }
 
@@ -1253,7 +1255,7 @@ leafletOutput("cl3map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community living programs spending table }
 
@@ -1416,7 +1418,7 @@ leafletOutput("cp1map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community participation health insurance table }
 
@@ -1568,7 +1570,7 @@ leafletOutput("cp2map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community participation housing table }
 
@@ -1704,7 +1706,7 @@ leafletOutput("cp3map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community participation transit table }
 
@@ -1833,7 +1835,7 @@ leafletOutput("cp4map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community participation crime table }
 
@@ -1977,7 +1979,7 @@ leafletOutput("cp5map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community participation education table }
 
@@ -2118,7 +2120,7 @@ leafletOutput("cp6map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, community participation voting table }
 
@@ -2294,7 +2296,7 @@ leafletOutput("we1map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, work economic employment table }
 
@@ -2467,7 +2469,7 @@ leafletOutput("we2map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, work economic status table }
 
@@ -2609,7 +2611,7 @@ leafletOutput("we3map")
 
 ```
 
-### Table {.wide-DT data-width=500}
+### Table {.table-wrapper data-width=500}
 
 ```{r, work economic affordability table }
 
@@ -2688,32 +2690,58 @@ Sidebar {.sidebar}
 
 # Define inputs
 selectInput(inputId = "metro_snapshot", 
-            label = "Select a Metro or Town", 
+            label = "Select a City or Town", 
             choices = metro_demo_data %>% select(metro_state))
 
 # Pull Census block group data for selected metro
 # Spatial
-mongo_conn_sf <- mongo_connect(collection_name = "geo_block_group",
-                               database_name = "ADA-PARC")
-
-metro_snapshot_block_sf <- reactive({
+metro_snapshot_tract_sf <- reactive({
   
-  temp_metro <-  list(temp_metro = input$metro_snapshot)
-  temp_geo <- mongo_conn_sf$iterate(query = sprintf('{ "properties.metro_state" : "%s" }',
-                                                    temp_metro))
+  # Input for odd Census place names
+  temp_metro <-  list(
+    temp_metro = case_when(input$metro_snapshot == "Arlington Heights Village, IL" ~
+                             "Arlington Heights, IL",
+                           input$metro_snapshot == "Hazel Crest Village, IL" ~
+                             "Hazel Crest, IL",
+                           input$metro_snapshot == "Indianapolis, IN" ~
+                             "Indianapolis city (balance), IN",
+                           input$metro_snapshot == "Naperville City, IL" ~
+                             "Naperville, IL",
+                           input$metro_snapshot == "Nashville-Davidson, TN" ~
+                             "Nashville-Davidson metropolitan government (balance), TN",
+                           TRUE ~ input$metro_snapshot))
+
+  # Connect and pull
+  temp_mongo_conn <- mongo_connect(collection_name = "geo_tract",
+                                   database_name = "ADA-PARC")
+  temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.metro_state" : "%s" }',
+                                                      temp_metro))
   temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
   return(temp_sf)
   
 })
 
+# Lookup
+mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
+                               database_name = "ADA-PARC")
+metro_snapshot_lu <-mongo_conn_lu$find()
+rm(mongo_conn_lu)
+
 # Tabular
-mongo_conn <- mongo_connect(collection_name = "acs_C21007",
-                            database_name = "ADA-PARC")
-metro_snapshot_block <- mongo_conn$find()
+mongo_conn_tab <- mongo_connect(collection_name = "acs_tract_S1810",
+                                database_name = "ADA-PARC")
+metro_snapshot_tract_full <- mongo_conn_tab$find()
+
+# Reactive element
+metro_snapshot_tract <- reactive({
+  
+  semi_join(metro_snapshot_tract_full, metro_snapshot_tract_sf(), by = "GEOID")
+
+})
 
 ```
 
-Row {data-height=400}
+Row {data-height=330}
 -----------------------------------------------------------------------
 
 ### Overview 
@@ -2731,19 +2759,6 @@ renderUI({
   metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
     
     "Demographics text/table/etc"
-
-# DT::renderDataTable({
-# 
-#   DT::datatable(
-#     metro_demo_data %>%
-#       filter(metro_state %in% input$metro_snapshot) %>%
-#       select(percent_of_pwd_who_are_black_african_american:percent_of_pwd_who_are_white_non_hispanic) %>%
-#       pivot_longer(everything(),
-#                    names_to = "Race",
-#                    values_to = "PWD (%)") %>%
-#       mutate(Race = str_remove_all(Race, pattern = "percent_of_pwd_who_are_")))
-# 
-# })
 
   } else if (input$active_tab == 1) {
     
@@ -2766,34 +2781,32 @@ renderUI({
 
 ```{r metro snapshot overview map}
 
+# Palette
 pal_metro_snapshot <- reactive ({
 
     colorQuantile(palette = input$access_map_palette,
-                  domain = pull(metro_snapshot_block, pwd_est),
+                  domain = pull(metro_snapshot_tract(), estimate_S1810_C02_001),
                   n = 4)
 
   })
 
-# State map
-renderLeaflet({
-
-  left_join(metro_snapshot_block_sf(),
-            metro_snapshot_block,
-            by = c("GEOID", "NAME")) %>%
+# Tract map
+output$snapshotmap <- renderLeaflet({
+  
+  left_join(metro_snapshot_tract_sf(),
+            metro_snapshot_tract() %>% select(GEOID, estimate_S1810_C02_001),
+            by = "GEOID") %>%
     leaflet() %>%
     clearShapes() %>%
     addProviderTiles(providers$Esri, group = "Esri") %>%
     addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
-                fillColor = ~pal_metro_snapshot()(pwd_est),
+                fillColor = ~pal_metro_snapshot()(estimate_S1810_C02_001),
                 fillOpacity = 0.7,
-                popup = ~paste(str_replace(NAME, ", ", "<br>"),
-                               "PWD: ", scales::comma(pwd_est),
-                               "PWD (%): ", percent(pwd_perc_est,
-                                                    accuracy = 0.1))) %>%
+                layerId = ~GEOID) %>%
     addLegend(position = "topright", pal = pal_metro_snapshot(),
-              values = ~pwd_est,
+              values = ~estimate_S1810_C02_001,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
@@ -2805,9 +2818,80 @@ renderLeaflet({
 
 })
 
+# Click event for the map
+click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
+  
+  x <- input$snapshotmap_shape_click
+  y <- x$id
+  
+  return(y)
+
+})
+
+# Add the clicked state to the map, and remove when a new one is clicked
+observe({
+  
+  req(click_snapshotmap())
+  
+  snapshotmap <- leafletProxy("snapshotmap") %>%
+    removeShape("highlight_tract") %>%
+    addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_snapshotmap(), ], 
+                fill = FALSE, weight = 3,
+                color = "#000000", opacity = 1, layerId = "highlight_tract")
+  
+})
+
+leafletOutput("snapshotmap") 
+
 ```
 
-Row {.tabset .tabset-fade data-height=400}
+### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
+
+```{r, metro snapshot tract table}
+
+# Reconfigure tract data for table
+metro_snapshot_table_data <- reactive ({
+  
+  temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ] 
+  
+  temp %>% 
+    select(GEOID:NAME, matches("_C02_")) %>%
+    pivot_longer(cols = -c(GEOID:NAME),
+                 names_to = c(".value", "variable"),
+                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>%
+    left_join(.,
+              metro_snapshot_lu %>% select(variable, label),
+              by = "variable") %>%
+    mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
+    mutate(label = case_when(variable == "S1810_C02_001" ~
+                                 "Overall; Persons with Disabilities",
+                               TRUE ~ label)) %>% 
+    separate(label, into = c("category", "label"), 
+             sep = "; ", extra = "merge") %>% 
+    filter(category != "DISABILITY TYPE BY DETAILED AGE") %>% 
+    mutate(category = str_to_title(category))
+
+})
+
+# Table
+renderUI({ HTML(
+
+  kbl(metro_snapshot_table_data() %>%
+        mutate(output = paste0(comma(estimate), " (±", comma(moe), ")")) %>% 
+        mutate(across(everything(), 
+                      ~cell_spec(., "html",
+                                 color = ifelse(moe >= estimate, "red", "black")))) %>%
+        select("Variable" = label, "Est." = output),
+      escape = FALSE) %>% 
+    pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
+    scroll_box(width = "100%", height = "330px")
+
+) })
+  
+```
+
+Row {.tabset .tabset-fade data-height=330}
 -----------------------------------------------------------------------
 
 ### Demographics 
@@ -3387,8 +3471,8 @@ padding: 10px;
   overflow-y: auto;
 }
 
-/* Scroll overflow for DT */
-.wide-DT {
+/* Scroll overflow for tables */
+.table-wrapper {
   overflow-x: scroll;
 }
 
