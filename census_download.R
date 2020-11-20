@@ -86,9 +86,6 @@ counties <- pmap_df(.l = fips_codes %>% select(state_code, state) %>% distinct()
 # Spatial join places and counties to get names of counties that intersect places
 places_counties <- st_join(places, counties) 
 
-# Remove temporary tables
-rm(places, counties)
-
 
 # Get place ACS data ------------------------------------------------------
 
@@ -99,6 +96,7 @@ ref_vars_subject <- load_variables(2018, "acs5/subject", cache = TRUE)
 # Get variables in subject tables
 acs_place_subject_vars <- ref_vars_subject %>% 
   filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
+  filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% 
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
 
@@ -159,6 +157,9 @@ tracts_sf <- tracts_sf %>%
   st_join(., places %>% select(place_fips, place_name, state, metro_state), 
           largest = TRUE, left = FALSE) 
 
+# Remove temporary tables
+rm(places, counties)
+
 
 # Write spatial data to database ------------------------------------------
 
@@ -172,9 +173,6 @@ temp_geo <- geojsonsf::sf_geojson(tracts_sf, atomise = TRUE)
 mongo_conn$drop()
 mongo_conn$insert(temp_geo)
 mongo_conn$index((add = '{"geometry" : "2dsphere"}'))
-
-# Remove temporary tables
-rm(tracts_sf)
 
 # Disconnect
 rm(temp_geo)
@@ -203,9 +201,6 @@ acs_tract_subject_raw <- pmap_df(places_counties %>%
                                                 geometry = FALSE,
                                                 wide = TRUE) %>% 
                                           semi_join(., tracts_sf, by = "GEOID")))
-
-# Remove temporary tables
-rm(acs_place_subject_vars, acs_tract_subject_vars)
 
 
 # Function to write data efficiently to MongoDB ---------------------------
@@ -262,7 +257,10 @@ fun_write_by_geo_table <- function(df, geo_name) {
 
 
 # Places
-fun_write_by_geo_table(df = acs_place_subject_raw, geo = "place")
+# fun_write_by_geo_table(df = acs_place_subject_raw, geo = "place")
 
 # Tracts
 fun_write_by_geo_table(df = acs_tract_subject_raw, geo = "tract")
+
+# Remove temporary tables
+rm(acs_place_subject_vars, acs_tract_subject_vars, tracts_sf)

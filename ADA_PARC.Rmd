@@ -2725,7 +2725,6 @@ metro_snapshot_tract_sf <- reactive({
 mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
                                database_name = "ADA-PARC")
 metro_snapshot_lu <-mongo_conn_lu$find()
-rm(mongo_conn_lu)
 
 # Tabular
 mongo_conn_tab <- mongo_connect(collection_name = "acs_tract_S1810",
@@ -2845,7 +2844,139 @@ leafletOutput("snapshotmap")
 
 ```
 
-### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
+Row {.data-height=300}
+-----------------------------------------------------------------------
+
+### City in Context {.data-width=500}
+
+```{r metro snapshot plots}
+
+# ===============
+# Demographics
+# ===============
+
+# Definition
+output$metro_snapshot_demo_plot <- renderPlotly({
+  
+  # Plot
+  gg <- metro_demo_data %>%
+    select(metro_state, 
+           pwd,
+           total_population,
+           "pwd_perc" = percent_of_total_population_with_a_disability) %>%
+    mutate("pwd_perc" = coalesce(pwd_perc, 
+                                 round((pwd_perc / total_population) * 100, 1))) %>% 
+    ggplot(aes(text = paste0("City: ", metro_state, 
+                             "<br>PWD: ", scales::comma(pwd), 
+                             " (", pwd_perc, "%)",
+                             "<br>Total Pop.", 
+                             scales::comma(total_population)))) +
+    geom_point(stat = "identity",
+               aes(x = total_population, y = pwd_perc)) +
+    gghighlight(metro_state %in% input$metro_snapshot) +
+    labs(x = "Total Population", y = "PWD (%)",
+         title = "PWD (%) vs. Total Population") +
+    scale_x_log10(labels = scales::comma) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    ggplot_fill_selected() +
+    ggplot_theme_selected() +
+    theme(legend.position = "top")
+  
+  plotly::ggplotly(gg, tooltip = "text")
+  
+})
+
+# ===============
+# Community Participation
+# ===============
+
+output$metro_snapshot_cp_plot <- renderPlotly({
+  
+  # Plot
+  
+  gg <- ggplot(mtcars, aes(x = mpg)) + 
+    geom_histogram(binwidth = 5)
+
+
+    
+  # gg <- metro_demo_data %>%
+  #   select(metro_state, 
+  #          pwd,
+  #          total_population,
+  #          "pwd_perc" = percent_of_total_population_with_a_disability) %>%
+  #   mutate("pwd_perc" = coalesce(pwd_perc, 
+  #                                round((pwd_perc / total_population) * 100, 1))) %>% 
+  #   ggplot(aes(text = paste0("City: ", metro_state, 
+  #                            "<br>PWD: ", scales::comma(pwd), 
+  #                            " (", pwd_perc, "%)",
+  #                            "<br>Total Pop.", 
+  #                            scales::comma(total_population)))) +
+  #   geom_point(stat = "identity",
+  #              aes(x = total_population, y = pwd_perc)) +
+  #   gghighlight(metro_state %in% input$metro_snapshot) +
+  #   labs(x = "Total Population", y = "PWD (%)",
+  #        title = "PWD (%) vs. Total Population") +
+  #   scale_x_log10(labels = scales::comma) +
+  #   scale_y_continuous(labels = function(x) paste0(x, "%")) +
+  #   ggplot_fill_selected() +
+  #   ggplot_theme_selected() +
+  #   theme(legend.position = "top")
+  # 
+  # plotly::ggplotly(gg, tooltip = "text")
+  
+  plotly::ggplotly(gg)
+  
+})
+
+# ===============
+# Work/Economic
+# ===============
+
+# Definition
+output$metro_snapshot_we_plot <- renderPlotly({
+  
+  # Plot
+  gg <- metro_we_data %>%
+    mutate("percent_pwd_unemployed" = coalesce(
+      percent_pwd_unemployed, 
+      round((pwd_unemployed /
+               people_with_disabilities) * 100, 1))) %>% 
+    select(metro_state,
+           pwd_unemployed,
+           percent_pwd_unemployed,
+           "pwd" = people_with_disabilities) %>%
+    ggplot(aes(text = paste0("City: ", metro_state, 
+                             "<br>PWD Unemployed: ", 
+                             scales::comma(pwd_unemployed), 
+                             " (", percent_pwd_unemployed, "%)",
+                             "<br>PWD", scales::comma(pwd)))) +
+    geom_point(stat = "identity",
+               aes(x = pwd, y = percent_pwd_unemployed)) +
+    gghighlight(metro_state %in% input$metro_snapshot) +
+    labs(x = "People with Disabilities", y = "PWD Unemployment Rate (%)",
+         title = "PWD Unemployment Rate (%) vs. PWD Population") +
+    scale_x_log10(labels = scales::comma) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    ggplot_fill_selected() +
+    ggplot_theme_selected() +
+    theme(legend.position = "top")
+  
+  plotly::ggplotly(gg, tooltip = "text")
+  
+})
+
+# Tab panel output
+tabsetPanel(type = "tabs",
+            tabPanel("Demographics",
+                     plotlyOutput("metro_snapshot_demo_plot")),
+            tabPanel("Community Participation",
+                     plotlyOutput("metro_snapshot_cp_plot")),
+            tabPanel("Work/Economic",
+                     plotlyOutput("metro_snapshot_we_plot")))
+
+```
+
+### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper .data-width=500}
 
 ```{r, metro snapshot tract table}
 
@@ -2889,86 +3020,6 @@ renderUI({ HTML(
 
 ) })
   
-```
-
-Row {.tabset .tabset-fade data-height=330}
------------------------------------------------------------------------
-
-### Demographics 
-
-```{r metro snapshot demo plot}
-
-output$metro_snapshot_demo_plot <- renderPlotly({
-
-  # Plot
-  gg <- metro_demo_data %>%
-    select(metro_state, 
-           pwd,
-           total_population,
-           "pwd_perc" = percent_of_total_population_with_a_disability) %>%
-    mutate("pwd_perc" = coalesce(pwd_perc, round((pwd_perc / total_population) * 100, 1))) %>% 
-    ggplot(aes(text = paste0("City: ", metro_state, 
-                             "<br>PWD: ", scales::comma(pwd), 
-                             " (", pwd_perc, "%)",
-                             "<br>Total Pop.", scales::comma(total_population)))) +
-    geom_point(stat = "identity",
-               aes(x = total_population, y = pwd_perc)) +
-    gghighlight(metro_state %in% input$metro_snapshot) +
-    labs(x = "Total Population", y = "PWD (%)") +
-    scale_x_log10(labels = scales::comma) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
-  
-  plotly::ggplotly(gg, tooltip = "text")
-  
-})
-
-plotlyOutput("metro_snapshot_demo_plot")
-
-```
-
-### Community Participation 
-
-
-
-### Work/Economic 
-
-```{r metro snapshot employment plot}
-
-output$metro_snapshot_we_plot <- renderPlotly({
-
-  # Plot
-  gg <- metro_we_data %>%
-    mutate("percent_pwd_unemployed" = coalesce(
-      percent_pwd_unemployed, 
-      round((pwd_unemployed /
-               people_with_disabilities) * 100, 1))) %>% 
-    select(metro_state,
-           pwd_unemployed,
-           percent_pwd_unemployed,
-           "pwd" = people_with_disabilities) %>%
-    ggplot(aes(text = paste0("City: ", metro_state, 
-                             "<br>PWD Unemployed: ", scales::comma(pwd_unemployed), 
-                             " (", percent_pwd_unemployed, "%)",
-                             "<br>PWD", scales::comma(pwd)))) +
-    geom_point(stat = "identity",
-               aes(x = pwd, y = percent_pwd_unemployed)) +
-    gghighlight(metro_state %in% input$metro_snapshot) +
-    labs(x = "People with Disabilities", y = "PWD Unemployment Rate (%)") +
-    scale_x_log10(labels = scales::comma) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
-  
-  plotly::ggplotly(gg, tooltip = "text")
-  
-})
-
-plotlyOutput("metro_snapshot_we_plot")
-
 ```
 
 Comparison {data-navmenu="By Metro"}
