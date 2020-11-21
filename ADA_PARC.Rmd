@@ -67,6 +67,7 @@ render_map <- function(data, selected, palette) {
               title = title)
   
   map
+  
 }
 
 ```
@@ -87,7 +88,7 @@ Sidebar {.sidebar}
 
 Use the **National** tab to examine the status of people with disabilities at the national and state level.  
 
-Use the **By Metro** tab to investigate transit accessibility to jobs and housing by county or city.
+Use the **By Metro** tab to investigate people with disabilities statistics at the municipal level.
 
 Use the **Download** tab to get the raw data powering this dashboard and as well as pre-formatted fact sheets a specific area of interest.
 
@@ -136,7 +137,7 @@ The intent of this effort is to use this information to inform:
 
 #### Who is the ADA-PARC
 
-The seven participating ADA-Regional Centers in the ADA-PARC are:
+The ten participating ADA-Regional Centers in the ADA-PARC are:
 
   - Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
   - Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
@@ -145,15 +146,28 @@ The seven participating ADA-Regional Centers in the ADA-PARC are:
   - Region 8 Rocky Mountain ADA Center: Bob Gattis
   - Region 3 Mid-Atlantic ADA Center: Marian Vessels
   - Region 10 Great Northwest ADA Center: Kathe Matrone
+  - Region 1 New England ADA Center: Valerie Fletcher
+  - Region 2 Northeast ADA Center: Wendy Strobel Gower
+  - Region 7 Great Plains ADA Center: Julie Brinkhoff
+
+Other institutions collaborating in the ADA-PARC are:
+
+  - The ADA Knowledge Translation Center
+  - The Center on Disability at the Public Health Institute
+  - TIRR Memorial Hermann
+  - Syracuse University
+  - The University of Illinois at Chicago
+  - The University of Northern Colorado
+
+<br>
+
+![ADA-PARC Participants](./participant_logos.png){width=75%}
 
 <br>
 
 #### About this Website
 
 The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
-Accessibility
-
-To learn about the accessibility features of this website, please see the Accessibility Statement at the bottom of any page.
 
 
 
@@ -599,7 +613,7 @@ Row
 
 ### Racial Composition of Persons with Disabilities, Selected State (Click on Map to Show Chart)
 
-```{r, demographics race plot}
+```{r demographics race plot, include=FALSE}
 
 # Plot
 renderPlot({
@@ -2688,59 +2702,111 @@ Sidebar {.sidebar}
 
 ```{r metro snapshot input}
 
+# City Lookup
+mongo_conn_input <- mongo_connect(collection_name = "acs_place_S1810",
+                               database_name = "ADA-PARC")
+metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true}') %>% 
+  mutate(label = case_when(
+    NAME == "Augusta-Richmond County consolidated government (balance), Georgia" ~
+      "Augusta, Georgia",
+    NAME == "Boise City city, Idaho" ~
+      "Boise, Idaho",
+    NAME == "Indianapolis city (balance), Indiana" ~
+      "Indianapolis, Indiana",
+    NAME == "Lexington-Fayette urban county, Kentucky" ~
+      "Lexington, Kentucky",
+    NAME == "Louisville/Jefferson County metro government (balance), Kentucky" ~
+      "Louisville, Kentucky",
+    NAME == "Macon-Bibb County, Georgia" ~
+      "Macon, Georgia",
+    NAME == "Nashville-Davidson metropolitan government (balance), Tennessee" ~
+      "Nashville, Tennessee",
+    NAME == "New York city, New York" ~
+      "New York City, New York",
+    NAME == "Urban Honolulu CDP, Hawaii" ~
+      "Honolulu, Hawaii",
+    TRUE ~ str_replace_all(NAME,
+                           pattern = " (city|village|municipality|town), ",
+                           replacement = ", "))) %>% 
+  arrange(label)
+
 # Define inputs
 selectInput(inputId = "metro_snapshot", 
             label = "Select a City or Town", 
-            choices = metro_demo_data %>% select(metro_state))
+            choices = tibble::deframe(metro_snapshot_input %>% select(label, GEOID)))
 
-# Pull Census block group data for selected metro
+# ===============
+# Pull Census place data
+# ===============
+
+# S1810
+temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1810",
+                                 database_name = "ADA-PARC")
+metro_snapshot_place_temp1 <- temp_mongo_conn$find()
+
+# S1811
+temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1811",
+                                 database_name = "ADA-PARC")
+metro_snapshot_place_temp2 <- temp_mongo_conn$find()
+
+# Join together
+metro_snapshot_place_full <- list(metro_snapshot_place_temp1,
+                                  metro_snapshot_place_temp2) %>% 
+  reduce(left_join, by = c("GEOID", "NAME"))
+
+# Remove temporary tables  
+rm(list = ls(pattern = "^metro_snapshot_place_temp"))
+rm(temp_mongo_conn)
+
+# Place for selected metro
+metro_snapshot_place <- reactive({
+  
+  metro_snapshot_place_full %>% 
+    filter(GEOID == input$metro_snapshot)
+
+})
+  
+# ===============
+# Pull Census tract data for selected metro
+# ===============
+
 # Spatial
 metro_snapshot_tract_sf <- reactive({
   
   # Input for odd Census place names
-  temp_metro <-  list(
-    temp_metro = case_when(input$metro_snapshot == "Arlington Heights Village, IL" ~
-                             "Arlington Heights, IL",
-                           input$metro_snapshot == "Hazel Crest Village, IL" ~
-                             "Hazel Crest, IL",
-                           input$metro_snapshot == "Indianapolis, IN" ~
-                             "Indianapolis city (balance), IN",
-                           input$metro_snapshot == "Naperville City, IL" ~
-                             "Naperville, IL",
-                           input$metro_snapshot == "Nashville-Davidson, TN" ~
-                             "Nashville-Davidson metropolitan government (balance), TN",
-                           TRUE ~ input$metro_snapshot))
+  temp_metro <-  list(temp_metro = input$metro_snapshot)
 
   # Connect and pull
   temp_mongo_conn <- mongo_connect(collection_name = "geo_tract",
                                    database_name = "ADA-PARC")
-  temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.metro_state" : "%s" }',
+  temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.place_fips" : "%s" }',
                                                       temp_metro))
   temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
   return(temp_sf)
   
 })
 
-# Lookup
+# Tabular
+metro_snapshot_tract <- reactive ({
+  
+  # Connect and pull
+  temp_mongo_conn <- mongo_connect(collection_name = "acs_tract_S1810",
+                                   database_name = "ADA-PARC")
+  temp <- temp_mongo_conn$find(
+    query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
+                    str_c(metro_snapshot_tract_sf()$GEOID, collapse = '", "')))
+  return(temp)
+  
+  })
+  
+# Variable Lookup
 mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
                                database_name = "ADA-PARC")
 metro_snapshot_lu <-mongo_conn_lu$find()
 
-# Tabular
-mongo_conn_tab <- mongo_connect(collection_name = "acs_tract_S1810",
-                                database_name = "ADA-PARC")
-metro_snapshot_tract_full <- mongo_conn_tab$find()
-
-# Reactive element
-metro_snapshot_tract <- reactive({
-  
-  semi_join(metro_snapshot_tract_full, metro_snapshot_tract_sf(), by = "GEOID")
-
-})
-
 ```
 
-Row {data-height=330}
+Row {data-height=310}
 -----------------------------------------------------------------------
 
 ### Overview 
@@ -2751,8 +2817,8 @@ renderUI({
   
   # Overview text  
   metro_snap_overview_text <- paste0(
-    "<h3>", input$metro_snapshot, "</h3>", "<br>",
-    "Based on ACS 2018 5-Year Estimates, <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(pwd) %>% scales::comma(.), "</b> of the city's <b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(total_population) %>% scales::comma(.), "</b> residents (<b>", metro_demo_data %>% filter(metro_state %in% input$metro_snapshot) %>% pull(percent_of_total_population_with_a_disability), "%</b>) are persons with disabilities.<br>")
+    "<h3>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h3>", "<br>",
+    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(estimate_S1810_C02_001) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(estimate_S1810_C01_001) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(estimate_S1810_C03_001), "%</b>) are persons with disabilities.<br>")
   
   # Conditional text based on selected tab
   metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
@@ -2844,12 +2910,12 @@ leafletOutput("snapshotmap")
 
 ```
 
-Row {.data-height=300}
+Row {data-height=310}
 -----------------------------------------------------------------------
 
-### City in Context {.data-width=500}
+### City in Context
 
-```{r metro snapshot plots}
+```{r metro snapshot plots, out.height="310px", out.width="600px"}
 
 # ===============
 # Demographics
@@ -2859,30 +2925,29 @@ Row {.data-height=300}
 output$metro_snapshot_demo_plot <- renderPlotly({
   
   # Plot
-  gg <- metro_demo_data %>%
-    select(metro_state, 
-           pwd,
-           total_population,
-           "pwd_perc" = percent_of_total_population_with_a_disability) %>%
-    mutate("pwd_perc" = coalesce(pwd_perc, 
-                                 round((pwd_perc / total_population) * 100, 1))) %>% 
-    ggplot(aes(text = paste0("City: ", metro_state, 
+  gg <- metro_snapshot_place_full %>%
+    select(GEOID,
+           NAME, 
+           "pwd" = estimate_S1810_C02_001,
+           "total_population" = estimate_S1810_C01_001,
+           "pwd_pct" = estimate_S1810_C03_001) %>%
+    ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD: ", scales::comma(pwd), 
-                             " (", pwd_perc, "%)",
+                             " (", pwd_pct, "%)",
                              "<br>Total Pop.", 
                              scales::comma(total_population)))) +
     geom_point(stat = "identity",
-               aes(x = total_population, y = pwd_perc)) +
-    gghighlight(metro_state %in% input$metro_snapshot) +
+               aes(x = total_population, y = pwd_pct)) +
+    gghighlight(GEOID == input$metro_snapshot) +
     labs(x = "Total Population", y = "PWD (%)",
-         title = "PWD (%) vs. Total Population") +
+         title = "People with Disabilities (%) vs. Total Population") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ggplot_fill_selected() +
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text")
+  plotly::ggplotly(gg, tooltip = "text") %>% layout(width = 600, height = 310)
   
 })
 
@@ -2897,33 +2962,6 @@ output$metro_snapshot_cp_plot <- renderPlotly({
   gg <- ggplot(mtcars, aes(x = mpg)) + 
     geom_histogram(binwidth = 5)
 
-
-    
-  # gg <- metro_demo_data %>%
-  #   select(metro_state, 
-  #          pwd,
-  #          total_population,
-  #          "pwd_perc" = percent_of_total_population_with_a_disability) %>%
-  #   mutate("pwd_perc" = coalesce(pwd_perc, 
-  #                                round((pwd_perc / total_population) * 100, 1))) %>% 
-  #   ggplot(aes(text = paste0("City: ", metro_state, 
-  #                            "<br>PWD: ", scales::comma(pwd), 
-  #                            " (", pwd_perc, "%)",
-  #                            "<br>Total Pop.", 
-  #                            scales::comma(total_population)))) +
-  #   geom_point(stat = "identity",
-  #              aes(x = total_population, y = pwd_perc)) +
-  #   gghighlight(metro_state %in% input$metro_snapshot) +
-  #   labs(x = "Total Population", y = "PWD (%)",
-  #        title = "PWD (%) vs. Total Population") +
-  #   scale_x_log10(labels = scales::comma) +
-  #   scale_y_continuous(labels = function(x) paste0(x, "%")) +
-  #   ggplot_fill_selected() +
-  #   ggplot_theme_selected() +
-  #   theme(legend.position = "top")
-  # 
-  # plotly::ggplotly(gg, tooltip = "text")
-  
   plotly::ggplotly(gg)
   
 })
@@ -2936,87 +2974,108 @@ output$metro_snapshot_cp_plot <- renderPlotly({
 output$metro_snapshot_we_plot <- renderPlotly({
   
   # Plot
-  gg <- metro_we_data %>%
-    mutate("percent_pwd_unemployed" = coalesce(
-      percent_pwd_unemployed, 
-      round((pwd_unemployed /
-               people_with_disabilities) * 100, 1))) %>% 
-    select(metro_state,
-           pwd_unemployed,
-           percent_pwd_unemployed,
-           "pwd" = people_with_disabilities) %>%
-    ggplot(aes(text = paste0("City: ", metro_state, 
-                             "<br>PWD Unemployed: ", 
-                             scales::comma(pwd_unemployed), 
-                             " (", percent_pwd_unemployed, "%)",
+  gg <- metro_snapshot_place_full %>%
+    select(GEOID,
+           NAME,
+           "pwd_employed" = estimate_S1811_C02_002,
+           "pwd" = estimate_S1811_C02_001) %>% 
+    mutate("pwd_employed_pct" = round((pwd_employed /
+                                         pwd) * 100, 1)) %>% 
+    ggplot(aes(text = paste0("City: ", NAME, 
+                             "<br>PWD Employed: ", 
+                             scales::comma(pwd_employed), 
+                             " (", pwd_employed_pct, "%)",
                              "<br>PWD", scales::comma(pwd)))) +
     geom_point(stat = "identity",
-               aes(x = pwd, y = percent_pwd_unemployed)) +
-    gghighlight(metro_state %in% input$metro_snapshot) +
-    labs(x = "People with Disabilities", y = "PWD Unemployment Rate (%)",
-         title = "PWD Unemployment Rate (%) vs. PWD Population") +
+               aes(x = pwd, y = pwd_employed_pct)) +
+    gghighlight(GEOID == input$metro_snapshot) +
+    labs(x = "People with Disabilities", y = "PWD Employment Rate (%)",
+         title = "PWD Employment Rate (%) vs. PWD Population") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ggplot_fill_selected() +
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text")
+  plotly::ggplotly(gg, tooltip = "text")%>% layout(width = 600, height = 310)
   
 })
 
 # Tab panel output
 tabsetPanel(type = "tabs",
             tabPanel("Demographics",
-                     plotlyOutput("metro_snapshot_demo_plot")),
+                     plotlyOutput("metro_snapshot_demo_plot", height = "330px")),
             tabPanel("Community Participation",
-                     plotlyOutput("metro_snapshot_cp_plot")),
+                     renderText("temporarily blank")),
             tabPanel("Work/Economic",
-                     plotlyOutput("metro_snapshot_we_plot")))
+                     plotlyOutput("metro_snapshot_we_plot", height = "310px")))
 
 ```
 
-### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper .data-width=500}
+### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
 
-```{r, metro snapshot tract table}
+```{r, metro snapshot tract table, out.height="310px", out.width="600px"}
 
 # Reconfigure tract data for table
 metro_snapshot_table_data <- reactive ({
   
+  # Select tract
   temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ] 
   
-  temp %>% 
+  # Values
+  temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
     pivot_longer(cols = -c(GEOID:NAME),
                  names_to = c(".value", "variable"),
-                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>%
+                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)")
+  # Percent
+  temp_pct <- temp %>% 
+    select(GEOID:NAME, matches("_C03_")) %>%
+    pivot_longer(cols = -c(GEOID:NAME),
+                 names_to = c(".value", "variable"),
+                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>% 
+    mutate("variable" = str_replace_all(variable,
+                                        pattern = "_C03_",
+                                        replacement =  "_C02_"),
+           estimate = replace_na(estimate, 0))
+  
+  # Output
+  temp_values %>%
+    left_join(.,
+              temp_pct %>% select(GEOID, NAME, variable, "pct" = estimate),
+              by = c("GEOID", "NAME", "variable")) %>% 
     left_join(.,
               metro_snapshot_lu %>% select(variable, label),
               by = "variable") %>%
     mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
     mutate(label = case_when(variable == "S1810_C02_001" ~
-                                 "Overall; Persons with Disabilities",
+                                 "Overall; People with Disabilities",
                                TRUE ~ label)) %>% 
     separate(label, into = c("category", "label"), 
-             sep = "; ", extra = "merge") %>% 
-    filter(category != "DISABILITY TYPE BY DETAILED AGE") %>% 
-    mutate(category = str_to_title(category))
+             sep = "; ", extra = "merge") %>%
+    mutate(category = str_to_title(category)) %>% 
+    select(GEOID, NAME, category, variable, label,
+           estimate, moe, pct)
 
 })
 
 # Table
 renderUI({ HTML(
 
-  kbl(metro_snapshot_table_data() %>%
-        mutate(output = paste0(comma(estimate), " (±", comma(moe), ")")) %>% 
+  kbl(x = metro_snapshot_table_data() %>%
+        mutate(output_est = paste0(comma(estimate, digits = 0), " (", pct, "%)"),
+               output_moe = "(±", comma(moe), ")") %>% 
         mutate(across(everything(), 
                       ~cell_spec(., "html",
                                  color = ifelse(moe >= estimate, "red", "black")))) %>%
-        select("Variable" = label, "Est." = output),
-      escape = FALSE) %>% 
+        select("Variable" = label, "Est" = output_est,  "MOE" = output_moe),
+      caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
+      escape = FALSE,
+      table.attr = "style='width:100%;'") %>% 
     pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
-    scroll_box(width = "100%", height = "330px")
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  full_width = TRUE) %>% 
+    scroll_box(width = "600px", height = "310px")
 
 ) })
   

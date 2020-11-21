@@ -257,7 +257,7 @@ fun_write_by_geo_table <- function(df, geo_name) {
 
 
 # Places
-# fun_write_by_geo_table(df = acs_place_subject_raw, geo = "place")
+fun_write_by_geo_table(df = acs_place_subject_raw, geo = "place")
 
 # Tracts
 fun_write_by_geo_table(df = acs_tract_subject_raw, geo = "tract")
