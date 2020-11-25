@@ -1,5 +1,5 @@
 library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor); 
-library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
+library(sf); library(urbnmapr); library(geofacet); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
 library(colourpicker); library(DT); library(highcharter);
 library(scales); library(hrbrthemes); library(ggthemes)
@@ -82,6 +82,47 @@ metro_demo_data %>% filter(metro_state != "United States, USA") %>%
   plotly::add_markers() %>% 
   plotly::layout(xaxis = list(type = "log"))
 
+###-------------------------------------------------------------------------###
 
+### Tile mapping to replace the leaflet application in the national tab
+# Libraries required
+library(tidyverse)
+library(geofacet)
 
-names(metro_demo_data)
+# Set database path
+db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
+
+# Demographics
+demographics <- read_excel(path = db_path,
+                           sheet = "Demographics", 
+                           .name_repair = make_clean_names,
+                           skip = 2) %>% 
+  remove_empty(c("rows", "cols")) %>%
+  rename("abbrev" = state_abbreviation) %>%
+  mutate(across(-c(state:city), as.numeric))
+
+# Data for this section
+demo_gen_data <- demographics %>% 
+  filter(is.na(city)) %>% 
+  select("state_name" = state, "state_abbv" = abbrev, 
+         percent_of_total_population_with_a_disability, pwd, total_population) %>% 
+  mutate(percent_of_total_population_with_a_disability =
+           round(percent_of_total_population_with_a_disability, 1))
+
+# Tile mapping using geofacet
+demo_gen_data %>%
+  ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
+             fill = percent_of_total_population_with_a_disability)) + # Selected variable
+  geom_tile() + # Imports x and y values
+  geom_text(aes(label = paste0(as.character(percent_of_total_population_with_a_disability), "%")), 
+            color = "white") + # Adds percentage to the center of the tile
+  facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
+  theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+        panel.grid = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        panel.spacing = unit(0L, "pt"),
+        legend.position = "none",
+        strip.text.x = element_text(size = 9L))

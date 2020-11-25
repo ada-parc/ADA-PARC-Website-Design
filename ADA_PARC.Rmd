@@ -16,7 +16,7 @@ output:
 
 # Packages
 library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor) 
-library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
+library(sf); library(urbnmapr); library(geofacet); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard)
 library(colourpicker); library(DT); library(gghighlight)
 library(knitr); library(kableExtra)
@@ -43,31 +43,50 @@ create_palette <- function(data, selected) {
                 n = 4)
 }
 
-render_map <- function(data, selected, palette) {
-  title <- selected
-  
-  map <- data %>%
-    mutate(map_focus = !!sym(selected)) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~palette(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = palette,
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = title)
-  
-  map
-  
+# render_map <- function(data, selected, palette) {
+#   title <- selected
+#   
+#   map <- data %>%
+#     mutate(map_focus = !!sym(selected)) %>% 
+#     leaflet() %>%
+#     clearShapes() %>%
+#     addResetMapButton() %>% 
+#     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
+#                 fillColor = ~palette(map_focus),
+#                 fillOpacity = 1,
+#                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
+#                                percent(map_focus,
+#                                        scale = 1, accuracy = 0.1)),
+#                 layerId = ~state_name) %>% 
+#     addLegend(position = "topright", pal = palette,
+#               values = ~map_focus,
+#               labFormat =  function(type, cuts, p) {
+#                 n = length(cuts)
+#                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
+#               },
+#               title = title)
+#   
+#   map
+#   
+# }
+
+render_map <- function(data, selected, ...) {
+  data %>%
+  ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
+             fill = !!sym(selected))) + # Selected variable
+  geom_tile() + # Imports x and y values
+  geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")), 
+            color = "white") + # Adds percentage to the center of the tile
+  facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
+  theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+        panel.grid = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        panel.spacing = unit(0L, "pt"),
+        legend.position = "none",
+        strip.text.x = element_text(size = 9L))
 }
 
 ```
@@ -259,53 +278,59 @@ demo_gen_map_data <- map_data(demo_gen_data)
 
 demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
 
-pal_demo1 <- reactive ({ 
+# pal_demo1 <- reactive ({ 
+#   
+#   create_palette(demo_gen_map_data, demo_gen_selected())
+#   
+# })
+#   
+# # State map
+# output$demo1map <- renderLeaflet({
+#   render_map(demo_gen_data, demo_gen_selected(), pal_demo1())
+# })
+# 
+# # Click event for the map
+# click_demo1map <- eventReactive(input$demo1map_shape_click, {
+#   
+#   x <- input$demo1map_shape_click
+#   y <- x$id
+#   
+#   return(y)
+# 
+# })
+# 
+# # Add the clicked state to the map, and remove when a new one is clicked
+# observe({
+#   
+#   req(click_demo1map())
+#   
+#   demo1map <- leafletProxy("demo1map") %>%
+#     removeShape("highlight_state") %>%
+#     addPolygons(data = demo_gen_map_data[demo_gen_map_data$state_name == click_demo1map(), ], 
+#                 fill = FALSE, weight = 3,
+#                 color = "#00FFFF", opacity = 1, layerId = "highlight_state")
+#   
+# })
+# 
+# # Fetch data for the clicked state
+# demo_gen_data_selected <- reactive({
+#   
+#   if(is.null(input$demo1map_shape_click)){
+#     demo_gen_data
+#   } else {
+#     demo_gen_data %>% 
+#       filter(state_name == click_demo1map())
+#   }
+#   
+# })
+# 
+# leafletOutput("demo1map")  
+
+renderPlot({
   
-  create_palette(demo_gen_map_data, demo_gen_selected())
+  render_map(demo_gen_data, demo_gen_selected(), pal_demo1())
   
 })
-  
-# State map
-output$demo1map <- renderLeaflet({
-  render_map(demo_gen_map_data, demo_gen_selected(), pal_demo1())
-})
-
-# Click event for the map
-click_demo1map <- eventReactive(input$demo1map_shape_click, {
-  
-  x <- input$demo1map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_demo1map())
-  
-  demo1map <- leafletProxy("demo1map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = demo_gen_map_data[demo_gen_map_data$state_name == click_demo1map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-demo_gen_data_selected <- reactive({
-  
-  if(is.null(input$demo1map_shape_click)){
-    demo_gen_data
-  } else {
-    demo_gen_data %>% 
-      filter(state_name == click_demo1map())
-  }
-  
-})
-
-leafletOutput("demo1map")  
 
 ```
 
