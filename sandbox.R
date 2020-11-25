@@ -112,8 +112,9 @@ demo_gen_data <- demographics %>%
 # Tile mapping using geofacet
 demo_gen_data %>%
   ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
-             fill = percent_of_total_population_with_a_disability)) + # Selected variable
+             fill = -percent_of_total_population_with_a_disability)) + # Selected variable
   geom_tile() + # Imports x and y values
+  labs(x = "", y = "") +
   geom_text(aes(label = paste0(as.character(percent_of_total_population_with_a_disability), "%")), 
             color = "white") + # Adds percentage to the center of the tile
   facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
@@ -126,3 +127,44 @@ demo_gen_data %>%
         panel.spacing = unit(0L, "pt"),
         legend.position = "none",
         strip.text.x = element_text(size = 9L))
+
+
+### From Kyle Walker's Neighborhood Diversity Index dashboard
+### This can work as a template to implement an interactive national map
+library(plotly)
+
+# Here, we draw the diversity gradient with ggplotly
+output$scatter <- renderPlotly({
+  
+  
+  key <- metro()$tractid # This will uniquely identify tracts for Plotly
+  
+  p1a <- ggplot(metro()@data) + 
+    geom_point(alpha = 0.4, aes(Distance, Score, key = key)) + 
+    theme_minimal(base_size = 14) + 
+    stat_smooth(aes(Distance, Score), 
+                color = 'red', method = 'loess', span = input$span, se = FALSE) + 
+    xlab('Distance from city hall (miles)') + ylab('') 
+  
+  g <- ggplotly(p1a, source = 'source') %>% 
+    layout(dragmode = 'lasso', 
+           yaxis = list(title = 'Diversity score'), 
+           margin = list(l = 100), 
+           font = list(family = 'Open Sans', size = 16))
+  
+  # Need to manually set the hoverinfo to avoid the key appearing in it
+  build <- plotly_build(g)
+  
+  build$data[[1]]$text <- paste0('Distance: ', as.character(round(metro()$Distance, 2)), '<br>', 
+                                 'Score: ', as.character(round(metro()$Score, 2))) 
+  build
+  
+})  
+
+# User can click on an individual point (or in this case state)
+output$click <- renderPrint({
+  d <- event_data("plotly_click")
+  if (!is.null(d)) d
+})
+
+plotlyOutput('scatter', width = "80%")

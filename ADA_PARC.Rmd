@@ -70,13 +70,14 @@ create_palette <- function(data, selected) {
 #   
 # }
 
-render_map <- function(data, selected, ...) {
+render_map <- function(data, selected) {
   data %>%
   ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
              fill = !!sym(selected))) + # Selected variable
   geom_tile() + # Imports x and y values
   geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")), 
             color = "white") + # Adds percentage to the center of the tile
+  labs(x = "", y = "") +
   facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
   theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
         panel.grid = element_blank(),
@@ -273,10 +274,14 @@ demo_gen_data <- demographics %>%
   mutate(percent_of_total_population_with_a_disability =
            round(percent_of_total_population_with_a_disability, 1))
 
-# SF data and palette
-demo_gen_map_data <- map_data(demo_gen_data)
+# # SF data and palette
+# demo_gen_map_data <- map_data(demo_gen_data)
 
 demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
+
+renderPlot({
+  render_map(demo_gen_data, demo_gen_selected())
+})
 
 # pal_demo1 <- reactive ({ 
 #   
@@ -312,26 +317,19 @@ demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" 
 #   
 # })
 # 
-# # Fetch data for the clicked state
-# demo_gen_data_selected <- reactive({
-#   
-#   if(is.null(input$demo1map_shape_click)){
-#     demo_gen_data
-#   } else {
-#     demo_gen_data %>% 
-#       filter(state_name == click_demo1map())
-#   }
-#   
-# })
+# Fetch data for the clicked state
+demo_gen_data_selected <- reactive({
+
+  if(is.null(input$demo1map_shape_click)){
+    demo_gen_data
+  } else {
+    demo_gen_data %>%
+      filter(state_name == click_demo1map())
+  }
+
+})
 # 
 # leafletOutput("demo1map")  
-
-renderPlot({
-  
-  render_map(demo_gen_data, demo_gen_selected(), pal_demo1())
-  
-})
-
 ```
 
 ### Table {.table-wrapper}
