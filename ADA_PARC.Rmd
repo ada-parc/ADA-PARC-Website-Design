@@ -1,6 +1,6 @@
 ---
 title: "ADA-PARC"
-runtime: shiny
+runtime: shiny_prerendered
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -28,22 +28,23 @@ library(mongolite)
 # install.packages("devtools")
 # devtools::install_github("UrbanInstitute/urbnmapr")
 
-# Load API keys and database connection information
+# Load API keys, database information functions
 source("secret.R", local = TRUE)
 
-map_data <- function(data) {
-  data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
-}
+```
 
+```{r front-end-functions, context="server"}
+
+# Functions
 create_palette <- function(data, selected) {
+  
   colorQuantile(palette = input$access_map_palette, 
                 domain = pull(data, !!sym(selected)),
                 n = 4)
 }
 
 render_map <- function(data, selected, palette) {
+  
   title <- selected
   
   map <- data %>%
@@ -71,8 +72,6 @@ render_map <- function(data, selected, palette) {
 }
 
 ```
-
-
 
 Home
 ============================================================================
@@ -139,16 +138,16 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-  - Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
-  - Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
-  - Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
-  - Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
-  - Region 8 Rocky Mountain ADA Center: Bob Gattis
-  - Region 3 Mid-Atlantic ADA Center: Marian Vessels
-  - Region 10 Great Northwest ADA Center: Kathe Matrone
   - Region 1 New England ADA Center: Valerie Fletcher
   - Region 2 Northeast ADA Center: Wendy Strobel Gower
+  - Region 3 Mid-Atlantic ADA Center: Marian Vessels
+  - Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
+  - Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
+  - Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
   - Region 7 Great Plains ADA Center: Julie Brinkhoff
+  - Region 8 Rocky Mountain ADA Center: Bob Gattis
+  - Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
+  - Region 10 Great Northwest ADA Center: Kathe Matrone
 
 Other institutions collaborating in the ADA-PARC are:
 
@@ -161,7 +160,11 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-![ADA-PARC Participants](./participant_logos.png){width=75%}
+```{r participant-logos, echo = FALSE, fig.cap = "ADA-PARC Participants", out.width = '75%'}
+
+knitr::include_graphics("./participant_logos.png")
+
+```
 
 <br>
 
@@ -174,7 +177,7 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 Demographics {data-navmenu="National" data-icon="fa-user"}
 ======================================================================
 
-```{r, national import}
+```{r national-import, context="data"}
 
 # ====================
 # Import data
@@ -228,6 +231,14 @@ metro_demo_data <- demographics %>%
 # Read in spatial data
 states_sf <- get_urbn_map(map = "states", sf = TRUE)
 
+# Function for joining individual elements to states
+map_data <- function(data) {
+  
+  data %>% 
+    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+    st_transform(4326)
+}
+
 ```
 
 Row {data-height=100}
@@ -244,7 +255,7 @@ Row {data-height=500}
 
 ### Map
 
-```{r, demographics general map}
+```{r demographics-general-data, context="data"}
 
 # Data for this section
 demo_gen_data <- demographics %>% 
@@ -256,6 +267,10 @@ demo_gen_data <- demographics %>%
 
 # SF data and palette
 demo_gen_map_data <- map_data(demo_gen_data)
+
+```
+
+```{r demographics-general-map, context="server"}
 
 demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
 
@@ -305,16 +320,20 @@ demo_gen_data_selected <- reactive({
   
 })
 
+```
+
+```{r demographics-general-map-output}
+
 leafletOutput("demo1map")  
 
 ```
 
 ### Table {.table-wrapper}
 
-```{r, demographics general table}
+```{r demographics-general-table, context="server"}
 
 # Data table
-DT::renderDataTable({
+output$demo1table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -327,6 +346,12 @@ DT::renderDataTable({
   options(scrollX = "200px"))
   
 })
+
+```
+
+```{r demographics-general-table-output}
+
+DT::dataTableOutput("demo1table")
 
 ```
 
@@ -344,7 +369,7 @@ Row {data-height=500}
 
 ### Map
 
-```{r, demographics age map}
+```{r demographics-age-data, context="data"}
 
 # Data for this section
 demo_age_data <- demographics %>%
@@ -357,12 +382,11 @@ demo_age_data <- demographics %>%
 # SF data and palette
 demo_age_map_data <- map_data(demo_age_data)
 
-# Input for column to map
-selectInput("demo_age_type",
-            label = "Select a category",
-            choices = c("18-64", "65+"),
-            selected = "18-64")
+```
 
+```{r demographics-age-map, context="server"}
+
+# Input for column to map
 demo_age_selected <- reactive({
 
   if (input$demo_age_type == "18-64"){
@@ -422,13 +446,22 @@ demo_age_data_selected <- reactive({
   
 })
 
+```
+
+```{r demographics-age-map-output}
+
+selectInput("demo_age_type",
+            label = "Select a category",
+            choices = c("18-64", "65+"),
+            selected = "18-64")
+
 leafletOutput("demo2map") 
 
 ```
 
 ### Table {.table-wrapper}
 
-```{r, demographics age table }
+```{r demographics-age-table, context="server"}
 
 # Columns to show
 demo_age_cols_selected <- reactive({
@@ -442,7 +475,7 @@ if (input$demo_age_type == "18-64"){
 })
 
 # Data table
-DT::renderDataTable({
+output$demo2table <- DT::renderDataTable({
 
   # Table
   DT::datatable(
@@ -462,6 +495,12 @@ DT::renderDataTable({
 
 ```
 
+```{r demographics-age-table-output}
+
+DT::dataTableOutput("demo2table") 
+
+```
+
 Row {data-height=100}
 -----------------------------------------------------------------------
 
@@ -476,7 +515,7 @@ Row {data-height=500}
 
 ### Map
 
-```{r, demographics race map}
+```{r demographics-race-data, context="data"}
 
 # Data for this section
 demo_race_data <- demographics %>% 
@@ -487,14 +526,12 @@ demo_race_data <- demographics %>%
 
 # SF data and palette
 demo_race_map_data <- map_data(demo_race_data)
-  
-# Input for column to map
-selectInput("demo_race_type", 
-            label = "Select a category", 
-            choices = c("Caucasian", "African American", "Another Race",
-                        "Hispanic", "White, Non-Hispanic"),
-            selected = "Caucasian")
 
+```
+
+```{r demographics-race-map, context="server"}
+
+# Input for column to map
 demo_race_selected <- reactive({
   
   if (input$demo_race_type == "Caucasian"){
@@ -560,13 +597,23 @@ demo_race_data_selected <- reactive({
   
 })
 
+```
+
+```{r demographics-race-map-output} 
+
+selectInput("demo_race_type", 
+            label = "Select a category", 
+            choices = c("Caucasian", "African American", "Another Race",
+                        "Hispanic", "White, Non-Hispanic"),
+            selected = "Caucasian")
+
 leafletOutput("demo3map")  
 
 ```
 
 ### Table {.table-wrapper}
 
-```{r, demographics race table}
+```{r demographics-race-table, context="server"}
 
 # Columns to show
 demo_race_cols_selected <- reactive({
@@ -586,7 +633,7 @@ demo_race_cols_selected <- reactive({
 })
 
 # Data table
-DT::renderDataTable({
+output$demo3table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -608,39 +655,9 @@ DT::renderDataTable({
 
 ```
 
-Row
------------------------------------------------------------------------
+```{r demographics-race-table-output}
 
-### Racial Composition of Persons with Disabilities, Selected State (Click on Map to Show Chart)
-
-```{r demographics race plot, include=FALSE}
-
-# Plot
-renderPlot({
-  
-  req(click_demo3map())
-  
-  demo_race_data_selected() %>% 
-    select(state_name,
-           "Black" = percent_of_pwd_who_are_black_african_american,
-           "White, Non-Hispanic" = percent_of_pwd_who_are_white_non_hispanic,
-           "Hispanic" = percent_of_pwd_who_are_hispanic,
-           "Another Race" = percent_of_pwd_who_are_of_another_race) %>% 
-    pivot_longer(cols = Black:`Another Race`,
-                 names_to = "Race",
-                 values_to = "Percent") %>% 
-    mutate(state_name = as_factor(state_name)) %>% 
-    ggplot(aes(x = fct_rev(state_name), y = Percent, fill = Race)) +
-      geom_bar(stat = "identity", width = 0.5) +
-      ylim(0 ,100) +
-      labs(x = "State", y = "Percent") +
-      coord_flip() +
-      ggplot_fill_selected() +
-      ggplot_theme_selected() +
-      theme(legend.position = "top")
-  
-})
-
+DT::dataTableOutput("demo3table")
 
 ```
 
@@ -658,7 +675,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, demographics gender map}
+```{r demographics-gender-data, context="data"}
 
 # Data for this section
 demo_gender_data <- demographics %>% 
@@ -669,13 +686,12 @@ demo_gender_data <- demographics %>%
 
 # SF data and palette
 demo_gender_map_data <- map_data(demo_gender_data)
-  
-# Input for column to map
-selectInput("demo_gender_type", 
-            label = "Select a category", 
-            choices = c("Female", "Male"),
-            selected = "Female")
 
+```
+
+```{r demographics-gender-map, context="server"}
+
+# Input for column to map
 demo_gender_selected <- reactive({
   
   if (input$demo_gender_type == "Female"){
@@ -735,13 +751,22 @@ demo_gender_data_selected <- reactive({
   
 })
 
+```
+
+```{r demographics-gender-map-output}
+
+selectInput("demo_gender_type", 
+            label = "Select a category", 
+            choices = c("Female", "Male"),
+            selected = "Female")
+
 leafletOutput("demo4map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, demographics gender table }
+```{r demographics-gender-table, context="server"}
 
 # Columns to show
 demo_gender_cols_selected <- reactive({
@@ -755,7 +780,7 @@ demo_gender_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$demo4table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -766,6 +791,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r demographics-gender-table-output}
+
+DT::dataTableOutput("demo4table")
 
 ```
 
@@ -783,7 +814,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, demographics disability type map}
+```{r demographics-disability-type-data, context="data"}
 
 # Data for this section
 demo_distype_data <- demographics %>% 
@@ -794,14 +825,12 @@ demo_distype_data <- demographics %>%
 
 # SF data and palette
 demo_distype_map_data <- map_data(demo_distype_data)
-  
-# Input for column to map
-selectInput("demo_distype_type", 
-            label = "Select a category", 
-            choices = c("Hearing", "Vision", "Cognitive", 
-                        "Ambulatory", "Self Care", "Independent Living"),
-            selected = "Hearing")
 
+```
+
+```{r demographics-disability-type-map, context="server"}
+
+# Input for column to map
 demo_distype_selected <- reactive({
   
   if (input$demo_distype_type == "Hearing"){
@@ -869,13 +898,23 @@ demo_distype_data_selected <- reactive({
   
 })
 
+```
+
+```{r demographics-disability-type-map-output}
+
+selectInput("demo_distype_type", 
+            label = "Select a category", 
+            choices = c("Hearing", "Vision", "Cognitive", 
+                        "Ambulatory", "Self Care", "Independent Living"),
+            selected = "Hearing")
+
 leafletOutput("demo5map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, demographics disability type table }
+```{r demographics-disability-type-table, context="server"}
 
 # Columns to show
 demo_distype_cols_selected <- reactive({
@@ -897,7 +936,7 @@ demo_distype_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$demo5table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -911,6 +950,11 @@ DT::renderDataTable({
 
 ```
 
+```{r demographics-disability-type-table-output}
+
+DT::dataTableOutput("demo5table")
+
+```
 
 
 Community Living {data-navmenu="National" data-icon="fa-home"}
@@ -930,7 +974,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community living where people live map}
+```{r community-living-where-people-live-data, context="data"}
 
 # Data for this section
 cl_live_data <- community_living %>% 
@@ -943,13 +987,12 @@ cl_live_data <- community_living %>%
 
 # SF data and palette
 cl_live_map_data <- map_data(cl_live_data)
-  
-# Input for column to map
-selectInput("cl_live_type", 
-            label = "Select a category", 
-            choices = c("Home", "Group Quarters - Institution", "Group Quarters - Other"),
-            selected = "Home")
 
+```
+
+```{r community-living-where-people-live-map, context="server"}
+
+# Input for column to map  
 cl_live_selected <- reactive({
   
   if (input$cl_live_type == "Home"){
@@ -1010,13 +1053,22 @@ cl_live_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-living-where-people-live-map-output} 
+
+selectInput("cl_live_type", 
+            label = "Select a category", 
+            choices = c("Home", "Group Quarters - Institution", "Group Quarters - Other"),
+            selected = "Home")
+
 leafletOutput("cl1map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community living where people live table }
+```{r community-living-where-people-live-table, context="server"}
 
 # Columns to show
 cl_live_cols_selected <- reactive({
@@ -1032,7 +1084,7 @@ cl_live_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cl1table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1043,6 +1095,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-living-where-people-live-table-output}
+
+DT::dataTableOutput("cl1table")
 
 ```
 
@@ -1060,7 +1118,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community living nursing home map}
+```{r community-living-nursing-home-data, context="data"}
 
 # Data for this section
 cl_nursing_data <- community_living %>% 
@@ -1071,7 +1129,11 @@ cl_nursing_data <- community_living %>%
 
 # SF data and palette
 cl_nursing_map_data <- map_data(cl_nursing_data)
-  
+
+```
+
+```{r community-living-nursing-home-map, context="server"}
+
 # # Input for column to map
 # selectInput("cl_nursing_type", 
 #             label = "Select a category", 
@@ -1140,13 +1202,17 @@ cl_nursing_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-living-nursing-home-map-output}
+
 leafletOutput("cl2map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community living nursing home table }
+```{r community-living-nursing-home-table, context="server"}
 
 # Columns to show
 # cl_nursing_cols_selected <- reactive({
@@ -1162,7 +1228,7 @@ leafletOutput("cl2map")
 # })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cl2table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1173,6 +1239,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-living-nursing-home-table-output}
+
+DT::dataTableOutput("cl2table")
 
 ```
 
@@ -1190,7 +1262,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community living programs spending map}
+```{r community-living-programs-spending-data, context="data"}
 
 # Data for this section
 cl_ps_data <- community_living %>% 
@@ -1200,13 +1272,12 @@ cl_ps_data <- community_living %>%
 
 # SF data and palette
 cl_ps_map_data <- map_data(cl_ps_data)
-  
-# Input for column to map
-selectInput("cl_ps_type", 
-            label = "Select a category", 
-            choices = c("HCBS", "MFP"),
-            selected = "HCBS")
 
+```
+
+```{r community-living-programs-spending-map, context="server"}
+
+# Input for column to map
 cl_ps_selected <- reactive({
   
   if (input$cl_ps_type == "HCBS"){
@@ -1265,13 +1336,22 @@ cl_ps_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-living-programs-spending-map-output}
+
+selectInput("cl_ps_type", 
+            label = "Select a category", 
+            choices = c("HCBS", "MFP"),
+            selected = "HCBS")
+
 leafletOutput("cl3map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community living programs spending table }
+```{r community-living-programs-spending-table, context="server"}
 
 # Columns to show
 cl_ps_cols_selected <- reactive({
@@ -1285,7 +1365,7 @@ cl_ps_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cl3table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1297,6 +1377,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-living-programs-spending-table-output}
+
+DT::dataTableOutput("cl3table")
 
 ```
 
@@ -1319,7 +1405,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community participation health insurance map}
+```{r community-participation-health-insurance-data, context="data"}
 
 # Data for this section
 cp_insurance_data <- community_participation %>% 
@@ -1330,25 +1416,12 @@ cp_insurance_data <- community_participation %>%
 
 # SF data and palette
 cp_insurance_map_data <- map_data(cp_insurance_data)
-  
-# Input for column to map
-selectInput("cp_insurance_type", 
-            label = "Select a category", 
-            choices = c("PWD // 19-64 // Private Health Insurance",
-                        "PWD // 19-64 // No Health Insurance",
-                        "PWD // 65+ // Private Health Insurance",
-                        "PWD // 65+ // No Health Insurance",
-                        "PWD // Enrolled in Medicare Part A and/or B",
-                        "PWD // Enrolled in Medicaid",
-                        "PWOD // 19-64 // Private Health Insurance",
-                        "PWOD // 19-64 // No Health Insurance",
-                        "PWOD // 65+ // Private Health Insurance",
-                        "PWOD // 65+ // No Health Insurance",
-                        "PWOD // Enrolled in Medicare Part A and/or B",
-                        "PWOD // Enrolled in Medicaid"),
-            selected = "PWD // 19-64 // Private Health Insurance",
-            width = "400px")
 
+```
+
+```{r community-participation-health-insurance-map, context="server"}
+
+# Input for column to map
 cp_insurance_selected <- reactive({
   
   if (input$cp_insurance_type == "PWD // 19-64 // Private Health Insurance"){
@@ -1428,13 +1501,33 @@ cp_insurance_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-participation-health-insurance-map-output}
+selectInput("cp_insurance_type", 
+            label = "Select a category", 
+            choices = c("PWD // 19-64 // Private Health Insurance",
+                        "PWD // 19-64 // No Health Insurance",
+                        "PWD // 65+ // Private Health Insurance",
+                        "PWD // 65+ // No Health Insurance",
+                        "PWD // Enrolled in Medicare Part A and/or B",
+                        "PWD // Enrolled in Medicaid",
+                        "PWOD // 19-64 // Private Health Insurance",
+                        "PWOD // 19-64 // No Health Insurance",
+                        "PWOD // 65+ // Private Health Insurance",
+                        "PWOD // 65+ // No Health Insurance",
+                        "PWOD // Enrolled in Medicare Part A and/or B",
+                        "PWOD // Enrolled in Medicaid"),
+            selected = "PWD // 19-64 // Private Health Insurance",
+            width = "400px")
+
 leafletOutput("cp1map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community participation health insurance table }
+```{r community-participation-health-insurance-table, context="server"}
 
 # Columns to show
 cp_insurance_cols_selected <- reactive({
@@ -1468,7 +1561,7 @@ cp_insurance_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cp1table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1479,6 +1572,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-participation-health-insurance-table-output}
+
+DT::dataTableOutput("cp1table")
 
 ```
 
@@ -1496,7 +1595,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community participation housing map}
+```{r community-participation-housing-data, context="data"}
 
 # Data for this section
 cp_housing_data <- community_participation %>% 
@@ -1507,17 +1606,12 @@ cp_housing_data <- community_participation %>%
 
 # SF data and palette
 cp_housing_map_data <- map_data(cp_housing_data)
-  
-# Input for column to map
-selectInput("cp_housing_type", 
-            label = "Select a category", 
-            choices = c("Residents in Public Housing with a Disability",
-                        "Residents with a Housing Choice Voucher (Section 8) with a Disability",
-                        "Households in Public Housing with a Resident who has a Disability",
-                        "Households with a Housing Choice Voucher with a Resident who has a Disability"),
-            selected = "Residents in Public Housing with a Disability",
-            width = "400px")
 
+```
+
+```{r community-participation-housing-map, context="server"}
+
+# Input for column to map
 cp_housing_selected <- reactive({
   
   if (input$cp_housing_type == "Residents in Public Housing with a Disability"){
@@ -1580,13 +1674,26 @@ cp_housing_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-participation-housing-map-output}
+
+selectInput("cp_housing_type", 
+            label = "Select a category", 
+            choices = c("Residents in Public Housing with a Disability",
+                        "Residents with a Housing Choice Voucher (Section 8) with a Disability",
+                        "Households in Public Housing with a Resident who has a Disability",
+                        "Households with a Housing Choice Voucher with a Resident who has a Disability"),
+            selected = "Residents in Public Housing with a Disability",
+            width = "400px")
+
 leafletOutput("cp2map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community participation housing table }
+```{r community-participation-housing-table, context="server"}
 
 # Columns to show
 cp_housing_cols_selected <- reactive({
@@ -1604,7 +1711,7 @@ cp_housing_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cp2table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1615,6 +1722,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-participation-housing-table-output}
+
+DT::dataTableOutput("cp2table")
 
 ```
 
@@ -1632,7 +1745,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community participation transit map}
+```{r community-participation-transit-data, context="data"}
 
 # Data for this section
 cp_transit_data <- community_participation %>% 
@@ -1643,17 +1756,12 @@ cp_transit_data <- community_participation %>%
 
 # SF data and palette
 cp_transit_map_data <- map_data(cp_transit_data)
-  
-# Input for column to map
-selectInput("cp_transit_type", 
-            label = "Select a category", 
-            choices = c("PWD // Public Transit",
-                        "PWD // Drive Alone",
-                        "PWOD // Public Transit",
-                        "PWOD // Drive Alone"),
-            selected = "PWD // Public Transit",
-            width = "400px")
 
+```
+
+```{r community-participation-transit-map, context="server"}
+
+# Input for column to map
 cp_transit_selected <- reactive({
   
   if (input$cp_transit_type == "PWD // Public Transit"){
@@ -1715,14 +1823,26 @@ cp_transit_data_selected <- reactive({
   }
   
 })
+```
 
+```{r community-participation-transit-map-output}
+
+selectInput("cp_transit_type", 
+            label = "Select a category", 
+            choices = c("PWD // Public Transit",
+                        "PWD // Drive Alone",
+                        "PWOD // Public Transit",
+                        "PWOD // Drive Alone"),
+            selected = "PWD // Public Transit",
+            width = "400px")
+            
 leafletOutput("cp3map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community participation transit table }
+```{r community-participation-transit-table, context="server"}
 
 # Columns to show
 cp_transit_cols_selected <- reactive({
@@ -1740,7 +1860,7 @@ cp_transit_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cp3table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1751,6 +1871,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-participation-transit-table-output}
+
+DT::dataTableOutput("cp3table")
 
 ```
 
@@ -1766,7 +1892,9 @@ Row {data-height=100}
 Row {data-height=500}
 -----------------------------------------------------------------------
 
-```{r, community participation crime map}
+### Map 
+
+```{r community-participation-crime-data, context="data"}
 
 # Data for this section
 cp_crime_data <- community_participation %>% 
@@ -1778,14 +1906,11 @@ cp_crime_data <- community_participation %>%
 # SF data and palette
 cp_crime_map_data <- map_data(cp_crime_data)
   
-# Input for column to map
-selectInput("cp_crime_type", 
-            label = "Select a category", 
-            choices = c("Property",
-                        "Violent"),
-            selected = "Property",
-            width = "400px")
+```
 
+```{r community-participation-crime-map, context="server"}
+
+# Input for column to map
 cp_crime_selected <- reactive({
   
   if (input$cp_crime_type == "Property"){
@@ -1845,13 +1970,24 @@ cp_crime_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-participation-crime-map-output}
+
+selectInput("cp_crime_type", 
+            label = "Select a category", 
+            choices = c("Property",
+                        "Violent"),
+            selected = "Property",
+            width = "400px")
+
 leafletOutput("cp4map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community participation crime table }
+```{r community-participation-crime-table, context="server"}
 
 # Columns to show
 cp_crime_cols_selected <- reactive({
@@ -1865,7 +2001,7 @@ cp_crime_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cp4table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -1876,6 +2012,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-participation-crime-table-output}
+
+DT::dataTableOutput("cp4table")
 
 ```
 
@@ -1893,7 +2035,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community participation education map}
+```{r community-participation-education-data, context="data"}
 
 # Data for this section
 cp_education_data <- community_participation %>% 
@@ -1904,21 +2046,12 @@ cp_education_data <- community_participation %>%
 
 # SF data and palette
 cp_education_map_data <- map_data(cp_education_data)
-  
-# Input for column to map
-selectInput("cp_education_type", 
-            label = "Select a category", 
-            choices = c("PWD // Less Than High School",
-                        "PWD // HS or GED",
-                        "PWD // Associate's Degree",
-                        "PWD // Bachelor's Degree or Higher",
-                        "PWOD // Less Than High School",
-                        "PWOD // HS or GED",
-                        "PWOD // Associate's Degree",
-                        "PWOD // Bachelor's Degree or Higher"),
-            selected = "PWD // Less Than High School",
-            width = "400px")
 
+```
+
+```{r community-participation-education-map, context="server"}
+
+# Input for column to map
 cp_education_selected <- reactive({
   
   if (input$cp_education_type == "PWD // Less Than High School"){
@@ -1989,13 +2122,30 @@ cp_education_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-participation-education-map-output}
+
+selectInput("cp_education_type", 
+            label = "Select a category", 
+            choices = c("PWD // Less Than High School",
+                        "PWD // HS or GED",
+                        "PWD // Associate's Degree",
+                        "PWD // Bachelor's Degree or Higher",
+                        "PWOD // Less Than High School",
+                        "PWOD // HS or GED",
+                        "PWOD // Associate's Degree",
+                        "PWOD // Bachelor's Degree or Higher"),
+            selected = "PWD // Less Than High School",
+            width = "400px")
+            
 leafletOutput("cp5map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community participation education table }
+```{r community-participation-education-table, context="server"}
 
 # Columns to show
 cp_education_cols_selected <- reactive({
@@ -2021,7 +2171,7 @@ cp_education_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cp5table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -2032,6 +2182,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r community-participation-education-table-output}
+
+DT::dataTableOutput("cp5table")
 
 ```
 
@@ -2049,7 +2205,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, community participation voting map}
+```{r community-participation-voting-data, context="data"}
 
 # Data for this section
 cp_voting_data <- community_participation %>% 
@@ -2061,15 +2217,11 @@ cp_voting_data <- community_participation %>%
 # SF data and palette
 cp_voting_map_data <- map_data(cp_voting_data)
   
-# Input for column to map
-selectInput("cp_voting_type", 
-            label = "Select a category", 
-            choices = c("PWD // Voter Turnout (2018)",
-                        "PWOD // Voter Turnout (2018)",
-                        "Disability Gap (2018)"),
-            selected = "PWD // Voter Turnout (2018)",
-            width = "400px")
+```
 
+```{r community-participation-voting-map, context="server"}
+
+# Input for column to map
 cp_voting_selected <- reactive({
   
   if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
@@ -2130,13 +2282,25 @@ cp_voting_data_selected <- reactive({
   
 })
 
+```
+
+```{r community-participation-voting-map-output}
+
+selectInput("cp_voting_type", 
+            label = "Select a category", 
+            choices = c("PWD // Voter Turnout (2018)",
+                        "PWOD // Voter Turnout (2018)",
+                        "Disability Gap (2018)"),
+            selected = "PWD // Voter Turnout (2018)",
+            width = "400px")
+            
 leafletOutput("cp6map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, community participation voting table }
+```{r community-participation-voting-table, context="server"}
 
 # Columns to show
 cp_voting_cols_selected <- reactive({
@@ -2152,7 +2316,7 @@ cp_voting_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$cp6table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -2166,7 +2330,11 @@ DT::renderDataTable({
 
 ```
 
+```{r community-participation-voting-table-output}
 
+DT::dataTableOutput("cp6table")
+
+```
 
 
 
@@ -2196,7 +2364,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, work economic employment map}
+```{r work-economic-employment-data, context="data"}
 
 # Data for this section
 we_employ_data <- work_economic %>% 
@@ -2210,24 +2378,11 @@ we_employ_data <- work_economic %>%
 # SF data and palette
 we_employ_map_data <- map_data(we_employ_data)
   
-# Input for column to map
-selectInput("we_employ_type", 
-            label = "Select a category", 
-            choices = c("PWD // 18-64 // Employed",
-                        "PWD // 18-64 // Unemployed",
-                        "PWD // 18-64 // Not in Labor Force",
-                        "PWD // 18-64 // Work Full Time",
-                        "PWD // 18-64 // Work Part Time",
-                        "PWD // 16-64 // Work From Home",
-                        "PWOD // 18-64 // Employed",
-                        "PWOD // 18-64 // Unemployed",
-                        "PWOD // 18-64 // Not in Labor Force",
-                        "PWOD // 18-64 // Work Full Time",
-                        "PWOD // 18-64 // Work Part Time",
-                        "PWOD // 16-64 // Work From Home"),
-            selected = "PWD // 18-64 // Employed",
-            width = "400px")
+```
 
+```{r work-economic-employment-map, context="server"}
+
+# Input for column to map
 we_employ_selected <- reactive({
   
   if (input$we_employ_type == "PWD // 18-64 // Employed"){
@@ -2306,13 +2461,34 @@ we_employ_data_selected <- reactive({
   
 })
 
+```
+
+```{r work-economic-employment-map-output}
+
+selectInput("we_employ_type", 
+            label = "Select a category", 
+            choices = c("PWD // 18-64 // Employed",
+                        "PWD // 18-64 // Unemployed",
+                        "PWD // 18-64 // Not in Labor Force",
+                        "PWD // 18-64 // Work Full Time",
+                        "PWD // 18-64 // Work Part Time",
+                        "PWD // 16-64 // Work From Home",
+                        "PWOD // 18-64 // Employed",
+                        "PWOD // 18-64 // Unemployed",
+                        "PWOD // 18-64 // Not in Labor Force",
+                        "PWOD // 18-64 // Work Full Time",
+                        "PWOD // 18-64 // Work Part Time",
+                        "PWOD // 16-64 // Work From Home"),
+            selected = "PWD // 18-64 // Employed",
+            width = "400px")
+            
 leafletOutput("we1map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, work economic employment table }
+```{r work-economic-employment-table, context="server"}
 
 # Columns to show
 we_employ_cols_selected <- reactive({
@@ -2346,7 +2522,7 @@ we_employ_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$we1table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -2358,6 +2534,11 @@ DT::renderDataTable({
   
 })
 
+```
+
+```{r work-economic-employment-table-output}
+
+DT::dataTableOutput("we1table")
 ```
 
 Row {data-height=100}
@@ -2374,7 +2555,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, work economic status map}
+```{r work-economic-status-data, context="data"}
 
 # Data for this section
 we_status_data <- work_economic %>% 
@@ -2389,22 +2570,11 @@ we_status_data <- work_economic %>%
 # SF data and palette
 we_status_map_data <- map_data(we_status_data)
   
-# Input for column to map
-selectInput("we_status_type", 
-            label = "Select a category", 
-            choices = c("PWD // 16+ // Median Individual Income",
-                        "PWD // 21-64 // Median Household Income",
-                        "PWD // 18-64 // Below the Poverty Level",
-                        "PWOD // 16+ // Median Individual Income",
-                        "PWOD // 21-64 // Median Household Income",
-                        "PWOD // 18-64 // Below the Poverty Level",
-                        "SSI // Percent of Total Population",
-                        "SSI // Monthly Payment",
-                        "SSI // Percent of Monthly Income",
-                        "SSDI // Percent of Total Population"),
-            selected = "PWD // 16+ // Median Individual Income",
-            width = "400px")
+```
 
+```{r work-economic-status-map, context="server"}
+
+# Input for column to map
 we_status_selected <- reactive({
   
   if (input$we_status_type == "PWD // 16+ // Median Individual Income"){
@@ -2479,13 +2649,32 @@ we_status_data_selected <- reactive({
   
 })
 
+```
+
+```{r work-economic-status-map-output}
+
+selectInput("we_status_type", 
+            label = "Select a category", 
+            choices = c("PWD // 16+ // Median Individual Income",
+                        "PWD // 21-64 // Median Household Income",
+                        "PWD // 18-64 // Below the Poverty Level",
+                        "PWOD // 16+ // Median Individual Income",
+                        "PWOD // 21-64 // Median Household Income",
+                        "PWOD // 18-64 // Below the Poverty Level",
+                        "SSI // Percent of Total Population",
+                        "SSI // Monthly Payment",
+                        "SSI // Percent of Monthly Income",
+                        "SSDI // Percent of Total Population"),
+            selected = "PWD // 16+ // Median Individual Income",
+            width = "400px")
+            
 leafletOutput("we2map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, work economic status table }
+```{r work-economic-status-table, context="server"}
 
 # Columns to show
 we_status_cols_selected <- reactive({
@@ -2511,7 +2700,7 @@ we_status_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$we2table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -2522,6 +2711,12 @@ DT::renderDataTable({
    options(scrollX = "200px"))
   
 })
+
+```
+
+```{r work-economic-status-table-output}
+
+DT::dataTableOutput("we2table")
 
 ```
 
@@ -2539,7 +2734,7 @@ Row {data-height=500}
 
 ### Map {data-width=500}
 
-```{r, work economic affordability map}
+```{r work-economic-affordability-data, context="data"}
 
 # Data for this section
 we_afford_data <- work_economic %>% 
@@ -2552,15 +2747,11 @@ we_afford_data <- work_economic %>%
 # SF data and palette
 we_afford_map_data <- map_data(we_afford_data)
   
-# Input for column to map
-selectInput("we_afford_type", 
-            label = "Select a category", 
-            choices = c("SSI // Percent Needed for Efficiency Apt at FMR",
-                        "SSI // Percent Needed for 1-BR Apt at FMR",
-                        "Hourly Wage // Needed for 2-BR Apt at FMR"),
-            selected = "SSI // Percent Needed for Efficiency Apt at FMR",
-            width = "400px")
+```
 
+```{r work-economic-affordability-map, context="server"}
+
+# Input for column to map
 we_afford_selected <- reactive({
   
   if (input$we_afford_type == "SSI // Percent Needed for Efficiency Apt at FMR"){
@@ -2621,13 +2812,25 @@ we_afford_data_selected <- reactive({
   
 })
 
+```
+
+```{r work-economic-affordability-map-output}
+
+selectInput("we_afford_type", 
+            label = "Select a category", 
+            choices = c("SSI // Percent Needed for Efficiency Apt at FMR",
+                        "SSI // Percent Needed for 1-BR Apt at FMR",
+                        "Hourly Wage // Needed for 2-BR Apt at FMR"),
+            selected = "SSI // Percent Needed for Efficiency Apt at FMR",
+            width = "400px")
+
 leafletOutput("we3map")  
 
 ```
 
 ### Table {.table-wrapper data-width=500}
 
-```{r, work economic affordability table }
+```{r work-economic-affordability-table, context="server"}
 
 # Columns to show
 we_afford_cols_selected <- reactive({
@@ -2643,7 +2846,7 @@ we_afford_cols_selected <- reactive({
 })
 
 # Data table (scroll function for wide data)
-DT::renderDataTable({
+output$we3table <- DT::renderDataTable({
   
   # Table
   DT::datatable(
@@ -2657,7 +2860,11 @@ DT::renderDataTable({
 
 ```
 
+```{r work-economic-affordability-table-output}
 
+DT::dataTableOutput("we3table")
+
+```
 
 
 
@@ -2670,9 +2877,12 @@ DT::renderDataTable({
 Snapshot {data-navmenu="By Metro"}
 ======================================================================
 
-```{r metro data import}
+```{r metro-data-import, context="data"}
 
-# Import city level data
+# ===============
+# Import city level data from sheet
+# ===============
+
 # Demographics
 metro_demo_data <- demographics %>% 
   filter(is.na(city) == FALSE, city != "United States, USA") %>% 
@@ -2693,14 +2903,9 @@ metro_we_data <- work_economic %>%
   mutate(metro_state = paste0(city, ", ", state_abbreviation)) %>% 
   mutate_if(is.numeric, round, 1)
 
-```
-
-Sidebar {.sidebar}
------------------------------------------------------------------------
-
-<br>
-
-```{r metro snapshot input}
+# ===============
+# Link to MongoDB
+# ===============
 
 # City Lookup
 mongo_conn_input <- mongo_connect(collection_name = "acs_place_S1810",
@@ -2730,15 +2935,7 @@ metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" 
                            replacement = ", "))) %>% 
   arrange(label)
 
-# Define inputs
-selectInput(inputId = "metro_snapshot", 
-            label = "Select a City or Town", 
-            choices = tibble::deframe(metro_snapshot_input %>% select(label, GEOID)))
-
-# ===============
 # Pull Census place data
-# ===============
-
 # S1810
 temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1810",
                                  database_name = "ADA-PARC")
@@ -2757,6 +2954,20 @@ metro_snapshot_place_full <- list(metro_snapshot_place_temp1,
 # Remove temporary tables  
 rm(list = ls(pattern = "^metro_snapshot_place_temp"))
 rm(temp_mongo_conn)
+
+# Variable Lookup
+mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
+                               database_name = "ADA-PARC")
+metro_snapshot_lu <-mongo_conn_lu$find()
+
+```
+
+Sidebar {.sidebar}
+-----------------------------------------------------------------------
+
+<br>
+
+```{r metro-snapshot-input, context="server"}
 
 # Place for selected metro
 metro_snapshot_place <- reactive({
@@ -2785,7 +2996,7 @@ metro_snapshot_tract_sf <- reactive({
   return(temp_sf)
   
 })
-
+ 
 # Tabular
 metro_snapshot_tract <- reactive ({
   
@@ -2799,39 +3010,100 @@ metro_snapshot_tract <- reactive ({
   
   })
   
-# Variable Lookup
-mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
-                               database_name = "ADA-PARC")
-metro_snapshot_lu <-mongo_conn_lu$find()
+```
+
+```{r metro-snapshot-input-output}
+
+# Define inputs
+selectInput(inputId = "metro_snapshot", 
+            label = "Select a City or Town", 
+            choices = tibble::deframe(metro_snapshot_input %>% select(label, GEOID)))
 
 ```
 
-Row {data-height=310}
+Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### Overview 
 
-```{r metro snapshot overview text}
+```{r metro-snapshot-overview-text, context="server"}
 
-renderUI({
+output$metro_snapshot_overview <- renderUI({
   
   # Overview text  
   metro_snap_overview_text <- paste0(
     "<h3>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h3>", "<br>",
-    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(estimate_S1810_C02_001) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(estimate_S1810_C01_001) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(estimate_S1810_C03_001), "%</b>) are persons with disabilities.<br>")
+    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(estimate_S1810_C02_001) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(estimate_S1810_C01_001) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(estimate_S1810_C03_001), "%</b>) are people with disabilities.<br>")
   
   # Conditional text based on selected tab
   metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
     
-    "Demographics text/table/etc"
+    # Demographics
+    kbl(x = metro_snapshot_place() %>%
+          mutate("Other" = estimate_S1810_C02_006 + estimate_S1810_C02_008 + 
+                   estimate_S1810_C02_009 +estimate_S1810_C02_010) %>% 
+          select("Asian" = estimate_S1810_C02_007,
+                 "Black" = estimate_S1810_C02_005,
+                 "Hispanic or<br>Latino" = estimate_S1810_C02_012,
+                 "White" = estimate_S1810_C02_011,
+                 Other,
+                 "Total" = estimate_S1810_C02_001) %>% 
+          mutate(across(-Total,
+                        ~ paste0(comma(., accuracy = 1), 
+                                 " (",  percent(. / Total, accuracy = 0.1), ")"))) %>%
+          mutate(Total = comma(Total, accuracy = 1)),
+        caption = "Race and Ethnicity, People with Disabilities",
+        escape = FALSE,
+        align = "c",
+        table.attr = "style='width:100%;'") %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left")
 
   } else if (input$active_tab == 1) {
     
-    "Community Participation text/table/etc"
+    # Community Participation
+    kbl(x = metro_snapshot_place() %>%
+          transmute("Private<br>Motor Vehicle" = 
+                      paste0(comma((estimate_S1811_C02_033 + estimate_S1811_C02_034),
+                                   accuracy = 0.1), "%"),
+                    "Transit" = 
+                      paste0(comma(estimate_S1811_C02_035,
+                                   accuracy = 0.1), "%"),
+                    
+                    "Walk or<br>Bike" = 
+                      paste0(comma((estimate_S1811_C02_036 + estimate_S1811_C02_037),
+                                   accuracy = 0.1), "%"),
+                    "Work from<br>Home" = 
+                      paste0(comma(estimate_S1811_C02_038,
+                                   accuracy = 0.1), "%"),
+                    "Total" = 
+                      comma(estimate_S1811_C02_032, accuracy = 1)),
+        caption = "Commuting Patterns, People with Disabilities, Workers 16+",
+        escape = FALSE,
+        align = "c",
+        table.attr = "style='width:100%;'") %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left")
     
   } else {
     
-    "Work/Economic text/table/etc"
+    # Work/Economic
+    kbl(x = metro_snapshot_place() %>%
+          transmute("Employed" = 
+                      paste0(comma(estimate_S1811_C02_004, accuracy = 1),
+                             " (",  estimate_S1811_C02_002, "%)"),
+                    "Not in Labor Force" = 
+                      paste0(comma((estimate_S1811_C02_001 - estimate_S1811_C02_004), 
+                                   accuracy = 1),
+                             " (",  estimate_S1811_C02_003, "%)"),
+                    "Total" = 
+                      comma(estimate_S1811_C02_001, accuracy = 1)),
+        caption = "Employment Status, People with Disabilities",
+        escape = FALSE,
+        align = "c",
+        table.attr = "style='width:100%;'") %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left")
     
   }
   
@@ -2842,9 +3114,15 @@ renderUI({
 
 ```
 
+```{r metro-snapshot-overview-text-output}
+
+uiOutput("metro_snapshot_overview")
+
+```
+
 ### Persons With Disabilities Map
 
-```{r metro snapshot overview map}
+```{r metro-snapshot-overview-map, context="server"}
 
 # Palette
 pal_metro_snapshot <- reactive ({
@@ -2856,7 +3134,7 @@ pal_metro_snapshot <- reactive ({
   })
 
 # Tract map
-output$snapshotmap <- renderLeaflet({
+output$metrosnapshotmap <- renderLeaflet({
   
   left_join(metro_snapshot_tract_sf(),
             metro_snapshot_tract() %>% select(GEOID, estimate_S1810_C02_001),
@@ -2884,9 +3162,9 @@ output$snapshotmap <- renderLeaflet({
 })
 
 # Click event for the map
-click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
+click_metrosnapshotmap <- eventReactive(input$metrosnapshotmap_shape_click, {
   
-  x <- input$snapshotmap_shape_click
+  x <- input$metrosnapshotmap_shape_click
   y <- x$id
   
   return(y)
@@ -2896,17 +3174,21 @@ click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
 # Add the clicked state to the map, and remove when a new one is clicked
 observe({
   
-  req(click_snapshotmap())
+  req(click_metrosnapshotmap())
   
-  snapshotmap <- leafletProxy("snapshotmap") %>%
+  snapshotmap <- leafletProxy("metrosnapshotmap") %>%
     removeShape("highlight_tract") %>%
-    addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_snapshotmap(), ], 
+    addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_metrosnapshotmap(), ], 
                 fill = FALSE, weight = 3,
                 color = "#000000", opacity = 1, layerId = "highlight_tract")
   
 })
 
-leafletOutput("snapshotmap") 
+```
+
+```{r metro-snapshot-overview-map-output} 
+
+leafletOutput("metrosnapshotmap") 
 
 ```
 
@@ -2915,7 +3197,7 @@ Row {data-height=310}
 
 ### City in Context
 
-```{r metro snapshot plots, out.height="310px", out.width="600px"}
+```{r metro-snapshot-plots, context="server"}
 
 # ===============
 # Demographics
@@ -2947,7 +3229,7 @@ output$metro_snapshot_demo_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text") %>% layout(width = 600, height = 310)
+  plotly::ggplotly(gg, tooltip = "text", height = 240)
   
 })
 
@@ -2957,12 +3239,27 @@ output$metro_snapshot_demo_plot <- renderPlotly({
 
 output$metro_snapshot_cp_plot <- renderPlotly({
   
-  # Plot
+# Plot
+  gg <- metro_snapshot_place_full %>%
+    select(GEOID,
+           NAME,
+           "pwd_25_over" = estimate_S1811_C02_039,
+           "pwd_bachelors" = estimate_S1811_C02_043) %>% 
+    ggplot(aes(text = paste0("City: ", NAME, 
+                             "<br>PWD Bachelor's or<br>Higher: ", pwd_bachelors, "%",
+                             "<br>PWD 25 or<br>Older", scales::comma(pwd_25_over)))) +
+    geom_point(stat = "identity",
+               aes(x = pwd_25_over, y = pwd_bachelors)) +
+    gghighlight(GEOID == input$metro_snapshot) +
+    labs(x = "People with Disabilities, Age 25 or Older", y = "Bachelor's Degree or Higher (%)",
+         title = "Bachelor's Degree or Higher (%) vs. PWD 25 or Older") +
+    scale_x_log10(labels = scales::comma) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    ggplot_fill_selected() +
+    ggplot_theme_selected() +
+    theme(legend.position = "top")
   
-  gg <- ggplot(mtcars, aes(x = mpg)) + 
-    geom_histogram(binwidth = 5)
-
-  plotly::ggplotly(gg)
+  plotly::ggplotly(gg, tooltip = "text", height = 240)
   
 })
 
@@ -2977,10 +3274,9 @@ output$metro_snapshot_we_plot <- renderPlotly({
   gg <- metro_snapshot_place_full %>%
     select(GEOID,
            NAME,
-           "pwd_employed" = estimate_S1811_C02_002,
-           "pwd" = estimate_S1811_C02_001) %>% 
-    mutate("pwd_employed_pct" = round((pwd_employed /
-                                         pwd) * 100, 1)) %>% 
+           "pwd" = estimate_S1811_C02_001,
+           "pwd_employed" = estimate_S1811_C02_004,
+           "pwd_employed_pct" = estimate_S1811_C02_002) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD Employed: ", 
                              scales::comma(pwd_employed), 
@@ -2997,53 +3293,41 @@ output$metro_snapshot_we_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text")%>% layout(width = 600, height = 310)
+  plotly::ggplotly(gg, tooltip = "text", height = 240)
   
 })
+
+```
+
+```{r metro-snapshot-plots-output, out.height="310px", out.width="600px"}
 
 # Tab panel output
 tabsetPanel(type = "tabs",
             tabPanel("Demographics",
-                     plotlyOutput("metro_snapshot_demo_plot", height = "330px")),
+                     plotlyOutput("metro_snapshot_demo_plot", height = "310px")),
             tabPanel("Community Participation",
-                     renderText("temporarily blank")),
+                     plotlyOutput("metro_snapshot_cp_plot", height = "310px")),
             tabPanel("Work/Economic",
                      plotlyOutput("metro_snapshot_we_plot", height = "310px")))
 
 ```
 
-### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
+### Characteristics of Selected Tract (Click on Map to Show Table)
 
-```{r, metro snapshot tract table, out.height="310px", out.width="600px"}
+```{r metro-snapshot-tract-table, context="server"}
 
 # Reconfigure tract data for table
 metro_snapshot_table_data <- reactive ({
   
   # Select tract
-  temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ] 
+  temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_metrosnapshotmap(), ] 
   
-  # Values
+  # Tidy and label
   temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
     pivot_longer(cols = -c(GEOID:NAME),
                  names_to = c(".value", "variable"),
-                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)")
-  # Percent
-  temp_pct <- temp %>% 
-    select(GEOID:NAME, matches("_C03_")) %>%
-    pivot_longer(cols = -c(GEOID:NAME),
-                 names_to = c(".value", "variable"),
-                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>% 
-    mutate("variable" = str_replace_all(variable,
-                                        pattern = "_C03_",
-                                        replacement =  "_C02_"),
-           estimate = replace_na(estimate, 0))
-  
-  # Output
-  temp_values %>%
-    left_join(.,
-              temp_pct %>% select(GEOID, NAME, variable, "pct" = estimate),
-              by = c("GEOID", "NAME", "variable")) %>% 
+                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>%
     left_join(.,
               metro_snapshot_lu %>% select(variable, label),
               by = "variable") %>%
@@ -3053,18 +3337,28 @@ metro_snapshot_table_data <- reactive ({
                                TRUE ~ label)) %>% 
     separate(label, into = c("category", "label"), 
              sep = "; ", extra = "merge") %>%
-    mutate(category = str_to_title(category)) %>% 
+    mutate(category = str_to_title(category))
+    
+  # Table ready
+  temp_values %>% 
+    mutate(pct = percent(estimate / 
+                           temp_values %>% 
+                           filter(variable == "S1810_C02_001") %>% 
+                           pull(estimate),
+                         accuracy = 0.1)) %>% 
     select(GEOID, NAME, category, variable, label,
            estimate, moe, pct)
 
 })
 
 # Table
-renderUI({ HTML(
+output$metro_snapshot_tract_table <- renderUI({ HTML(
 
   kbl(x = metro_snapshot_table_data() %>%
-        mutate(output_est = paste0(comma(estimate, digits = 0), " (", pct, "%)"),
-               output_moe = "(±", comma(moe), ")") %>% 
+        mutate(output_est = ifelse(category == "Overall",
+                                   format(estimate, digits = 0),
+                                   paste0(format(estimate, digits = 0), " (", pct, ")")),
+               output_moe = paste0("(±", format(moe, digits = 0), ")")) %>% 
         mutate(across(everything(), 
                       ~cell_spec(., "html",
                                  color = ifelse(moe >= estimate, "red", "black")))) %>%
@@ -3075,10 +3369,17 @@ renderUI({ HTML(
     pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
     kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                   full_width = TRUE) %>% 
+    column_spec(1, width = "300px") %>% 
     scroll_box(width = "600px", height = "310px")
 
 ) })
   
+```
+
+```{r metro-snapshot-tract-table-output, out.height="310px", out.width="600px"}
+
+uiOutput("metro_snapshot_tract_table")
+
 ```
 
 Comparison {data-navmenu="By Metro"}
@@ -3089,12 +3390,7 @@ Sidebar {.sidebar}
 
 <br>
 
-```{r }
-# Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
-
-```
-
-```{r }
+```{r metro-compare-sidebar}
 
 # Define inputs
 # Metro
@@ -3118,13 +3414,12 @@ selectizeInput(inputId = "compare",
 Row
 -----------------------------------------------------------------------
 
-
 ### Table {.download-DT}
 
-```{r }
+```{r metro-compare-table, context="server"}
 
 
-DT::renderDataTable({
+output$metro_compare_table <- DT::renderDataTable({
   
 if(is.null(input$compare)){
     DT::datatable(
@@ -3154,7 +3449,11 @@ if(is.null(input$compare)){
 
 ```
 
+```{r metro-compare-table-output}
 
+DT::dataTableOutput("metro_compare_table")
+
+```
 
 Explore {data-navmenu="By Metro"}
 ======================================================================
@@ -3164,7 +3463,7 @@ Sidebar {.sidebar}
 
 <br>
 
-```{r metro explore sidebar}
+```{r metro-explore-sidebar}
 
 # Define inputs
 # Metro
@@ -3193,9 +3492,9 @@ Row {data-height=400}
 
 ### Table {.download-DT}
 
-```{r metro explore table}
+```{r metro-explore-table, context="server"}
 
-DT::renderDataTable({
+output$metro_explore_table <- DT::renderDataTable({
   
   if(is.null(input$metro_explore_select)){
     DT::datatable(
@@ -3220,12 +3519,18 @@ DT::renderDataTable({
 
 ```
 
+```{r metro-explore-table-output}
+
+DT::dataTableOutput("metro_explore_table")
+
+```
+
 Row
 -----------------------------------------------------------------------
 
 ### Selected Variables by Metro
 
-```{r metro overview chart}
+```{r metro-explore-plot, context="server"}
 
 output$metro_explore_plot <- renderPlotly({
 
@@ -3254,9 +3559,20 @@ output$metro_explore_plot <- renderPlotly({
 
 })
 
+```
+
+```{r metro-explore-plot-output} 
+
 plotlyOutput("metro_explore_plot")
 
 ```
+
+
+
+
+
+
+
 
 
 
@@ -3268,7 +3584,7 @@ Sidebar {.sidebar}
 
 <br>
 
-```{r, data download sidebar}
+```{r data-download-sidebar}
 
 # ====================
 # Filters
@@ -3280,6 +3596,15 @@ radioButtons(inputId = "data_download_national",
              choices = c("Demographics", "Community Living", 
                              "Community Participation", "Work/Economic"),
              selected = "Demographics")
+
+```
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Selected Data for Download {.download-DT}
+
+```{r data-download-table, context="server"}
 
 # Restrict statistic breakdown based on type
 data_download_national_selected <- reactive({
@@ -3296,15 +3621,6 @@ data_download_national_selected <- reactive({
   
 })
 
-```
-
-Row {data-height=800}
------------------------------------------------------------------------
-
-### Selected Data for Download {.download-DT}
-
-```{r, data download table}
-
 # Selected data for download
 output$data_download_table <- DT::renderDataTable({
   
@@ -3320,9 +3636,20 @@ output$data_download_table <- DT::renderDataTable({
   
 })
 
+```
+
+```{r data-download-table-output}
+
 DT::dataTableOutput("data_download_table", width = 50)
 
 ```
+
+
+
+
+
+
+
 
 
 
@@ -3332,126 +3659,7 @@ Fact Sheets {data-navmenu="Download" data-icon="fa-file-alt"}
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
-```{r, fact sheet download sidebar}
-
-# ====================
-# Lookups for filters
-# ====================
-
-# Demographics
-demographics_lu <- names(demographics) %>% 
-  as_tibble_col(column_name = "column_name") %>% 
-  mutate(column_type =
-           case_when(str_detect(string = column_name,
-                                pattern = "percent") ~
-                       "percent",
-                     TRUE ~ "value"),
-         filter_temp = 
-           case_when(column_name %in%
-                       c("pwd",
-                         "percent_of_total_population_with_a_disability") ~
-                       "general __ General",
-                     column_name %in%
-                       c("pwd_18_64_years",
-                         "pwd_65_years") ~
-                       "age __ Age",
-                     TRUE ~ NA_character_)) %>% 
-  filter(!is.na(filter_temp)) %>% 
-  separate(col = "filter_temp", 
-           into = c("filter_value", "filter_label"),
-           sep = " __ ")
-
-# Community Living
-community_living_lu <- names(community_living) %>% 
-  as_tibble_col(column_name = "column_name") %>% 
-  mutate(column_type =
-           case_when(str_detect(string = column_name,
-                                pattern = "percent") ~
-                       "percent",
-                     TRUE ~ "value"),
-         filter_temp = 
-           case_when(column_name %in%
-                       c("pwd_in_institutionalized_group_quarters",
-                         "percent_pwd_institution") ~
-                       "institution_pop __ PWD Living in Institutional Residence",
-                     column_name %in%
-                       c("pwd_in_home",
-                         "percent_pwd_home") ~
-                       "home_pop __ PWD Living in Home Residence",
-                     column_name %in%
-                       c("pwd_in_non_institutional_group_quarters",
-                         "percent_pwd_other_group_quarters") ~
-                       "othergq_pop __ PWD Living in Other Group Quarters Residence",
-                     column_name %in%
-                       c("total_population_in_nursing_18_64",
-                         "percent_of_pwd_18_64_in_nursing") ~
-                       "nursing_working_pop __ PWD of Working Age, Living in Nursing Home",
-                     TRUE ~ NA_character_)) %>% 
-  filter(!is.na(filter_temp)) %>% 
-  separate(col = "filter_temp", 
-           into = c("filter_value", "filter_label"),
-           sep = " __ ")
-
-# ====================
-# Filters
-# ====================
-
-# Define inputs
-radioButtons(inputId = "fact_sheet_national",
-             label = "Select an Area of Interest",
-             choices = c("Demographics", "Community Living", 
-                             "Community Participation", "Work/Economic"))
-
-# Restrict statistic breakdown based on type
-fact_sheet_national_selected <- reactive({
-  
-  if (input$fact_sheet_national == "Demographics"){
-    demographics_lu
-  } else if (input$fact_sheet_national == "Community Living"){
-    community_living_lu
-  # } else if (input$fact_sheet_national == "Community Living"){
-  #   community_participation_lu
-  } else {
-    NA
-  }
-  
-})
-
-# Statistics dropdown to given area
-renderUI({ 
-  
-  selectInput(inputId = "fact_sheet_stat", 
-              label = "Select a Statistic", 
-              choices = unique(fact_sheet_national_selected()$filter_label))
-  
-})
-
-# Restrict statistic breakdown based on type
-stat_base <- reactive({
-  
-  if (input$fact_sheet_national == "Demographics"){
-    demographics
-  } else if (input$fact_sheet_national == "Community Living"){
-    community_living
-  # } else if (input$fact_sheet_national == "Community Participation"){
-  #   community_participation
-  } else {
-    NA
-  }
-  
-})
-
-# Select columns based on input
-stat_subset <- reactive({
-  
-  stat_base() %>% 
-    select(state:abbrev,
-           all_of(fact_sheet_national_selected() %>% 
-                    filter(filter_label == input$fact_sheet_stat) %>% 
-                    pull(column_names)))
-    
-})
-
+```{r fact-sheet-download-sidebar, context="server"}
 
 ```
 
@@ -3465,7 +3673,16 @@ Row
 
 ###  {.long-row}
 
-```{r}
+```{r accessibility-options, context="server"}
+
+# Selected ggplot themes
+ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][1] })
+ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][2] }) 
+ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
+
+```
+
+```{r accessibility-options-output}
 
 # Map palette
 selectInput(inputId = "access_map_palette",
@@ -3475,29 +3692,21 @@ selectInput(inputId = "access_map_palette",
                            "Green-Blue" = "GnBu"),
             selected = "Yellow-Orange-Brown")
 
-
 # GGplot themes and colors
 access_ggplot_themes <- list(
-  "The Economist" = list(theme_economist(), scale_fill_economist(), scale_color_economist()),
-  "Five Thirty Eight" = list(theme_fivethirtyeight(), scale_fill_economist(), scale_color_fivethirtyeight()),
-  "Highcharts" = list(theme_hc(), scale_fill_hc(), scale_color_hc()),
-  "Ipsum" = list(theme_ipsum(), scale_fill_colorblind(), scale_color_colorblind()),
-  "Light" = list(theme_light(), scale_fill_colorblind(), scale_color_colorblind()),
-  "Minimal" = list(theme_minimal(),scale_fill_ordinal(), scale_color_ordinal()),
-  "Stata" = list(theme_stata(), scale_fill_stata(), scale_color_stata()))
+  "The Economist" = list(theme_minimal(), scale_fill_economist(), scale_color_economist()),
+  "Five Thirty Eight" = list(theme_minimal(), scale_fill_fivethirtyeight(), scale_color_fivethirtyeight()),
+  "Highcharts" = list(theme_minimal(), scale_fill_hc(), scale_color_hc()),
+  "Ipsum" = list(theme_light(), scale_fill_ipsum(), scale_color_ipsum()),
+  "Minimal" = list(theme_minimal(), scale_fill_colorblind(), scale_color_colorblind()),
+  "Stata" = list(theme_minimal(), scale_fill_stata(), scale_color_stata()))
 
 selectInput(inputId = "access_ggplot_theme", 
             label = h5("Select a theme for plots:"), 
             choices = names(access_ggplot_themes),
-            selected = "Ipsum")
-
-ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][1] })
-ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][2] }) 
-ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
+            selected = "Minimal")
 
 ```
-
-
 
 <!-- Custom Javascript  -->
 <script>

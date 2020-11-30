@@ -95,7 +95,7 @@ ref_vars_subject <- load_variables(2018, "acs5/subject", cache = TRUE)
 
 # Get variables in subject tables
 acs_place_subject_vars <- ref_vars_subject %>% 
-  filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
+  filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A_C0(1|2|3|4)_0(01|4(6|7|8|9)|5(0|1|2|3|4))$|02_C04_*))")) %>% 
   filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% 
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
