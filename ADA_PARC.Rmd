@@ -95,11 +95,11 @@ Use the **Accessibility** tab to set color palettes for the visualizations in th
 
 <br>
 
-Application author:
+Application authors:
 
 [Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz]()
 <br>
-[Voorhees Center](https://voorheescenter.uic.edu/)
+[UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
 Row
 -----------------------------------------------------------------------
@@ -138,33 +138,29 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-  - Region 1 New England ADA Center: Valerie Fletcher
-  - Region 2 Northeast ADA Center: Wendy Strobel Gower
-  - Region 3 Mid-Atlantic ADA Center: Marian Vessels
-  - Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
-  - Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
-  - Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
-  - Region 7 Great Plains ADA Center: Julie Brinkhoff
-  - Region 8 Rocky Mountain ADA Center: Bob Gattis
-  - Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
-  - Region 10 Great Northwest ADA Center: Kathe Matrone
+  - [Region 1 New England ADA Center](http://www.newenglandada.org/): Valerie Fletcher
+  - [Region 2 Northeast ADA Center](http://www.northeastada.org/): Wendy Strobel Gower
+  - [Region 3 Mid-Atlantic ADA Center](http://www.adainfo.org/): Marian Vessels
+  - [Region 4 Southeast ADA Center](http://www.adasoutheast.org/): Katie McDonald, Work & Economics data team lead
+  - [Region 5 Great Lakes ADA Center](http://www.adagreatlakes.org/): Joy Hammel, Co-Project Director, Community Participation data team lead
+  - [Region 6 Southwest ADA Center](http://www.southwestada.org/): Lex Frieden, Co-Project Director
+  - [Region 7 Great Plains ADA Center](http://www.gpadacenter.org/): Julie Brinkhoff
+  - [Region 8 Rocky Mountain ADA Center](http://www.rockymountainada.org/): Bob Gattis
+  - [Region 9 Pacific ADA Center](http://www.adapacific.org/): Lewis Kraus, Community Living data team lead
+  - [Region 10 Great Northwest ADA Center](http://www.nwadacenter.org/): Kathe Matrone
 
 Other institutions collaborating in the ADA-PARC are:
 
-  - The ADA Knowledge Translation Center
-  - The Center on Disability at the Public Health Institute
-  - TIRR Memorial Hermann
-  - Syracuse University
-  - The University of Illinois at Chicago
-  - The University of Northern Colorado
+  - [The ADA Knowledge Translation Center](https://adata.org/ADAKTC)
+  - [The Center on Disability at the Public Health Institute](https://www.centerondisability.org/)
+  - [TIRR Memorial Hermann](http://tirr.memorialhermann.org/)
+  - [Syracuse University](https://www.syracuse.edu/)
+  - [The University of Illinois at Chicago](https://www.uic.edu/)
+  - [The University of Northern Colorado](https://www.unco.edu/)
 
 <br>
 
-```{r participant-logos, echo = FALSE, fig.cap = "ADA-PARC Participants", out.width = '75%'}
-
-knitr::include_graphics("./participant_logos.png")
-
-```
+![ADA-PARC Participants](participant_logos.png){width=75%}
 
 <br>
 
@@ -3024,7 +3020,7 @@ selectInput(inputId = "metro_snapshot",
 Row {data-height=300}
 -----------------------------------------------------------------------
 
-### Overview 
+### Overview
 
 ```{r metro-snapshot-overview-text, context="server"}
 
@@ -3055,7 +3051,7 @@ output$metro_snapshot_overview <- renderUI({
         caption = "Race and Ethnicity, People with Disabilities",
         escape = FALSE,
         align = "c",
-        table.attr = "style='width:100%;'") %>% 
+        table.attr = "style='width:80%;'") %>% 
       kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                     position = "left")
 
@@ -3114,7 +3110,7 @@ output$metro_snapshot_overview <- renderUI({
 
 ```
 
-```{r metro-snapshot-overview-text-output}
+```{r metro-snapshot-overview-text-output, out.width = "50%"}
 
 uiOutput("metro_snapshot_overview")
 
@@ -3146,7 +3142,7 @@ output$metrosnapshotmap <- renderLeaflet({
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
                 fillColor = ~pal_metro_snapshot()(estimate_S1810_C02_001),
-                fillOpacity = 0.7,
+                fillOpacity = 0.5,
                 layerId = ~GEOID) %>%
     addLegend(position = "topright", pal = pal_metro_snapshot(),
               values = ~estimate_S1810_C02_001,
@@ -3157,7 +3153,11 @@ output$metrosnapshotmap <- renderLeaflet({
               title = "PWD") %>% 
     addLayersControl(position = "bottomright",
                      baseGroups = c("Esri", "CartoDB"),
-                     options = layersControlOptions(collapsed = FALSE))
+                     options = layersControlOptions(collapsed = FALSE)) %>% 
+    addSearchOSM(options = searchOptions(autoCollapse = FALSE, minLength = 3,
+                                         position = "topleft", zoom = 15,
+                                         autoResize = FALSE,
+                                         hideMarkerOnCollapse = TRUE))
 
 })
 
@@ -3186,18 +3186,18 @@ observe({
 
 ```
 
-```{r metro-snapshot-overview-map-output} 
+```{r metro-snapshot-overview-map-output,out.width = "50%"} 
 
 leafletOutput("metrosnapshotmap") 
 
 ```
 
-Row {data-height=310}
+Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### City in Context
 
-```{r metro-snapshot-plots, context="server"}
+```{r metro-snapshot-plots, fig.width = 5, context="server"}
 
 # ===============
 # Demographics
@@ -3299,22 +3299,22 @@ output$metro_snapshot_we_plot <- renderPlotly({
 
 ```
 
-```{r metro-snapshot-plots-output, out.height="310px", out.width="600px"}
+```{r metro-snapshot-plots-output, fig.width = 5, out.height="300px"}
 
 # Tab panel output
 tabsetPanel(type = "tabs",
             tabPanel("Demographics",
-                     plotlyOutput("metro_snapshot_demo_plot", height = "310px")),
+                     plotlyOutput("metro_snapshot_demo_plot", height = "300px")),
             tabPanel("Community Participation",
-                     plotlyOutput("metro_snapshot_cp_plot", height = "310px")),
+                     plotlyOutput("metro_snapshot_cp_plot", height = "300px")),
             tabPanel("Work/Economic",
-                     plotlyOutput("metro_snapshot_we_plot", height = "310px")))
+                     plotlyOutput("metro_snapshot_we_plot", height = "300px")))
 
 ```
 
 ### Characteristics of Selected Tract (Click on Map to Show Table)
 
-```{r metro-snapshot-tract-table, context="server"}
+```{r metro-snapshot-tract-table, fig.width = 5, context="server"}
 
 # Reconfigure tract data for table
 metro_snapshot_table_data <- reactive ({
@@ -3352,33 +3352,36 @@ metro_snapshot_table_data <- reactive ({
 })
 
 # Table
-output$metro_snapshot_tract_table <- renderUI({ HTML(
-
-  kbl(x = metro_snapshot_table_data() %>%
-        mutate(output_est = ifelse(category == "Overall",
-                                   format(estimate, digits = 0),
-                                   paste0(format(estimate, digits = 0), " (", pct, ")")),
-               output_moe = paste0("(±", format(moe, digits = 0), ")")) %>% 
-        mutate(across(everything(), 
-                      ~cell_spec(., "html",
-                                 color = ifelse(moe >= estimate, "red", "black")))) %>%
-        select("Variable" = label, "Est" = output_est,  "MOE" = output_moe),
-      caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
-      escape = FALSE,
-      table.attr = "style='width:100%;'") %>% 
-    pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                  full_width = TRUE) %>% 
-    column_spec(1, width = "300px") %>% 
-    scroll_box(width = "600px", height = "310px")
+output$metro_snapshot_tract_table <- renderUI({ 
+  
+  req(!is.na(metro_snapshot_table_data()))
+  
+  HTML(
+    
+    kbl(x = metro_snapshot_table_data() %>%
+          mutate(output_est = ifelse(category == "Overall",
+                                     format(estimate, digits = 0),
+                                     paste0(format(estimate, digits = 0), " (", pct, ")")),
+                 output_moe = paste0("(±", format(moe, digits = 0), ")")) %>% 
+          mutate(across(everything(), 
+                        ~cell_spec(., "html",
+                                   color = ifelse(moe >= estimate, "red", "black")))) %>%
+          select("Variable" = label, "Estimate" = output_est,  "MOE" = output_moe),
+        caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
+        format = "html", table.attr = "style='width:100%;'",
+        escape = FALSE) %>% 
+      pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
+      kable_styling(bootstrap_options = c("striped", "hover")) %>%
+      column_spec(1, width = "300px") %>% 
+      scroll_box(height = "280px")
 
 ) })
   
 ```
 
-```{r metro-snapshot-tract-table-output, out.height="310px", out.width="600px"}
+```{r metro-snapshot-tract-table-output, fig.width = 5, out.height="300px"}
 
-uiOutput("metro_snapshot_tract_table")
+uiOutput("metro_snapshot_tract_table", width = "50%")
 
 ```
 
@@ -3411,7 +3414,7 @@ selectizeInput(inputId = "compare",
 
 ```
 
-Row
+Row {data-height=600}
 -----------------------------------------------------------------------
 
 ### Table {.download-DT}
@@ -3487,7 +3490,7 @@ selectizeInput(inputId = "var_explore_select",
 
 ```
 
-Row {data-height=400}
+Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### Table {.download-DT}
@@ -3525,7 +3528,7 @@ DT::dataTableOutput("metro_explore_table")
 
 ```
 
-Row
+Row {data-height=300}
 -----------------------------------------------------------------------
 
 ### Selected Variables by Metro
@@ -3599,7 +3602,7 @@ radioButtons(inputId = "data_download_national",
 
 ```
 
-Row {data-height=650}
+Row {data-height=600}
 -----------------------------------------------------------------------
 
 ### Selected Data for Download {.download-DT}

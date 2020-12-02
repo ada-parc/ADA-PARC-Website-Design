@@ -5,8 +5,9 @@ account: ada-parc
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2554307
-bundleId: 3886800
+bundleId: 3925057
 url: https://ada-parc.shinyapps.io/ada_parc/
-when: 1605916523.1886
+when: 1606777711.82523
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: .gitattributes|2016Database.xlsx|AJOTHeatmaps4.27.20(1).xlsx|census_download.R|DatabaseUpdateInstruction.xlsx|DataDictionary.xlsx|Document Overview for SPR.docx|example_tracts.xlsx|lookup.xlsx|remove_water_acs.R|Rplots.pdf|sandbox.R
