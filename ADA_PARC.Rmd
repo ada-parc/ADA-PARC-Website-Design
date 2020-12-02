@@ -3373,6 +3373,7 @@ output$metro_snapshot_tract_table <- renderUI({
       pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
       kable_styling(bootstrap_options = c("striped", "hover")) %>%
       column_spec(1, width = "300px") %>% 
+      column_spec(2:3, width = "125px") %>%
       scroll_box(height = "280px")
 
 ) })
