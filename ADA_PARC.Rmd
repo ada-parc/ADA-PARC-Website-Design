@@ -85,19 +85,19 @@ Sidebar {.sidebar}
 
 <br>
 
-Use the **National** tab to examine the status of people with disabilities at the national and state level.  
+Use the **National** tab to examine people with disabilities statistics at the national and state level.  
 
 Use the **By Metro** tab to investigate people with disabilities statistics at the municipal level.
 
-Use the **Download** tab to get the raw data powering this dashboard and as well as pre-formatted fact sheets a specific area of interest.
+Use the **Download** tab to access the raw data powering this dashboard and pre-formatted fact sheets for a specific area of interest.
 
-Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.  
+Use the **Accessibility** tab to set the color palettes for data visualizations in this dashboard.  
 
 <br>
 
 Application authors:
 
-[Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz]()
+[Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz](https://github.com/EthanJantz)
 <br>
 [UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
@@ -108,7 +108,7 @@ Row
 
 <br>
 
-Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of 7 Americans with Disabilities Act (ADA) Regional Centers.
+Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of 10 Americans with Disabilities Act (ADA) Regional Centers.
 
 <br>
 
@@ -160,7 +160,7 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-![ADA-PARC Participants](participant_logos.png){width=75%}
+![ADA-PARC Participants](www/participant_logos.png){width=75%}
 
 <br>
 
@@ -3074,7 +3074,7 @@ output$metro_snapshot_overview <- renderUI({
                                    accuracy = 0.1), "%"),
                     "Total" = 
                       comma(estimate_S1811_C02_032, accuracy = 1)),
-        caption = "Commuting Patterns, People with Disabilities, Workers 16+",
+        caption = "Commuting Patterns, People with Disabilities, Workers 16 or Older",
         escape = FALSE,
         align = "c",
         table.attr = "style='width:100%;'") %>% 
@@ -3094,7 +3094,7 @@ output$metro_snapshot_overview <- renderUI({
                              " (",  estimate_S1811_C02_003, "%)"),
                     "Total" = 
                       comma(estimate_S1811_C02_001, accuracy = 1)),
-        caption = "Employment Status, People with Disabilities",
+        caption = "Employment Status, People with Disabilities, 16 or Older",
         escape = FALSE,
         align = "c",
         table.attr = "style='width:100%;'") %>% 
@@ -3246,13 +3246,13 @@ output$metro_snapshot_cp_plot <- renderPlotly({
            "pwd_25_over" = estimate_S1811_C02_039,
            "pwd_bachelors" = estimate_S1811_C02_043) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
-                             "<br>PWD Bachelor's or<br>Higher: ", pwd_bachelors, "%",
-                             "<br>PWD 25 or<br>Older", scales::comma(pwd_25_over)))) +
+                             "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%",
+                             "<br>PWD 25+: ", scales::comma(pwd_25_over)))) +
     geom_point(stat = "identity",
                aes(x = pwd_25_over, y = pwd_bachelors)) +
     gghighlight(GEOID == input$metro_snapshot) +
     labs(x = "People with Disabilities, Age 25 or Older", y = "Bachelor's Degree or Higher (%)",
-         title = "Bachelor's Degree or Higher (%) vs. PWD 25 or Older") +
+         title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ggplot_fill_selected() +
@@ -3281,12 +3281,12 @@ output$metro_snapshot_we_plot <- renderPlotly({
                              "<br>PWD Employed: ", 
                              scales::comma(pwd_employed), 
                              " (", pwd_employed_pct, "%)",
-                             "<br>PWD", scales::comma(pwd)))) +
+                             "<br>PWD 16+: ", scales::comma(pwd)))) +
     geom_point(stat = "identity",
                aes(x = pwd, y = pwd_employed_pct)) +
     gghighlight(GEOID == input$metro_snapshot) +
     labs(x = "People with Disabilities", y = "PWD Employment Rate (%)",
-         title = "PWD Employment Rate (%) vs. PWD Population") +
+         title = "PWD Employment Rate (%) vs. PWD Population 16 or Older") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ggplot_fill_selected() +
