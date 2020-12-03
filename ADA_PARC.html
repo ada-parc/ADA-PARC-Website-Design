@@ -3759,25 +3759,25 @@ window.FlexDashboardComponents.push({
 
 </div>
 <div class="tabbable">
-<ul class="nav nav-tabs" data-tabsetid="4970">
+<ul class="nav nav-tabs" data-tabsetid="7646">
 <li class="active">
-<a href="#tab-4970-1" data-toggle="tab" data-value="Demographics">Demographics</a>
+<a href="#tab-7646-1" data-toggle="tab" data-value="Demographics">Demographics</a>
 </li>
 <li>
-<a href="#tab-4970-2" data-toggle="tab" data-value="Community Participation">Community Participation</a>
+<a href="#tab-7646-2" data-toggle="tab" data-value="Community Participation">Community Participation</a>
 </li>
 <li>
-<a href="#tab-4970-3" data-toggle="tab" data-value="Work/Economic">Work/Economic</a>
+<a href="#tab-7646-3" data-toggle="tab" data-value="Work/Economic">Work/Economic</a>
 </li>
 </ul>
-<div class="tab-content" data-tabsetid="4970">
-<div class="tab-pane active" data-value="Demographics" id="tab-4970-1">
+<div class="tab-content" data-tabsetid="7646">
+<div class="tab-pane active" data-value="Demographics" id="tab-7646-1">
 <div id="metro_snapshot_demo_plot" style="width:100%; height:300px; " class="plotly html-widget html-widget-output shiny-report-size"></div>
 </div>
-<div class="tab-pane" data-value="Community Participation" id="tab-4970-2">
+<div class="tab-pane" data-value="Community Participation" id="tab-7646-2">
 <div id="metro_snapshot_cp_plot" style="width:100%; height:300px; " class="plotly html-widget html-widget-output shiny-report-size"></div>
 </div>
-<div class="tab-pane" data-value="Work/Economic" id="tab-4970-3">
+<div class="tab-pane" data-value="Work/Economic" id="tab-7646-3">
 <div id="metro_snapshot_we_plot" style="width:100%; height:300px; " class="plotly html-widget html-widget-output shiny-report-size"></div>
 </div>
 </div>
@@ -6877,9 +6877,18 @@ output$data_download_table <- DT::renderDataTable({
   
   DT::datatable(data_download_national_selected(),
                 fillContainer = TRUE,
+                rownames = FALSE,
                 extensions = "Buttons",
                 options = list(dom = "Bfrtip",
-                               buttons = c("copy", "csv", "excel", "pdf", "print"),
+                               buttons = list("copy",
+                                              list(extend = "csv", 
+                                                   filename = "ADA-PARC_data_download"),
+                                              list(extend = "excel",
+                                                   title = NULL,
+                                                   filename = "ADA-PARC_data_download"),
+                                              list(extend = "pdf", 
+                                                   filename = "ADA-PARC_data_download"),
+                                              "print"),
                                bPaginate = FALSE,
                                scrollX = "200px",
                                scrollY = "800px",
