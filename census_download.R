@@ -15,9 +15,9 @@ census_api_key(api_key_census)
 # Set working directory to current path
 setwd(here::here())
 
-
+###
 # Import place names from Excel -------------------------------------------
-
+###
 
 # Import list of existing places used in analysis
 db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
@@ -44,12 +44,12 @@ base_existing <- read_excel(path = db_path,
                                  TRUE ~ metro_state)) %>% 
   select(state, abbrev, city, metro_state, everything())
 
-
+###
 # Get most populated places -----------------------------------------------
-
+###
 
 # Restrict to 200 most populated cities
-most_populated <- get_estimates(geography = "place",
+most_populated <- get_estimaes(geography = "place",
                                 year = 2018,
                                 product = "population",
                                 geometry = FALSE,
@@ -57,9 +57,9 @@ most_populated <- get_estimates(geography = "place",
   arrange(desc(POP)) %>% 
   head(200)
   
-
+###
 # Identify states and counties for each Census designated place -----------
-
+###
 
 # All states and counties
 fips_codes <- force(fips_codes) %>% 
@@ -86,9 +86,9 @@ counties <- pmap_df(.l = fips_codes %>% select(state_code, state) %>% distinct()
 # Spatial join places and counties to get names of counties that intersect places
 places_counties <- st_join(places, counties) 
 
-
+###
 # Get place ACS data ------------------------------------------------------
-
+###
 
 # List of variables for reference
 ref_vars_subject <- load_variables(2018, "acs5/subject", cache = TRUE)
@@ -100,7 +100,7 @@ acs_place_subject_vars <- ref_vars_subject %>%
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
 
-# Grab place level data
+# Grab place-level data
 acs_place_subject_raw <- pmap_df(.l = fips_codes %>% select(state_code) %>% distinct(),
                                  .f = ~(get_acs(geography = "place",
                                                 year = 2018,
@@ -111,6 +111,33 @@ acs_place_subject_raw <- pmap_df(.l = fips_codes %>% select(state_code) %>% dist
                                                 wide = TRUE) %>% 
                                           semi_join(., places, by = c("GEOID" = "place_fips"))))
 
+### 
+### Get state ACS data -----------------------------------------------------
+###
+
+# List of acs5 variables for reference
+ref_vars <- load_variables(2018, "acs5", cache = TRUE)
+
+# Get variables in subject tables
+acs_state_subject_vars <- ref_vars_subject %>% 
+  filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
+  filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% 
+  mutate(table_name = gsub( "_.*$", "", name),
+         label = gsub("!!", "; ", label))
+
+acs_state_vars <- ref_vars %>%
+  filter(str_detect(name, pattern = "(^B181(40|35)_*)|(^C181(20|30|21)_*)")) %>% 
+  mutate(table_name = gsub( "_.*$", "", name),
+         label = gsub("!!", "; ", label))
+  
+
+# Grab state-level data
+acs_state_subject_raw <- get_acs(geography = "state",
+                                 year = 2018,
+                                 variables = acs_place_subject_vars %>% pull(name),
+                                 survey = "acs5",
+                                 geometry = FALSE,
+                                 wide = TRUE)
 
 # Write variable lookup to database ---------------------------------------
 
