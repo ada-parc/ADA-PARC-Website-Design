@@ -134,7 +134,7 @@ acs_state_vars <- ref_vars %>%
 # Grab state-level data
 acs_state_raw <- get_acs(geography = "state",
                                  year = 2018,
-                                 variables = acs_place_subject_vars %>% pull(name),
+                                 variables = acs_state_vars_full %>% pull(name),
                                  survey = "acs5",
                                  geometry = FALSE,
                                  wide = TRUE)
