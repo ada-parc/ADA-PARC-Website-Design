@@ -168,3 +168,104 @@ output$click <- renderPrint({
 })
 
 plotlyOutput('scatter', width = "80%")
+
+### --------------------------------------------------------------------------- ###
+### National Tab Redux
+###
+
+### --------------------
+### Pull data
+###
+
+
+### Demographics
+# S1810
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1810",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_demographic <- temp_mongo_conn$find()
+
+rm(temp_mongo_conn)
+
+### Community Living
+# S2601A
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S2601A",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp1 <- temp_mongo_conn$find()
+
+# S2602
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S2602",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp2 <- temp_mongo_conn$find()
+
+# S1810
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1810",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp3 <- temp_mongo_conn$find()
+
+# Join together
+metro_snapshot_state_living <- list(metro_snapshot_state_temp1,
+                                  metro_snapshot_state_temp2,
+                                  metro_snapshot_state_temp3) %>% 
+  reduce(left_join, by = c("GEOID", "NAME"))
+
+rm(temp_mongo_conn, metro_snapshot_state_temp1, metro_snapshot_state_temp2, metro_snapshot_state_temp3)
+
+### Community Participation
+# B18135
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_B18135",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp1 <- temp_mongo_conn$find()
+
+# S1811
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1811",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp2 <- temp_mongo_conn$find()
+
+# S1810
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1810",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp3 <- temp_mongo_conn$find()
+
+# Join together
+metro_snapshot_state_participation <- list(metro_snapshot_state_temp1,
+                                    metro_snapshot_state_temp2,
+                                    metro_snapshot_state_temp3) %>% 
+  reduce(left_join, by = c("GEOID", "NAME"))
+
+rm(temp_mongo_conn, metro_snapshot_state_temp1, metro_snapshot_state_temp2, metro_snapshot_state_temp3)
+
+### Work/Economic
+# B18140
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_B18140",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp1 <- temp_mongo_conn$find()
+
+# C18120
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_C18120",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp2 <- temp_mongo_conn$find()
+
+# C18121
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_C18121",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp3 <- temp_mongo_conn$find()
+
+# C18130
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_C18130",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp4 <- temp_mongo_conn$find()
+
+# S1811
+temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1811",
+                                 database_name = "ADA-PARC")
+metro_snapshot_state_temp5 <- temp_mongo_conn$find()
+
+# Join together
+metro_snapshot_state_economic <- list(metro_snapshot_state_temp1,
+                                           metro_snapshot_state_temp2,
+                                           metro_snapshot_state_temp3,
+                                           metro_snapshot_state_temp4,
+                                           metro_snapshot_state_temp5) %>% 
+  reduce(left_join, by = c("GEOID", "NAME"))
+
+rm(temp_mongo_conn, metro_snapshot_state_temp1, metro_snapshot_state_temp2, metro_snapshot_state_temp3, metro_snapshot_state_temp4, metro_snapshot_state_temp5)
