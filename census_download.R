@@ -49,7 +49,7 @@ base_existing <- read_excel(path = db_path,
 ###
 
 # Restrict to 200 most populated cities
-most_populated <- get_estimaes(geography = "place",
+most_populated <- get_estimates(geography = "place",
                                 year = 2018,
                                 product = "population",
                                 geometry = FALSE,
@@ -116,36 +116,47 @@ acs_place_subject_raw <- pmap_df(.l = fips_codes %>% select(state_code) %>% dist
 ###
 
 # List of acs5 variables for reference
+# Pull B/C vars to bind with S vars used with Places
 ref_vars <- load_variables(2018, "acs5", cache = TRUE)
 
-# Get variables in subject tables
-acs_state_subject_vars <- ref_vars_subject %>% 
+# Get variable tables to query from acs5/subject and acs5
+acs_subject_vars <- ref_vars_subject %>% 
   filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
   filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% 
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
 
-acs_state_vars <- ref_vars %>%
+acs_vars <- ref_vars %>%
   filter(str_detect(name, pattern = "(^B181(40|35)_*)|(^C181(20|30|21)_*)")) %>% 
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
   
+acs_vars_full <- bind_rows(acs_subject_vars, acs_vars)
 
 # Grab state-level data
 acs_state_raw <- get_acs(geography = "state",
                                  year = 2018,
-                                 variables = acs_state_vars_full %>% pull(name),
+                                 variables = acs_vars_full %>% pull(name),
                                  survey = "acs5",
                                  geometry = FALSE,
-                                 wide = TRUE)
+                                 wide = TRUE) %>%
+  # Standardize variable names for db
+  mutate(variable = gsub("PR", "", variable))
 
-# Write variable lookup to database ---------------------------------------
-
+###
+### Write variable lookup to database ---------------------------------------
+###
 
 # Write variables and names to lookup
-lookup_var <- acs_place_subject_vars %>% 
+# acs_vars_full contains every variable used between state, place, and tract
+lookup_var <- acs_vars_full %>% 
   select(concept, table_name, "variable" = name, label) %>% 
-  distinct()
+  distinct() %>% 
+  # PR has its own table codes, changing those codes to the standards for the table
+  mutate(
+    table_name = gsub("PR", "", table_name),
+    variable = gsub("PR", "", variable)
+  )
 
 # Connect to MongoDB database/collection
 mongo_conn <- mongo_connect(collection_name = "acs_variable_lu",
@@ -158,9 +169,9 @@ mongo_conn$insert(lookup_var)
 # Disconnect
 rm(mongo_conn)
 
-
-# Get spatial data for tracts ---------------------------------------------
-
+###
+### Get spatial data for tracts ---------------------------------------------
+###
 
 # Restrict tracts to those within CDP
 tracts_sf <- pmap_df(places_counties %>%
@@ -187,9 +198,9 @@ tracts_sf <- tracts_sf %>%
 # Remove temporary tables
 rm(places, counties)
 
-
-# Write spatial data to database ------------------------------------------
-
+###
+### Write spatial data to database ------------------------------------------
+###
 
 # Connect to MongoDB database/collection
 mongo_conn <- mongo_connect(collection_name = "geo_tract",
@@ -205,9 +216,9 @@ mongo_conn$index((add = '{"geometry" : "2dsphere"}'))
 rm(temp_geo)
 rm(mongo_conn)
 
-
-# Get tabular data for tracts ---------------------------------------------
-
+###
+### Get tabular data for tracts ---------------------------------------------
+###
 
 # Get variables in subject tables (subset of place variables)
 acs_tract_subject_vars <- acs_place_subject_vars %>% 
@@ -229,9 +240,9 @@ acs_tract_subject_raw <- pmap_df(places_counties %>%
                                                 wide = TRUE) %>% 
                                           semi_join(., tracts_sf, by = "GEOID")))
 
-
-# Function to write data efficiently to MongoDB ---------------------------
-
+###
+### Function to write data efficiently to MongoDB ---------------------------
+###
 
 # Organize data into list of dfs and export
 fun_write_by_geo_table <- function(df, geo_name) {
@@ -239,7 +250,9 @@ fun_write_by_geo_table <- function(df, geo_name) {
   # Group by table name
   df <- df %>% 
     left_join(lookup_var %>% select(variable, table_name), by = "variable") %>% 
-    group_by(table_name)
+    group_by(table_name) %>% 
+    drop_na(estimate) %>% 
+    distinct()
   
   # Get table names to rename list elements 
   df_group_names <- group_keys(df) %>% 
@@ -279,9 +292,12 @@ fun_write_by_geo_table <- function(df, geo_name) {
   
 }
 
+###
+### Export to MongoDB -------------------------------------------------------
+###
 
-# Export to MongoDB -------------------------------------------------------
-
+# States
+fun_write_by_geo_table(df = acs_state_raw, geo = "state")
 
 # Places
 fun_write_by_geo_table(df = acs_place_subject_raw, geo = "place")
