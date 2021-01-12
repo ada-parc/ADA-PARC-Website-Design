@@ -31,18 +31,64 @@ library(mongolite)
 # Load API keys and database connection information
 source("secret.R", local = TRUE)
 
-map_data <- function(data) {
-  data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
+### --------------------
+### Functions
+###
+
+# Pull data from database
+pull_mongo_data <- function(tables, geo) {
+  for (t in seq_along(tables)) {
+    print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
+    temp_mongo_conn <- mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
+                                     database_name = "ADA-PARC")
+    
+    assign(paste0("temp_df", t), temp_mongo_conn$find())
+    
+    rm(temp_mongo_conn)
+  }
+  df <- reduce(mget(ls(pattern = "temp_df")), 
+               left_join, by = c("GEOID", "NAME"))
 }
 
-create_palette <- function(data, selected) {
-  colorQuantile(palette = input$access_map_palette, 
-                domain = pull(data, !!sym(selected)),
-                n = 4)
+# Render national tile map
+render_map <- function(data, selected) {
+  data %>%
+  ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
+             fill = !!sym(selected))) + # Selected variable
+  geom_tile() + # Imports x and y values
+  geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")), 
+            color = "white") + # Adds percentage to the center of the tile
+  labs(x = "", y = "") +
+  facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
+  theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+        panel.grid = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line = element_blank(),
+        panel.spacing = unit(0L, "pt"),
+        legend.position = "none",
+        strip.text.x = element_text(size = 9L))
 }
 
+# Transform data to spatial data
+# Not used in national tile map version
+# map_data <- function(data) {
+#   data %>% 
+#     left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
+#     st_transform(4326)
+# }
+
+# Create color palette for national data
+# Not used in national tile map version
+# create_palette <- function(data, selected) {
+#   colorQuantile(palette = input$access_map_palette, 
+#                 domain = pull(data, !!sym(selected)),
+#                 n = 4)
+# }
+
+# Render leaflet national map
+# Not used in national tile map version
 # render_map <- function(data, selected, palette) {
 #   title <- selected
 #   
@@ -69,27 +115,6 @@ create_palette <- function(data, selected) {
 #   map
 #   
 # }
-
-render_map <- function(data, selected) {
-  data %>%
-  ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
-             fill = !!sym(selected))) + # Selected variable
-  geom_tile() + # Imports x and y values
-  geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")), 
-            color = "white") + # Adds percentage to the center of the tile
-  labs(x = "", y = "") +
-  facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
-  theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
-        panel.grid = element_blank(),
-        panel.grid.major = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        axis.line = element_blank(),
-        panel.spacing = unit(0L, "pt"),
-        legend.position = "none",
-        strip.text.x = element_text(size = 9L))
-}
-
 ```
 
 

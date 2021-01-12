@@ -1,8 +1,11 @@
-library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor); 
+library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor) 
 library(sf); library(urbnmapr); library(geofacet); library(leaflet); library(leaflet.extras);
-library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard); 
-library(colourpicker); library(DT); library(highcharter);
+library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard)
+library(colourpicker); library(DT); library(gghighlight)
+library(knitr); library(kableExtra)
 library(scales); library(hrbrthemes); library(ggthemes)
+library(extrafont); library(plotly)
+library(mongolite)
 
 # Must install urbnmapr via GitHUb if is not already installed
 # install.packages("devtools")
@@ -174,98 +177,46 @@ plotlyOutput('scatter', width = "80%")
 ###
 
 ### --------------------
+### Setup
+###
+
+source("secret.R", local = TRUE)
+
+# Function for pulling data from database with table names as input
+pull_mongo_data <- function(tables, geo) {
+  for (t in seq_along(tables)) {
+    print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
+    temp_mongo_conn <- mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
+                                     database_name = "ADA-PARC")
+    
+    assign(paste0("temp_df", t), temp_mongo_conn$find())
+    
+    rm(temp_mongo_conn)
+  }
+  df <- reduce(mget(ls(pattern = "temp_df")), 
+               left_join, by = c("GEOID", "NAME"))
+}
+
+### --------------------
 ### Pull data
 ###
 
-
 ### Demographics
-# S1810
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1810",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_demographic <- temp_mongo_conn$find()
-
-rm(temp_mongo_conn)
+tables <- c("S1810")
+national_demographic <- pull_mongo_data(tables, "state")
+rm(tables)
 
 ### Community Living
-# S2601A
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S2601A",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp1 <- temp_mongo_conn$find()
-
-# S2602
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S2602",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp2 <- temp_mongo_conn$find()
-
-# S1810
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1810",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp3 <- temp_mongo_conn$find()
-
-# Join together
-metro_snapshot_state_living <- list(metro_snapshot_state_temp1,
-                                  metro_snapshot_state_temp2,
-                                  metro_snapshot_state_temp3) %>% 
-  reduce(left_join, by = c("GEOID", "NAME"))
-
-rm(temp_mongo_conn, metro_snapshot_state_temp1, metro_snapshot_state_temp2, metro_snapshot_state_temp3)
+tables <- c("S2601A", "S2602", "S1810")
+national_living <- pull_mongo_data(tables, "state")
+rm(tables)
 
 ### Community Participation
-# B18135
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_B18135",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp1 <- temp_mongo_conn$find()
-
-# S1811
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1811",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp2 <- temp_mongo_conn$find()
-
-# S1810
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1810",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp3 <- temp_mongo_conn$find()
-
-# Join together
-metro_snapshot_state_participation <- list(metro_snapshot_state_temp1,
-                                    metro_snapshot_state_temp2,
-                                    metro_snapshot_state_temp3) %>% 
-  reduce(left_join, by = c("GEOID", "NAME"))
-
-rm(temp_mongo_conn, metro_snapshot_state_temp1, metro_snapshot_state_temp2, metro_snapshot_state_temp3)
+tables <- c("B18135", "S1811", "S1810")
+national_participation <- pull_mongo_data(tables, "state")
+rm(tables)
 
 ### Work/Economic
-# B18140
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_B18140",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp1 <- temp_mongo_conn$find()
-
-# C18120
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_C18120",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp2 <- temp_mongo_conn$find()
-
-# C18121
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_C18121",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp3 <- temp_mongo_conn$find()
-
-# C18130
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_C18130",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp4 <- temp_mongo_conn$find()
-
-# S1811
-temp_mongo_conn <- mongo_connect(collection_name = "acs_state_S1811",
-                                 database_name = "ADA-PARC")
-metro_snapshot_state_temp5 <- temp_mongo_conn$find()
-
-# Join together
-metro_snapshot_state_economic <- list(metro_snapshot_state_temp1,
-                                           metro_snapshot_state_temp2,
-                                           metro_snapshot_state_temp3,
-                                           metro_snapshot_state_temp4,
-                                           metro_snapshot_state_temp5) %>% 
-  reduce(left_join, by = c("GEOID", "NAME"))
-
-rm(temp_mongo_conn, metro_snapshot_state_temp1, metro_snapshot_state_temp2, metro_snapshot_state_temp3, metro_snapshot_state_temp4, metro_snapshot_state_temp5)
+tables <- c("B18140", "C18120", "C18121", "C18130", "S1811")
+national_economic <- pull_mongo_data(tables, "state")
+rm(tables)
