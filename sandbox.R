@@ -220,3 +220,55 @@ rm(tables)
 tables <- c("B18140", "C18120", "C18121", "C18130", "S1811")
 national_economic <- pull_mongo_data(tables, "state")
 rm(tables)
+
+national_demographic_readable <- national_demographic %>%
+  transmute(
+    # ID
+    GEOID = GEOID,
+    NAME = NAME,
+    NAME_ABBRV = state,
+    # Pop pwd
+    pop_total = estimate_S1810_C01_001,
+    pop_pwd = estimate_S1810_C02_001,
+    pct_pwd = pop_pwd / pop_total,
+    # Age
+    pop_18_64 = estimate_S1810_C01_015 + estimate_S1810_C01_016,
+    pwd_18_64 = estimate_S1810_C02_015 + estimate_S1810_C02_016,
+    pct_pwd_18_64 = pwd_18_64 / pop_18_64,
+    pop_grtoeq_65 = estimate_S1810_C01_017 + estimate_S1810_C01_018,
+    pwd_grtoeq_65 = estimate_S1810_C02_017 + estimate_S1810_C02_018,
+    pct_pwd_grtoeq_65 = pwd_grtoeq_65 / pop_grtoeq_65,
+    # Race
+    pwd_white = estimate_S1810_C02_004,
+    pwd_afam = estimate_S1810_C02_005,
+    pwd_hisp = estimate_S1810_C02_012,
+    pwd_whit_nonhisp = estimate_S1810_C02_011,
+    pwd_other = estimate_S1810_C01_006 + estimate_S1810_C01_007 + estimate_S1810_C01_008 + estimate_S1810_C01_009 + estimate_S1810_C01_010,
+    pct_pwd_white = pwd_white / pop_pwd,
+    pct_pwd_afam = pwd_afam / pop_pwd,
+    pct_pwd_hisp = pwd_hisp / pop_pwd,
+    pct_pwd_white_nonhisp = pwd_whit_nonhisp / pop_pwd,
+    pct_pwd_other = pwd_other / pop_pwd,
+    # Gender
+    pop_female = estimate_S1810_C01_003,
+    pwd_female = estimate_S1810_C02_003,
+    pct_female_pwd = pwd_female / pop_female,
+    pct_pwd_female = pwd_female / pop_pwd,
+    pop_male = estimate_S1810_C01_002,
+    pwd_male = estimate_S1810_C02_002,
+    pct_male_pwd = pwd_male / pop_male,
+    pct_pwd_male = pwd_male / pop_pwd,
+    # Type of disability
+    pwd_hearing = estimate_S1810_C02_019,
+    pct_pwd_hearing = pwd_hearing / pop_pwd,
+    pwd_vision = estimate_S1810_C02_029,
+    pct_pwd_vision = pwd_vision / pop_pwd,
+    pwd_cognitive = estimate_S1810_C02_039,
+    pct_pwd_cognitive = pwd_cognitive / pop_pwd,
+    pwd_ambulatory = estimate_S1810_C02_047,
+    pct_pwd_ambulatory = pwd_ambulatory / pop_pwd,
+    pwd_selfcare = estimate_S1810_C02_055,
+    pct_pwd_selfcare = pwd_selfcare / pop_pwd,
+    pwd_indliving = estimate_S1810_C02_063,
+    pct_pwd_indliving = pwd_indliving / pop_pwd
+  )

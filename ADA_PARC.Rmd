@@ -222,56 +222,82 @@ Demographics {data-navmenu="National" data-icon="fa-user"}
 ```{r, national import}
 
 # ====================
-# Import data
+# Import national data
 # ====================
 
-# Set database path
-db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
+### Demographics
+tables <- c("S1810")
+national_demographic <- pull_mongo_data(tables, "state")
+rm(tables)
 
-# Demographics
-demographics <- read_excel(path = db_path,
-                           sheet = "Demographics", 
-                           .name_repair = make_clean_names,
-                           skip = 2) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  rename("abbrev" = state_abbreviation) %>% 
-  mutate(across(-c(state:city), as.numeric))
+### Community Living
+tables <- c("S2601A", "S2602", "S1810")
+national_living <- pull_mongo_data(tables, "state")
+rm(tables)
 
-# Community Living
-community_living <- read_excel(path = db_path,
-                               sheet = "Community Living",
-                               .name_repair = make_clean_names,
-                               skip = 2) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  mutate(across(-c(state:abbrev), as.numeric))
+### Community Participation
+tables <- c("B18135", "S1811", "S1810")
+national_participation <- pull_mongo_data(tables, "state")
+rm(tables)
 
-# Community Participation
-community_participation <- read_excel(path = db_path,
-                           sheet = "CommunityParticipation",
-                           .name_repair = make_clean_names,
-                           skip = 3) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  mutate(across(-c(state:city), as.numeric))
+### Work/Economic
+tables <- c("B18140", "C18120", "C18121", "C18130", "S1811")
+national_economic <- pull_mongo_data(tables, "state")
+rm(tables)
 
-# Work and Economic
-work_economic <- read_excel(path = db_path,
-                           sheet = "WorkEconomic",
-                           .name_repair = make_clean_names,
-                           skip = 3) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  mutate(across(-c(state:city), as.numeric))
-
-# Metro Data
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, everything()) %>%  # This is cleaner than listing out every variable
-  mutate_if(is.numeric, round, 1)
+# ====================
+# Calculate tables
+# ====================
 
 
-# Read in spatial data
-states_sf <- get_urbn_map(map = "states", sf = TRUE)
+
+# # Set database path
+# db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
+# 
+# # Demographics
+# demographics <- read_excel(path = db_path,
+#                            sheet = "Demographics", 
+#                            .name_repair = make_clean_names,
+#                            skip = 2) %>% 
+#   remove_empty(c("rows", "cols")) %>% 
+#   rename("abbrev" = state_abbreviation) %>% 
+#   mutate(across(-c(state:city), as.numeric))
+# 
+# # Community Living
+# community_living <- read_excel(path = db_path,
+#                                sheet = "Community Living",
+#                                .name_repair = make_clean_names,
+#                                skip = 2) %>% 
+#   remove_empty(c("rows", "cols")) %>% 
+#   mutate(across(-c(state:abbrev), as.numeric))
+# 
+# # Community Participation
+# community_participation <- read_excel(path = db_path,
+#                            sheet = "CommunityParticipation",
+#                            .name_repair = make_clean_names,
+#                            skip = 3) %>% 
+#   remove_empty(c("rows", "cols")) %>% 
+#   mutate(across(-c(state:city), as.numeric))
+# 
+# # Work and Economic
+# work_economic <- read_excel(path = db_path,
+#                            sheet = "WorkEconomic",
+#                            .name_repair = make_clean_names,
+#                            skip = 3) %>% 
+#   remove_empty(c("rows", "cols")) %>% 
+#   mutate(across(-c(state:city), as.numeric))
+# 
+# # Metro Data
+# metro_demo_data <- demographics %>% 
+#   filter(is.na(city) == FALSE) %>% 
+#   mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+#   select(metro_state,
+#          pwd, total_population, everything()) %>%  # This is cleaner than listing out every variable
+#   mutate_if(is.numeric, round, 1)
+# 
+# 
+# # Read in spatial data
+# states_sf <- get_urbn_map(map = "states", sf = TRUE)
 
 ```
 
@@ -2719,27 +2745,27 @@ Snapshot {data-navmenu="By Metro"}
 ======================================================================
 
 ```{r metro data import}
-
-# Import city level data
-# Demographics
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, contains("percent")) %>%
-  mutate_if(is.numeric, round, 1)
-
-# Community Participation
-metro_cp_data <- community_participation %>% 
-  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  mutate_if(is.numeric, round, 1)
-
-# Work/Economic
-metro_we_data <- work_economic %>% 
-  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
-  mutate(metro_state = paste0(city, ", ", state_abbreviation)) %>% 
-  mutate_if(is.numeric, round, 1)
+# Not used in metro tab version
+# # Import city level data
+# # Demographics
+# metro_demo_data <- demographics %>% 
+#   filter(is.na(city) == FALSE, city != "United States, USA") %>% 
+#   mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+#   select(metro_state,
+#          pwd, total_population, contains("percent")) %>%
+#   mutate_if(is.numeric, round, 1)
+# 
+# # Community Participation
+# metro_cp_data <- community_participation %>% 
+#   filter(is.na(city) == FALSE, city != "United States, USA") %>% 
+#   mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
+#   mutate_if(is.numeric, round, 1)
+# 
+# # Work/Economic
+# metro_we_data <- work_economic %>% 
+#   filter(is.na(city) == FALSE, city != "United States, USA") %>% 
+#   mutate(metro_state = paste0(city, ", ", state_abbreviation)) %>% 
+#   mutate_if(is.numeric, round, 1)
 
 ```
 
@@ -2786,25 +2812,9 @@ selectInput(inputId = "metro_snapshot",
 # ===============
 # Pull Census place data
 # ===============
-
-# S1810
-temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1810",
-                                 database_name = "ADA-PARC")
-metro_snapshot_place_temp1 <- temp_mongo_conn$find()
-
-# S1811
-temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1811",
-                                 database_name = "ADA-PARC")
-metro_snapshot_place_temp2 <- temp_mongo_conn$find()
-
-# Join together
-metro_snapshot_place_full <- list(metro_snapshot_place_temp1,
-                                  metro_snapshot_place_temp2) %>% 
-  reduce(left_join, by = c("GEOID", "NAME"))
-
-# Remove temporary tables  
-rm(list = ls(pattern = "^metro_snapshot_place_temp"))
-rm(temp_mongo_conn)
+tables <- c("S1810", "S1811")
+metro_snapshot_place_full <- pull_mongo_data(tables, "place")
+rm(tables)
 
 # Place for selected metro
 metro_snapshot_place <- reactive({

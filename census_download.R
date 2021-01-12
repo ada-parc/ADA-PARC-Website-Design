@@ -96,7 +96,7 @@ ref_vars_subject <- load_variables(2018, "acs5/subject", cache = TRUE)
 # Get variables in subject tables
 acs_place_subject_vars <- ref_vars_subject %>% 
   filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
-  filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% 
+  filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% # Removes detailed age data
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
 
@@ -120,9 +120,9 @@ acs_place_subject_raw <- pmap_df(.l = fips_codes %>% select(state_code) %>% dist
 ref_vars <- load_variables(2018, "acs5", cache = TRUE)
 
 # Get variable tables to query from acs5/subject and acs5
+# Does not remove detailed age data from subject tables
 acs_subject_vars <- ref_vars_subject %>% 
   filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
-  filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% 
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
 
@@ -141,7 +141,10 @@ acs_state_raw <- get_acs(geography = "state",
                                  geometry = FALSE,
                                  wide = TRUE) %>%
   # Standardize variable names for db
-  mutate(variable = gsub("PR", "", variable))
+  mutate(variable = gsub("PR", "", variable)) %>%
+  left_join(fips_codes %>% select(state, state_code), by = c("GEOID" = "state_code")) %>%
+  relocate(state, .after = NAME) %>%
+  distinct()
 
 ###
 ### Write variable lookup to database ---------------------------------------
