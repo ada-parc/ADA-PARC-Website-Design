@@ -197,6 +197,27 @@ pull_mongo_data <- function(tables, geo) {
                left_join, by = c("GEOID", "NAME"))
 }
 
+# Function to render national tile map
+render_tile_map <- function(data, selected) {
+  data %>%
+    ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
+               fill = !!sym(selected))) + # Selected variable
+    geom_tile() + # Imports x and y values
+    geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")),
+              color = "white") + # Adds percentage to the center of the tile
+    labs(x = "", y = "") +
+    facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") +
+    theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "none",
+          strip.text.x = element_text(size = 9L))
+}
+
 ### --------------------
 ### Pull data
 ###
@@ -221,24 +242,32 @@ tables <- c("B18140", "C18120", "C18121", "C18130", "S1811")
 national_economic <- pull_mongo_data(tables, "state")
 rm(tables)
 
+### ---------------
+### Clean data
+###
+
+### Human readable tables for use in dashboard
 national_demographic_readable <- national_demographic %>%
   transmute(
-    # ID
+    ### ID
     GEOID = GEOID,
     NAME = NAME,
     NAME_ABBRV = state,
-    # Pop pwd
+    
+    ### Pop pwd
     pop_total = estimate_S1810_C01_001,
     pop_pwd = estimate_S1810_C02_001,
     pct_pwd = pop_pwd / pop_total,
-    # Age
+    
+    ### Age
     pop_18_64 = estimate_S1810_C01_015 + estimate_S1810_C01_016,
     pwd_18_64 = estimate_S1810_C02_015 + estimate_S1810_C02_016,
     pct_pwd_18_64 = pwd_18_64 / pop_18_64,
     pop_grtoeq_65 = estimate_S1810_C01_017 + estimate_S1810_C01_018,
     pwd_grtoeq_65 = estimate_S1810_C02_017 + estimate_S1810_C02_018,
     pct_pwd_grtoeq_65 = pwd_grtoeq_65 / pop_grtoeq_65,
-    # Race
+    
+    ### Race
     pwd_white = estimate_S1810_C02_004,
     pwd_afam = estimate_S1810_C02_005,
     pwd_hisp = estimate_S1810_C02_012,
@@ -249,7 +278,8 @@ national_demographic_readable <- national_demographic %>%
     pct_pwd_hisp = pwd_hisp / pop_pwd,
     pct_pwd_white_nonhisp = pwd_whit_nonhisp / pop_pwd,
     pct_pwd_other = pwd_other / pop_pwd,
-    # Gender
+    
+    ### Gender
     pop_female = estimate_S1810_C01_003,
     pwd_female = estimate_S1810_C02_003,
     pct_female_pwd = pwd_female / pop_female,
@@ -258,7 +288,8 @@ national_demographic_readable <- national_demographic %>%
     pwd_male = estimate_S1810_C02_002,
     pct_male_pwd = pwd_male / pop_male,
     pct_pwd_male = pwd_male / pop_pwd,
-    # Type of disability
+    
+    ### Type of disability
     pwd_hearing = estimate_S1810_C02_019,
     pct_pwd_hearing = pwd_hearing / pop_pwd,
     pwd_vision = estimate_S1810_C02_029,
@@ -272,3 +303,42 @@ national_demographic_readable <- national_demographic %>%
     pwd_indliving = estimate_S1810_C02_063,
     pct_pwd_indliving = pwd_indliving / pop_pwd
   )
+
+national_living_readable <- national_living %>%
+  transmute(
+    ### ID
+    GEOID = GEOID,
+    NAME = NAME,
+    NAME_ABBRV = state,
+    
+    ### Pop pwd
+    pop_total = estimate_S2601A_C01_001,
+    pct_pwd = estimate_S2601A_C01_047,
+    pop_pwd = round(pop_total * (pct_pwd/100), 0),
+    
+    ### Group quarters
+    pop_grpquarters = estimate_S2601A_C02_001,
+    pct_pwd_grpquarters = estimate_S2601A_C02_047,
+    pct_grpquarters = pop_grpquarters / pop_total,
+    pop_grpquarters_institution = estimate_S2601A_C03_001,
+    pop_grpquarters_noninstitution = estimate_S2601A_C04_001,
+    pct_pwd_grpquarters_institution = estimate_S2601A_C03_047,
+    pwd_grpquarters_institution = round(pop_grpquarters * (pct_pwd_grpquarters_institution/100), 0),
+    pct_pwd_grpquarters_noninstitution = estimate_S2601A_C04_047,
+    pwd_grpquarters_noninstitution = round(pop_grpquarters * (pct_pwd_grpquarters_noninstitution/100), 0),
+    # DatabaseUpdate Instruction.xlsx says below stats are calculated via formula from above vars?
+    # pct_pwd_institution = , # Is this just pct_pwd_grpquarters_institution?
+    # pct_pwd_home = ,
+    # pct_pwd_grpquarters_other = , # Couldn't find this in lookup_var df
+    
+    ### Nursing homes
+    pop_nursing = estimate_S2602_C04_001,
+    pop_18_64 = estimate_S2602_C01_047,
+    pct_pop_pwd_18_64 = estimate_S2602_C01_048, # % total pop w/ disability AND 18 - 64
+    pwd_18_64 = round(pop_total * (pct_pop_pwd_18_64 / 100), 0),
+    pct_pop_nursing_18_64 = estimate_S2602_C04_006 + estimate_S2602_C04_007 + estimate_S2602_C04_008 + estimate_S2602_C04_009 + estimate_S2602_C04_010,
+    pct_pwd_nursing_18_64 = estimate_S2602_C04_048,
+    pwd_nursing_18_64 = round(pop_pwd * (pct_pwd_nursing_18_64/100), 0) 
+  )
+
+render_tile_map(national_demographic_readable, pct_pwd_ambulatory)

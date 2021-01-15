@@ -51,7 +51,7 @@ pull_mongo_data <- function(tables, geo) {
 }
 
 # Render national tile map
-render_map <- function(data, selected) {
+render_tile_map <- function(data, selected) {
   data %>%
   ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
              fill = !!sym(selected))) + # Selected variable
@@ -251,53 +251,53 @@ rm(tables)
 
 
 
-# # Set database path
-# db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
-# 
-# # Demographics
-# demographics <- read_excel(path = db_path,
-#                            sheet = "Demographics", 
-#                            .name_repair = make_clean_names,
-#                            skip = 2) %>% 
-#   remove_empty(c("rows", "cols")) %>% 
-#   rename("abbrev" = state_abbreviation) %>% 
-#   mutate(across(-c(state:city), as.numeric))
-# 
-# # Community Living
-# community_living <- read_excel(path = db_path,
-#                                sheet = "Community Living",
-#                                .name_repair = make_clean_names,
-#                                skip = 2) %>% 
-#   remove_empty(c("rows", "cols")) %>% 
-#   mutate(across(-c(state:abbrev), as.numeric))
-# 
-# # Community Participation
-# community_participation <- read_excel(path = db_path,
-#                            sheet = "CommunityParticipation",
-#                            .name_repair = make_clean_names,
-#                            skip = 3) %>% 
-#   remove_empty(c("rows", "cols")) %>% 
-#   mutate(across(-c(state:city), as.numeric))
-# 
-# # Work and Economic
-# work_economic <- read_excel(path = db_path,
-#                            sheet = "WorkEconomic",
-#                            .name_repair = make_clean_names,
-#                            skip = 3) %>% 
-#   remove_empty(c("rows", "cols")) %>% 
-#   mutate(across(-c(state:city), as.numeric))
-# 
-# # Metro Data
-# metro_demo_data <- demographics %>% 
-#   filter(is.na(city) == FALSE) %>% 
-#   mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-#   select(metro_state,
-#          pwd, total_population, everything()) %>%  # This is cleaner than listing out every variable
-#   mutate_if(is.numeric, round, 1)
-# 
-# 
-# # Read in spatial data
-# states_sf <- get_urbn_map(map = "states", sf = TRUE)
+# Set database path
+db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
+
+# Demographics
+demographics <- read_excel(path = db_path,
+                           sheet = "Demographics",
+                           .name_repair = make_clean_names,
+                           skip = 2) %>%
+  remove_empty(c("rows", "cols")) %>%
+  rename("abbrev" = state_abbreviation) %>%
+  mutate(across(-c(state:city), as.numeric))
+
+# Community Living
+community_living <- read_excel(path = db_path,
+                               sheet = "Community Living",
+                               .name_repair = make_clean_names,
+                               skip = 2) %>%
+  remove_empty(c("rows", "cols")) %>%
+  mutate(across(-c(state:abbrev), as.numeric))
+
+# Community Participation
+community_participation <- read_excel(path = db_path,
+                           sheet = "CommunityParticipation",
+                           .name_repair = make_clean_names,
+                           skip = 3) %>%
+  remove_empty(c("rows", "cols")) %>%
+  mutate(across(-c(state:city), as.numeric))
+
+# Work and Economic
+work_economic <- read_excel(path = db_path,
+                           sheet = "WorkEconomic",
+                           .name_repair = make_clean_names,
+                           skip = 3) %>%
+  remove_empty(c("rows", "cols")) %>%
+  mutate(across(-c(state:city), as.numeric))
+
+# Metro Data
+metro_demo_data <- demographics %>%
+  filter(is.na(city) == FALSE) %>%
+  mutate(metro_state = paste0(city, ", ", abbrev)) %>%
+  select(metro_state,
+         pwd, total_population, everything()) %>%  # This is cleaner than listing out every variable
+  mutate_if(is.numeric, round, 1)
+
+
+# Read in spatial data
+states_sf <- get_urbn_map(map = "states", sf = TRUE)
 
 ```
 
@@ -331,7 +331,7 @@ demo_gen_data <- demographics %>%
 demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
 
 renderPlot({
-  render_map(demo_gen_data, demo_gen_selected())
+  render_tile_map(demo_gen_data, demo_gen_selected())
 })
 
 # pal_demo1 <- reactive ({ 
@@ -457,7 +457,7 @@ pal_demo2 <- reactive ({
 output$demo2map <- renderLeaflet({
   
   # Map
-  render_map(demo_age_map_data, demo_age_selected(), pal_demo2())
+  render_tile_map(demo_age_map_data, demo_age_selected(), pal_demo2())
 
 })
 
@@ -595,7 +595,7 @@ pal_demo3 <- reactive ({
 output$demo3map <- renderLeaflet({
   
   # Map
-  render_map(demo_race_map_data, demo_race_selected(), pal_demo3())
+  render_tile_map(demo_race_map_data, demo_race_selected(), pal_demo3())
 
 })
 
@@ -770,7 +770,7 @@ pal_demo4 <- reactive ({
 output$demo4map <- renderLeaflet({
   
   # Map
-  render_map(demo_gender_map_data, demo_gender_selected(), pal_demo4())
+  render_tile_map(demo_gender_map_data, demo_gender_selected(), pal_demo4())
 
 })
 
@@ -904,7 +904,7 @@ pal_demo5 <- reactive ({
 output$demo5map <- renderLeaflet({
   
   # Map
-  render_map(demo_distype_map_data, demo_distype_selected(), pal_demo5())
+  render_tile_map(demo_distype_map_data, demo_distype_selected(), pal_demo5())
 
 })
 
@@ -1045,7 +1045,7 @@ pal_cl1 <- reactive ({
 # State map
 output$cl1map <- renderLeaflet({
   
-  render_map(cl_live_map_data, cl_live_selected(), pal_cl1())
+  render_tile_map(cl_live_map_data, cl_live_selected(), pal_cl1())
   
 })
 
@@ -1175,7 +1175,7 @@ pal_cl2 <- reactive ({
 # State map
 output$cl2map <- renderLeaflet({
   
-  render_map(cl_nursing_map_data, cl_nursing_selected(), pal_cl2())
+  render_tile_map(cl_nursing_map_data, cl_nursing_selected(), pal_cl2())
   
 })
 
@@ -1300,7 +1300,7 @@ pal_cl3 <- reactive ({
 # State map
 output$cl3map <- renderLeaflet({
   
-  render_map(cl_ps_map_data, cl_ps_selected(), pal_cl3())
+  render_tile_map(cl_ps_map_data, cl_ps_selected(), pal_cl3())
   
 })
 
@@ -1463,7 +1463,7 @@ pal_cp1 <- reactive ({
 output$cp1map <- renderLeaflet({
   
   # Map
-  render_map(cp_insurance_map_data, cp_insurance_selected(), pal_cp1())
+  render_tile_map(cp_insurance_map_data, cp_insurance_selected(), pal_cp1())
   
 })
 
@@ -1615,7 +1615,7 @@ pal_cp2 <- reactive ({
 # State map
 output$cp2map <- renderLeaflet({
   
-  render_map(cp_housing_map_data, cp_housing_selected(), pal_cp2())
+  render_tile_map(cp_housing_map_data, cp_housing_selected(), pal_cp2())
   
 })
 
@@ -1751,7 +1751,7 @@ pal_cp3 <- reactive ({
 # State map
 output$cp3map <- renderLeaflet({
   
-  render_map(cp_transit_map_data, cp_transit_selected(), pal_cp3())
+  render_tile_map(cp_transit_map_data, cp_transit_selected(), pal_cp3())
   
 })
 
@@ -1880,7 +1880,7 @@ pal_cp4 <- reactive ({
 output$cp4map <- renderLeaflet({
   
   # Map
-  render_map(cp_crime_map_data, cp_crime_selected(), pal_cp4())
+  render_tile_map(cp_crime_map_data, cp_crime_selected(), pal_cp4())
   
 })
 
@@ -2024,7 +2024,7 @@ pal_cp5 <- reactive ({
 # State map
 output$cp5map <- renderLeaflet({
   
-  render_map(cp_education_map_data, cp_education_selected(), pal_cp5())
+  render_tile_map(cp_education_map_data, cp_education_selected(), pal_cp5())
   
 })
 
@@ -2165,7 +2165,7 @@ pal_cp6 <- reactive ({
 # State map
 output$cp6map <- renderLeaflet({
   
-  render_map(cp_voting_map_data, cp_voting_selected(), pal_cp6())
+  render_tile_map(cp_voting_map_data, cp_voting_selected(), pal_cp6())
   
 })
 
@@ -2341,7 +2341,7 @@ pal_we1 <- reactive ({
 # State map
 output$we1map <- renderLeaflet({
   
-  render_map(we_employ_map_data, we_employ_selected(), pal_we1())
+  render_tile_map(we_employ_map_data, we_employ_selected(), pal_we1())
   
 })
 
@@ -2514,7 +2514,7 @@ pal_we2 <- reactive ({
 # State map
 output$we2map <- renderLeaflet({
   
-  render_map(we_status_map_data, we_status_selected(), pal_we2())
+  render_tile_map(we_status_map_data, we_status_selected(), pal_we2())
   
 })
 
@@ -2656,7 +2656,7 @@ pal_we3 <- reactive ({
 # State map
 output$we3map <- renderLeaflet({
   
-  render_map(we_afford_map_data, we_afford_selected(), pal_we3())
+  render_tile_map(we_afford_map_data, we_afford_selected(), pal_we3())
   
 })
 

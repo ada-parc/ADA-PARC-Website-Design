@@ -154,12 +154,12 @@ acs_state_raw <- get_acs(geography = "state",
 # acs_vars_full contains every variable used between state, place, and tract
 lookup_var <- acs_vars_full %>% 
   select(concept, table_name, "variable" = name, label) %>% 
-  distinct() %>% 
   # PR has its own table codes, changing those codes to the standards for the table
   mutate(
     table_name = gsub("PR", "", table_name),
     variable = gsub("PR", "", variable)
-  )
+  ) %>%
+  distinct()
 
 # Connect to MongoDB database/collection
 mongo_conn <- mongo_connect(collection_name = "acs_variable_lu",
