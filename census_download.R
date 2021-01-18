@@ -127,7 +127,7 @@ acs_subject_vars <- ref_vars_subject %>%
          label = gsub("!!", "; ", label))
 
 acs_vars <- ref_vars %>%
-  filter(str_detect(name, pattern = "(^B181(40|35)_*)|(^C181(20|30|21)_*)")) %>% 
+  filter(str_detect(name, pattern = "(^B181(40|35)_*)|(^C181(20|30|21)_*)|^B25(091|070)_*")) %>% 
   mutate(table_name = gsub( "_.*$", "", name),
          label = gsub("!!", "; ", label))
   

@@ -206,7 +206,7 @@ render_tile_map <- function(data, selected) {
     geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")),
               color = "white") + # Adds percentage to the center of the tile
     labs(x = "", y = "") +
-    facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") +
+    facet_geo(facets = ~ NAME, grid = "us_state_with_DC_PR_grid2") +
     theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
           panel.grid = element_blank(),
           panel.grid.major = element_blank(),
@@ -238,7 +238,7 @@ national_participation <- pull_mongo_data(tables, "state")
 rm(tables)
 
 ### Work/Economic
-tables <- c("B18140", "C18120", "C18121", "C18130", "S1811")
+tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070")
 national_economic <- pull_mongo_data(tables, "state")
 rm(tables)
 
@@ -326,19 +326,138 @@ national_living_readable <- national_living %>%
     pwd_grpquarters_institution = round(pop_grpquarters * (pct_pwd_grpquarters_institution/100), 0),
     pct_pwd_grpquarters_noninstitution = estimate_S2601A_C04_047,
     pwd_grpquarters_noninstitution = round(pop_grpquarters * (pct_pwd_grpquarters_noninstitution/100), 0),
+    
     # DatabaseUpdate Instruction.xlsx says below stats are calculated via formula from above vars?
     # pct_pwd_institution = , # Is this just pct_pwd_grpquarters_institution?
-    # pct_pwd_home = ,
+    # pct_pwd_home = , # Not sure what variables are used to calculate this
     # pct_pwd_grpquarters_other = , # Couldn't find this in lookup_var df
     
     ### Nursing homes
     pop_nursing = estimate_S2602_C04_001,
     pop_18_64 = estimate_S2602_C01_047,
-    pct_pop_pwd_18_64 = estimate_S2602_C01_048, # % total pop w/ disability AND 18 - 64
+    pct_pwd_18_64 = estimate_S2602_C01_048, # % total pop w/ disability AND 18 - 64
     pwd_18_64 = round(pop_total * (pct_pop_pwd_18_64 / 100), 0),
     pct_pop_nursing_18_64 = estimate_S2602_C04_006 + estimate_S2602_C04_007 + estimate_S2602_C04_008 + estimate_S2602_C04_009 + estimate_S2602_C04_010,
     pct_pwd_nursing_18_64 = estimate_S2602_C04_048,
     pwd_nursing_18_64 = round(pop_pwd * (pct_pwd_nursing_18_64/100), 0) 
   )
 
-render_tile_map(national_demographic_readable, pct_pwd_ambulatory)
+national_participation_readable <- national_participation %>%
+  transmute(
+    ### ID
+    GEOID = GEOID,
+    NAME = NAME,
+    NAME_ABBRV = state,
+    
+    ### Health Insurance
+    pop_19_64 = ,
+    
+    pwd_19_64 = ,
+    pwd_19_64_insured = ,
+    pwd_19_64_insured_private = ,
+    pwd_19_64_insured_public = ,
+    pwd_19_64_uninsured = ,
+    
+    pwod_19_64 = ,
+    pwod_19_64_insured = ,
+    pwod_19_64_insured_private = ,
+    pwod_19_64_insured_public = ,
+    pwod_19_64_uninsured = ,
+    
+    pop_grtoeq_65 = ,
+    pwd_grtoeq_65 = ,
+    pwd_grtoeq_65_insured = ,
+    pwd_grtoeq_65_insured_private = ,
+    pwd_grtoeq_65_insured_public = ,
+    pwd_grtoeq_65_uninsured = ,
+    
+    pwod_grtoeq_65 = ,
+    pwod_grtoeq_65_insured = ,
+    pwod_grtoeq_65_insured_private = ,
+    pwod_grtoeq_65_insured_public = ,
+    pwod_grtoeq_65_uninsured = ,
+    
+    pct_pwd_18_64_uninsured = ,
+    pct_pwod_18_64_uninsured = ,
+    pct_pwd_grtoeq_65_uninsured = ,
+    pct_pwod_groeq_65_uninsured = ,
+    pct_pwd_18_64_insured_private = ,
+    pct_pwod_18_64_insured_private = ,
+    pct_pwd_grtoeq_65_insured_private = ,
+    pct_pwod_grtoeq_65_insured_private = ,
+    
+    ### Medicare/Medicaid
+    pwd = ,
+    pwod = ,
+    
+    ### Transit Usage
+    pct_pwd_commute_public = ,
+    pct_pwod_commute_public = ,
+    pct_pwd_commute_car_alone = ,
+    pct_pwod_commute_car_alone = ,
+    
+    ### Educational Attainment
+    pct_pwd_lessthan_highschool = ,
+    pct_pwod_lessthan_highschool = ,
+    pct_pwd_highschoolequiv = ,
+    pct_pwod_highschoolequiv = ,
+    pct_pwd_degree_aa = ,
+    pct_pwod_degree_aa = , 
+    pct_pwd_degree_grtoeq_ba = ,
+    pct_pwod_degree_grtoeq_ba = 
+  )
+
+national_economic_readable <- national_economic %>%
+  transmute(
+    ### ID
+    GEOID = GEOID,
+    NAME = NAME,
+    NAME_ABBRV = state.x,
+    
+    ### Employment Status
+    pop_total = estimate_C18120_001,
+    pop_19_64 = estimate_B18135_013, # Not the same as the instructions spreadsheet; used this instead to keep calculations in same universe
+    pwd_19_64 = estimate_B18135_014,
+    pwod_19_64 = pop_19_64 - pwd_19_64,
+    pwd_employed = estimate_C18120_004,
+    pwod_employed = ,
+    pwd_unemployed = ,
+    pwod_unemployed = ,
+    pwd_notlabor = ,
+    pwod_notlabor = ,
+    
+    ### Poverty Status
+    pop_19_64 = estimate_B18135_013,
+    # pwd_18_64 = , # Already pulled from above...
+    pwod_18_64 = ,
+    pwd_below_poverty = ,
+    pwd_atorbelow_poverty = ,
+    pwod_below_poverty = ,
+    pwod_atorbelow_poverty = ,
+    
+    ### Affordability
+    cost_burdened = ,
+    rent_burdened = ,
+    
+    ### Full/Part Time Workers
+    pop_ft = ,
+    pwd_ft = ,
+    pwod_ft = ,
+    pop_pt = ,
+    pwd_pt = ,
+    pwod_pt = ,
+    pop_didnotwork = ,
+    pwd_didnotwork = ,
+    pwod_didnotwork = ,
+    
+    ### Income
+    pwd_grtoeq_16_med_individual_income = ,
+    pwod_grtoeq_16_med_individual_income = ,
+    
+    ### Working from Home
+    pwd_grtoeq_16_wfm = ,
+    pwod_grtoeq_16_wfm = 
+  )
+
+# Needs more scripting to tell between % and counts, and better ways to viz dpendong on which
+# render_tile_map(national_demographic_readable, "pct_pwd_ambulatory")
