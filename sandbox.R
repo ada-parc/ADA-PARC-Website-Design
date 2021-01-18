@@ -256,7 +256,7 @@ national_demographic_readable <- national_demographic %>%
     
     ### Pop pwd
     pop_total = estimate_S1810_C01_001,
-    pop_pwd = estimate_S1810_C02_001,
+    pwd = estimate_S1810_C02_001,
     pct_pwd = pop_pwd / pop_total,
     
     ### Age
@@ -314,7 +314,7 @@ national_living_readable <- national_living %>%
     ### Pop pwd
     pop_total = estimate_S2601A_C01_001,
     pct_pwd = estimate_S2601A_C01_047,
-    pop_pwd = round(pop_total * (pct_pwd/100), 0),
+    pwd = round(pop_total * (pct_pwd/100), 0),
     
     ### Group quarters
     pop_grpquarters = estimate_S2601A_C02_001,
@@ -350,62 +350,65 @@ national_participation_readable <- national_participation %>%
     NAME_ABBRV = state,
     
     ### Health Insurance
-    pop_19_64 = ,
+    pop_19_64 = estimate_B18135_013,
     
-    pwd_19_64 = ,
-    pwd_19_64_insured = ,
-    pwd_19_64_insured_private = ,
-    pwd_19_64_insured_public = ,
-    pwd_19_64_uninsured = ,
+    pwd_19_64 = estimate_B18135_014,
+    pwd_19_64_insured = estimate_B18135_015,
+    pwd_19_64_insured_private = estimate_B18135_016,
+    pwd_19_64_insured_public = estimate_B18135_017,
+    pwd_19_64_uninsured = estimate_B18135_018,
     
-    pwod_19_64 = ,
-    pwod_19_64_insured = ,
-    pwod_19_64_insured_private = ,
-    pwod_19_64_insured_public = ,
-    pwod_19_64_uninsured = ,
+    pwod_19_64 = estimate_B18135_019,
+    pwod_19_64_insured = estimate_B18135_020,
+    pwod_19_64_insured_private = estimate_B18135_021,
+    pwod_19_64_insured_public = estimate_B18135_022,
+    pwod_19_64_uninsured = estimate_B18135_023,
     
-    pop_grtoeq_65 = ,
-    pwd_grtoeq_65 = ,
-    pwd_grtoeq_65_insured = ,
-    pwd_grtoeq_65_insured_private = ,
-    pwd_grtoeq_65_insured_public = ,
-    pwd_grtoeq_65_uninsured = ,
+    pop_grtoeq_65 = estimate_B18135_024,
     
-    pwod_grtoeq_65 = ,
-    pwod_grtoeq_65_insured = ,
-    pwod_grtoeq_65_insured_private = ,
-    pwod_grtoeq_65_insured_public = ,
-    pwod_grtoeq_65_uninsured = ,
+    pwd_grtoeq_65 = estimate_B18135_025,
+    pwd_grtoeq_65_insured = estimate_B18135_026,
+    pwd_grtoeq_65_insured_private = estimate_B18135_027,
+    pwd_grtoeq_65_insured_public = estimate_B18135_028,
+    pwd_grtoeq_65_uninsured = estimate_B18135_029,
     
-    pct_pwd_18_64_uninsured = ,
-    pct_pwod_18_64_uninsured = ,
-    pct_pwd_grtoeq_65_uninsured = ,
-    pct_pwod_groeq_65_uninsured = ,
-    pct_pwd_18_64_insured_private = ,
-    pct_pwod_18_64_insured_private = ,
-    pct_pwd_grtoeq_65_insured_private = ,
-    pct_pwod_grtoeq_65_insured_private = ,
+    pwod_grtoeq_65 = estimate_B18135_030,
+    pwod_grtoeq_65_insured = estimate_B18135_031,
+    pwod_grtoeq_65_insured_private = estimate_B18135_032,
+    pwod_grtoeq_65_insured_public = estimate_B18135_033,
+    pwod_grtoeq_65_uninsured = estimate_B18135_034,
+    
+    pct_pwd_19_64_uninsured = pwd_19_64_uninsured / pwd_19_64,
+    pct_pwod_19_64_uninsured = pwod_19_64_uninsured / pwod_19_64 ,
+    pct_pwd_grtoeq_65_uninsured = pwd_grtoeq_65_uninsured / pwd_grtoeq_65,
+    pct_pwod_groeq_65_uninsured = pwod_grtoeq_65_uninsured / pwod_grtoeq_65,
+    pct_pwd_19_64_insured_private = pwd_19_64_insured_private / pwd_19_64,
+    pct_pwod_19_64_insured_private = pwod_19_64_insured_private / pwod_19_64,
+    pct_pwd_grtoeq_65_insured_private = pwd_grtoeq_65_insured_private / pwd_grtoeq_65,
+    pct_pwod_grtoeq_65_insured_private = pwod_grtoeq_65_insured_private / pwod_grtoeq_65,
     
     ### Medicare/Medicaid
-    pwd = ,
-    pwod = ,
+    pop_total = estimate_S1810_C01_001,
+    pwd = estimate_S1810_C02_001,
+    pwod = pop_total - pwd,
     
     ### Transit Usage
-    pct_pwd_commute_public = ,
-    pct_pwod_commute_public = ,
-    pct_pwd_commute_car_alone = ,
-    pct_pwod_commute_car_alone = ,
+    pct_pwd_commute_public = estimate_S1811_C02_035,
+    pct_pwod_commute_public = estimate_S1811_C03_035,
+    pct_pwd_commute_car_alone = estimate_S1811_C02_033,
+    pct_pwod_commute_car_alone = estimate_S1811_C03_033,
     
     ### Educational Attainment
-    pct_pwd_lessthan_highschool = ,
-    pct_pwod_lessthan_highschool = ,
-    pct_pwd_highschoolequiv = ,
-    pct_pwod_highschoolequiv = ,
-    pct_pwd_degree_aa = ,
-    pct_pwod_degree_aa = , 
-    pct_pwd_degree_grtoeq_ba = ,
-    pct_pwod_degree_grtoeq_ba = 
-  )
+    pct_pwd_lessthan_highschool = estimate_S1811_C02_040,
+    pct_pwod_lessthan_highschool = estimate_S1811_C03_040,
+    pct_pwd_highschoolequiv = estimate_S1811_C02_041,
+    pct_pwod_highschoolequiv = estimate_S1811_C03_041,
+    pct_pwd_degree_aa = estimate_S1811_C02_042,
+    pct_pwod_degree_aa = estimate_S1811_C03_042, 
+    pct_pwd_degree_grtoeq_ba = estimate_S1811_C02_043,
+    pct_pwod_degree_grtoeq_ba = estimate_S1811_C03_043
+  ) %>%
+  mutate(across(.cols = contains("insured") & starts_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_economic_readable <- national_economic %>%
   transmute(
@@ -420,43 +423,43 @@ national_economic_readable <- national_economic %>%
     pwd_19_64 = estimate_B18135_014,
     pwod_19_64 = pop_19_64 - pwd_19_64,
     pwd_employed = estimate_C18120_004,
-    pwod_employed = ,
-    pwd_unemployed = ,
-    pwod_unemployed = ,
-    pwd_notlabor = ,
-    pwod_notlabor = ,
+    pwod_employed = estimate_C18120_005,
+    pwd_unemployed = estimate_C18120_007,
+    pwod_unemployed = estimate_C18120_008,
+    pwd_notlabor = estimate_C18120_010,
+    pwod_notlabor = estimate_C18120_011,
     
     ### Poverty Status
-    pop_19_64 = estimate_B18135_013,
-    # pwd_18_64 = , # Already pulled from above...
-    pwod_18_64 = ,
-    pwd_below_poverty = ,
-    pwd_atorbelow_poverty = ,
-    pwod_below_poverty = ,
-    pwod_atorbelow_poverty = ,
+    pop_18_64 = estimate_C18130_009,
+    pwd_18_64 = estimate_C18130_010,
+    pwod_18_64 = estimate_C18130_013,
+    pwd_below_poverty = estimate_C18130_011,
+    pwd_atorbelow_poverty = estimate_C18130_012,
+    pwod_below_poverty = estimate_C18130_014,
+    pwod_atorbelow_poverty = estimate_C18130_015,
     
     ### Affordability
-    cost_burdened = ,
-    rent_burdened = ,
+    mortgage_burdened = estimate_B25091_008 + estimate_B25091_009 + estimate_B25091_010 + estimate_B25091_011,
+    rent_burdened = estimate_B25070_007 + estimate_B25070_008 + estimate_B25070_009 + estimate_B25070_010,
     
     ### Full/Part Time Workers
-    pop_ft = ,
-    pwd_ft = ,
-    pwod_ft = ,
-    pop_pt = ,
-    pwd_pt = ,
-    pwod_pt = ,
-    pop_didnotwork = ,
-    pwd_didnotwork = ,
-    pwod_didnotwork = ,
+    pop_ft = estimate_C18121_002,
+    pwd_ft = estimate_C18121_003,
+    pwod_ft = estimate_C18121_004,
+    pop_not_ft = estimate_C18121_005,
+    pwd_not_ft = estimate_C18121_006,
+    pwod_not_ft = estimate_C18121_007,
+    pop_didnotwork = estimate_C18121_008,
+    pwd_didnotwork = estimate_C18121_009,
+    pwod_didnotwork = estimate_C18121_010,
     
     ### Income
-    pwd_grtoeq_16_med_individual_income = ,
-    pwod_grtoeq_16_med_individual_income = ,
+    pwd_grtoeq_16_med_individual_income = estimate_B18140_002,
+    pwod_grtoeq_16_med_individual_income = estimate_B18140_005,
     
     ### Working from Home
-    pwd_grtoeq_16_wfm = ,
-    pwod_grtoeq_16_wfm = 
+    pct_pwd_grtoeq_16_wfm = estimate_S1811_C02_038,
+    pct_pwod_grtoeq_16_wfm = estimate_S1811_C03_038
   )
 
 # Needs more scripting to tell between % and counts, and better ways to viz dpendong on which
