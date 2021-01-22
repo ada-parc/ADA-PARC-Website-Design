@@ -236,7 +236,7 @@ render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") 
           strip.text.x = element_text(size = 9L))
 }
 
-render_tile_map(national_demographic_readable, "pct_pwd")
+# render_tile_map(national_demographic_readable, "pct_pwd")
 
 ### --------------------
 ### Pull data
@@ -488,8 +488,33 @@ national_economic_readable <- national_economic %>%
 ### Variable dictionary
 # pivot_longer the national_*_readable tables
 # take all unique var names
-national_varnames
+national_demographic_readable_varnames <- national_demographic_readable %>%
+  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+  mutate(table = "national_demographic")
+
+national_living_readable_varnames <- national_living_readable %>%
+  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+  mutate(table = "national_living")
+
+national_participation_readable_varnames <- national_participation_readable %>%
+  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+  mutate(table = "national_participation")
+
+national_economic_readable_varnames <- national_economic_readable %>%
+  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+  mutate(table = "national_economic")
 
 # pivot_longer the national_* tables
-# left_join national_Varnames to national_* tables by = c("GEOID", "NAME", "NAME_ABBRV")
+national_demographic_acs_varnames <- national_demographic %>%
+  pivot_longer(-c(GEOID, NAME, state), names_to = "var_name", values_to = "value") %>%
+  distinct(GEOID, NAME, state, var_name, value) %>%
+  mutate(table = "national_demographic")
 
+# left_join national_Varnames to national_* tables by = c("GEOID", "NAME", "NAME_ABBRV", "value")
+left_join(national_demographic_readable_varnames, national_demographic_acs_varnames, by = c("GEOID", "NAME", "NAME_ABBRV" = "state", "value", "table")) %>%
+  distinct(var_name.x, var_name.y) %>%
+  mutate(var_name.y = ifelse(is.na(var_name.y), "imputed", var_name.y))
