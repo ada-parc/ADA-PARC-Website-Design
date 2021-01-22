@@ -198,15 +198,33 @@ pull_mongo_data <- function(tables, geo) {
 }
 
 # Function to render national tile map
-render_tile_map <- function(data, selected) {
+render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") {
+  
+  # ### Unnecessary if selected is being passed as a string
+  # # but we may want to pass the variable itself at some point
+  # selected_varname <- deparse(substitute(!!sym(selected))) %>% gsub("^[^\\$]*\\$", "", .) 
+  # ### Parsing the regex
+  # # ^ anchor for beginning of string
+  # # [^\\$]* matches everything excluding "$" char
+  # # \\$ terminates match at "$" char
+  # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
+  # # outputs: "GEOID"
+
+  # Provide appropriate variable label to national tile map labels
+  if(grepl("pct", selected_varname)) {
+    selected_label <- "%"
+  } else {
+    selected_label <- ""
+  }
+  
   data %>%
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
                fill = !!sym(selected))) + # Selected variable
     geom_tile() + # Imports x and y values
-    geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")),
+    geom_text(aes(label = paste0(!!sym(selected), selected_label)),
               color = "white") + # Adds percentage to the center of the tile
     labs(x = "", y = "") +
-    facet_geo(facets = ~ NAME, grid = "us_state_with_DC_PR_grid2") +
+    facet_geo(facets = ~ NAME, grid = grid) +
     theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
           panel.grid = element_blank(),
           panel.grid.major = element_blank(),
@@ -217,6 +235,8 @@ render_tile_map <- function(data, selected) {
           legend.position = "none",
           strip.text.x = element_text(size = 9L))
 }
+
+render_tile_map(national_demographic_readable, "pct_pwd")
 
 ### --------------------
 ### Pull data
@@ -256,8 +276,8 @@ national_demographic_readable <- national_demographic %>%
     
     ### Pop pwd
     pop_total = estimate_S1810_C01_001,
-    pwd = estimate_S1810_C02_001,
-    pct_pwd = pop_pwd / pop_total,
+    pwd_total = estimate_S1810_C02_001,
+    pct_pwd = pwd_total / pop_total,
     
     ### Age
     pop_18_64 = estimate_S1810_C01_015 + estimate_S1810_C01_016,
@@ -273,36 +293,37 @@ national_demographic_readable <- national_demographic %>%
     pwd_hisp = estimate_S1810_C02_012,
     pwd_whit_nonhisp = estimate_S1810_C02_011,
     pwd_other = estimate_S1810_C01_006 + estimate_S1810_C01_007 + estimate_S1810_C01_008 + estimate_S1810_C01_009 + estimate_S1810_C01_010,
-    pct_pwd_white = pwd_white / pop_pwd,
-    pct_pwd_afam = pwd_afam / pop_pwd,
-    pct_pwd_hisp = pwd_hisp / pop_pwd,
-    pct_pwd_white_nonhisp = pwd_whit_nonhisp / pop_pwd,
-    pct_pwd_other = pwd_other / pop_pwd,
+    pct_pwd_white = pwd_white / pwd_total,
+    pct_pwd_afam = pwd_afam / pwd_total,
+    pct_pwd_hisp = pwd_hisp / pwd_total,
+    pct_pwd_white_nonhisp = pwd_whit_nonhisp / pwd_total,
+    pct_pwd_other = pwd_other / pwd_total,
     
     ### Gender
     pop_female = estimate_S1810_C01_003,
     pwd_female = estimate_S1810_C02_003,
     pct_female_pwd = pwd_female / pop_female,
-    pct_pwd_female = pwd_female / pop_pwd,
+    pct_pwd_female = pwd_female / pwd_total,
     pop_male = estimate_S1810_C01_002,
     pwd_male = estimate_S1810_C02_002,
     pct_male_pwd = pwd_male / pop_male,
-    pct_pwd_male = pwd_male / pop_pwd,
+    pct_pwd_male = pwd_male / pwd_total,
     
     ### Type of disability
     pwd_hearing = estimate_S1810_C02_019,
-    pct_pwd_hearing = pwd_hearing / pop_pwd,
+    pct_pwd_hearing = pwd_hearing / pwd_total,
     pwd_vision = estimate_S1810_C02_029,
-    pct_pwd_vision = pwd_vision / pop_pwd,
+    pct_pwd_vision = pwd_vision / pwd_total,
     pwd_cognitive = estimate_S1810_C02_039,
-    pct_pwd_cognitive = pwd_cognitive / pop_pwd,
+    pct_pwd_cognitive = pwd_cognitive / pwd_total,
     pwd_ambulatory = estimate_S1810_C02_047,
-    pct_pwd_ambulatory = pwd_ambulatory / pop_pwd,
+    pct_pwd_ambulatory = pwd_ambulatory / pwd_total,
     pwd_selfcare = estimate_S1810_C02_055,
-    pct_pwd_selfcare = pwd_selfcare / pop_pwd,
+    pct_pwd_selfcare = pwd_selfcare / pwd_total,
     pwd_indliving = estimate_S1810_C02_063,
-    pct_pwd_indliving = pwd_indliving / pop_pwd
-  )
+    pct_pwd_indliving = pwd_indliving / pwd_total
+  ) %>%
+  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_living_readable <- national_living %>%
   transmute(
@@ -314,7 +335,7 @@ national_living_readable <- national_living %>%
     ### Pop pwd
     pop_total = estimate_S2601A_C01_001,
     pct_pwd = estimate_S2601A_C01_047,
-    pwd = round(pop_total * (pct_pwd/100), 0),
+    pwd_total = round(pop_total * (pct_pwd/100), 0),
     
     ### Group quarters
     pop_grpquarters = estimate_S2601A_C02_001,
@@ -335,12 +356,13 @@ national_living_readable <- national_living %>%
     ### Nursing homes
     pop_nursing = estimate_S2602_C04_001,
     pop_18_64 = estimate_S2602_C01_047,
-    pct_pwd_18_64 = estimate_S2602_C01_048, # % total pop w/ disability AND 18 - 64
-    pwd_18_64 = round(pop_total * (pct_pop_pwd_18_64 / 100), 0),
+    pct_pwd_18_64 = estimate_S2602_C01_048, 
+    pwd_18_64 = round(pop_total * (pct_pwd_18_64 / 100), 0),
     pct_pop_nursing_18_64 = estimate_S2602_C04_006 + estimate_S2602_C04_007 + estimate_S2602_C04_008 + estimate_S2602_C04_009 + estimate_S2602_C04_010,
     pct_pwd_nursing_18_64 = estimate_S2602_C04_048,
-    pwd_nursing_18_64 = round(pop_pwd * (pct_pwd_nursing_18_64/100), 0) 
-  )
+    pwd_nursing_18_64 = round(pwd_total * (pct_pwd_nursing_18_64/100), 0) 
+  ) %>%
+  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_participation_readable <- national_participation %>%
   transmute(
@@ -389,8 +411,8 @@ national_participation_readable <- national_participation %>%
     
     ### Medicare/Medicaid
     pop_total = estimate_S1810_C01_001,
-    pwd = estimate_S1810_C02_001,
-    pwod = pop_total - pwd,
+    pwd_total = estimate_S1810_C02_001,
+    pwod = pop_total - pwd_total,
     
     ### Transit Usage
     pct_pwd_commute_public = estimate_S1811_C02_035,
@@ -408,7 +430,7 @@ national_participation_readable <- national_participation %>%
     pct_pwd_degree_grtoeq_ba = estimate_S1811_C02_043,
     pct_pwod_degree_grtoeq_ba = estimate_S1811_C03_043
   ) %>%
-  mutate(across(.cols = contains("insured") & starts_with("pct"),.fns = ~ round(.x * 100, 2)))
+  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_economic_readable <- national_economic %>%
   transmute(
@@ -460,7 +482,14 @@ national_economic_readable <- national_economic %>%
     ### Working from Home
     pct_pwd_grtoeq_16_wfm = estimate_S1811_C02_038,
     pct_pwod_grtoeq_16_wfm = estimate_S1811_C03_038
-  )
+  ) %>%
+  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-# Needs more scripting to tell between % and counts, and better ways to viz dpendong on which
-# render_tile_map(national_demographic_readable, "pct_pwd_ambulatory")
+### Variable dictionary
+# pivot_longer the national_*_readable tables
+# take all unique var names
+national_varnames
+
+# pivot_longer the national_* tables
+# left_join national_Varnames to national_* tables by = c("GEOID", "NAME", "NAME_ABBRV")
+
