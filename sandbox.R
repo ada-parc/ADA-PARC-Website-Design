@@ -266,6 +266,8 @@ rm(tables)
 ### Clean data
 ###
 
+# NOTE: Move pct to end of each var name 1/25
+
 ### Human readable tables for use in dashboard
 national_demographic_readable <- national_demographic %>%
   transmute(
@@ -277,15 +279,15 @@ national_demographic_readable <- national_demographic %>%
     ### Pop pwd
     pop_total = estimate_S1810_C01_001,
     pwd_total = estimate_S1810_C02_001,
-    pct_pwd = pwd_total / pop_total,
+    pwd_pct = pwd_total / pop_total,
     
     ### Age
     pop_18_64 = estimate_S1810_C01_015 + estimate_S1810_C01_016,
     pwd_18_64 = estimate_S1810_C02_015 + estimate_S1810_C02_016,
-    pct_pwd_18_64 = pwd_18_64 / pop_18_64,
+    pwd_18_64_pct = pwd_18_64 / pop_18_64,
     pop_grtoeq_65 = estimate_S1810_C01_017 + estimate_S1810_C01_018,
     pwd_grtoeq_65 = estimate_S1810_C02_017 + estimate_S1810_C02_018,
-    pct_pwd_grtoeq_65 = pwd_grtoeq_65 / pop_grtoeq_65,
+    pwd_grtoeq_65_pct = pwd_grtoeq_65 / pop_grtoeq_65,
     
     ### Race
     pwd_white = estimate_S1810_C02_004,
@@ -293,37 +295,37 @@ national_demographic_readable <- national_demographic %>%
     pwd_hisp = estimate_S1810_C02_012,
     pwd_whit_nonhisp = estimate_S1810_C02_011,
     pwd_other = estimate_S1810_C01_006 + estimate_S1810_C01_007 + estimate_S1810_C01_008 + estimate_S1810_C01_009 + estimate_S1810_C01_010,
-    pct_pwd_white = pwd_white / pwd_total,
-    pct_pwd_afam = pwd_afam / pwd_total,
-    pct_pwd_hisp = pwd_hisp / pwd_total,
-    pct_pwd_white_nonhisp = pwd_whit_nonhisp / pwd_total,
-    pct_pwd_other = pwd_other / pwd_total,
+    pwd_white_pct = pwd_white / pwd_total,
+    pwd_afam_pct = pwd_afam / pwd_total,
+    pwd_hisp_pct = pwd_hisp / pwd_total,
+    pwd_white_nonhisp_pct = pwd_whit_nonhisp / pwd_total,
+    pwd_other_pct = pwd_other / pwd_total,
     
     ### Gender
     pop_female = estimate_S1810_C01_003,
     pwd_female = estimate_S1810_C02_003,
-    pct_female_pwd = pwd_female / pop_female,
-    pct_pwd_female = pwd_female / pwd_total,
+    female_pwd_pct = pwd_female / pop_female,
+    pwd_female_pct = pwd_female / pwd_total,
     pop_male = estimate_S1810_C01_002,
     pwd_male = estimate_S1810_C02_002,
-    pct_male_pwd = pwd_male / pop_male,
-    pct_pwd_male = pwd_male / pwd_total,
+    male_pwd_pct = pwd_male / pop_male,
+    pwd_male_pct = pwd_male / pwd_total,
     
     ### Type of disability
     pwd_hearing = estimate_S1810_C02_019,
-    pct_pwd_hearing = pwd_hearing / pwd_total,
+    pwd_hearing_pct = pwd_hearing / pwd_total,
     pwd_vision = estimate_S1810_C02_029,
-    pct_pwd_vision = pwd_vision / pwd_total,
+    pwd_vision_pct = pwd_vision / pwd_total,
     pwd_cognitive = estimate_S1810_C02_039,
-    pct_pwd_cognitive = pwd_cognitive / pwd_total,
+    pwd_cognitive_pct = pwd_cognitive / pwd_total,
     pwd_ambulatory = estimate_S1810_C02_047,
-    pct_pwd_ambulatory = pwd_ambulatory / pwd_total,
+    pwd_ambulatory_pct = pwd_ambulatory / pwd_total,
     pwd_selfcare = estimate_S1810_C02_055,
-    pct_pwd_selfcare = pwd_selfcare / pwd_total,
+    pwd_selfcare_pct = pwd_selfcare / pwd_total,
     pwd_indliving = estimate_S1810_C02_063,
-    pct_pwd_indliving = pwd_indliving / pwd_total
+    pwd_indliving_pct = pwd_indliving / pwd_total
   ) %>%
-  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
+  mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_living_readable <- national_living %>%
   transmute(
@@ -334,19 +336,19 @@ national_living_readable <- national_living %>%
     
     ### Pop pwd
     pop_total = estimate_S2601A_C01_001,
-    pct_pwd = estimate_S2601A_C01_047,
-    pwd_total = round(pop_total * (pct_pwd/100), 0),
+    pwd_pct = estimate_S2601A_C01_047,
+    pwd_total = round(pop_total * (pwd_pct/100), 0),
     
     ### Group quarters
     pop_grpquarters = estimate_S2601A_C02_001,
-    pct_pwd_grpquarters = estimate_S2601A_C02_047,
-    pct_grpquarters = pop_grpquarters / pop_total,
+    pwd_grpquarters_pct = estimate_S2601A_C02_047,
+    grpquarters_pct = pop_grpquarters / pop_total,
     pop_grpquarters_institution = estimate_S2601A_C03_001,
     pop_grpquarters_noninstitution = estimate_S2601A_C04_001,
-    pct_pwd_grpquarters_institution = estimate_S2601A_C03_047,
-    pwd_grpquarters_institution = round(pop_grpquarters * (pct_pwd_grpquarters_institution/100), 0),
-    pct_pwd_grpquarters_noninstitution = estimate_S2601A_C04_047,
-    pwd_grpquarters_noninstitution = round(pop_grpquarters * (pct_pwd_grpquarters_noninstitution/100), 0),
+    pwd_grpquarters_institution_pct = estimate_S2601A_C03_047,
+    pwd_grpquarters_institution = round(pop_grpquarters * (pwd_grpquarters_institution_pct/100), 0),
+    pwd_grpquarters_noninstitution_pct = estimate_S2601A_C04_047,
+    pwd_grpquarters_noninstitution = round(pop_grpquarters * (pwd_grpquarters_noninstitution_pct/100), 0),
     
     # DatabaseUpdate Instruction.xlsx says below stats are calculated via formula from above vars?
     # pct_pwd_institution = , # Is this just pct_pwd_grpquarters_institution?
@@ -356,13 +358,13 @@ national_living_readable <- national_living %>%
     ### Nursing homes
     pop_nursing = estimate_S2602_C04_001,
     pop_18_64 = estimate_S2602_C01_047,
-    pct_pwd_18_64 = estimate_S2602_C01_048, 
-    pwd_18_64 = round(pop_total * (pct_pwd_18_64 / 100), 0),
-    pct_pop_nursing_18_64 = estimate_S2602_C04_006 + estimate_S2602_C04_007 + estimate_S2602_C04_008 + estimate_S2602_C04_009 + estimate_S2602_C04_010,
-    pct_pwd_nursing_18_64 = estimate_S2602_C04_048,
-    pwd_nursing_18_64 = round(pwd_total * (pct_pwd_nursing_18_64/100), 0) 
+    pwd_18_64_pct = estimate_S2602_C01_048, 
+    pwd_18_64 = round(pop_total * (pwd_18_64_pct / 100), 0),
+    pop_nursing_18_64_pct = estimate_S2602_C04_006 + estimate_S2602_C04_007 + estimate_S2602_C04_008 + estimate_S2602_C04_009 + estimate_S2602_C04_010,
+    pwd_nursing_18_64_pct = estimate_S2602_C04_048,
+    pwd_nursing_18_64 = round(pwd_total * (pwd_nursing_18_64_pct/100), 0) 
   ) %>%
-  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
+  mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_participation_readable <- national_participation %>%
   transmute(
@@ -400,14 +402,14 @@ national_participation_readable <- national_participation %>%
     pwod_grtoeq_65_insured_public = estimate_B18135_033,
     pwod_grtoeq_65_uninsured = estimate_B18135_034,
     
-    pct_pwd_19_64_uninsured = pwd_19_64_uninsured / pwd_19_64,
-    pct_pwod_19_64_uninsured = pwod_19_64_uninsured / pwod_19_64 ,
-    pct_pwd_grtoeq_65_uninsured = pwd_grtoeq_65_uninsured / pwd_grtoeq_65,
-    pct_pwod_groeq_65_uninsured = pwod_grtoeq_65_uninsured / pwod_grtoeq_65,
-    pct_pwd_19_64_insured_private = pwd_19_64_insured_private / pwd_19_64,
-    pct_pwod_19_64_insured_private = pwod_19_64_insured_private / pwod_19_64,
-    pct_pwd_grtoeq_65_insured_private = pwd_grtoeq_65_insured_private / pwd_grtoeq_65,
-    pct_pwod_grtoeq_65_insured_private = pwod_grtoeq_65_insured_private / pwod_grtoeq_65,
+    pwd_19_64_uninsured_pct = pwd_19_64_uninsured / pwd_19_64,
+    pwod_19_64_uninsured_pct = pwod_19_64_uninsured / pwod_19_64 ,
+    pwd_grtoeq_65_uninsured_pct = pwd_grtoeq_65_uninsured / pwd_grtoeq_65,
+    pwod_groeq_65_uninsured_pct = pwod_grtoeq_65_uninsured / pwod_grtoeq_65,
+    pwd_19_64_insured_private_pct = pwd_19_64_insured_private / pwd_19_64,
+    pwod_19_64_insured_private_pct = pwod_19_64_insured_private / pwod_19_64,
+    pwd_grtoeq_65_insured_private_pct = pwd_grtoeq_65_insured_private / pwd_grtoeq_65,
+    pwod_grtoeq_65_insured_private_pct = pwod_grtoeq_65_insured_private / pwod_grtoeq_65,
     
     ### Medicare/Medicaid
     pop_total = estimate_S1810_C01_001,
@@ -415,22 +417,22 @@ national_participation_readable <- national_participation %>%
     pwod = pop_total - pwd_total,
     
     ### Transit Usage
-    pct_pwd_commute_public = estimate_S1811_C02_035,
-    pct_pwod_commute_public = estimate_S1811_C03_035,
-    pct_pwd_commute_car_alone = estimate_S1811_C02_033,
-    pct_pwod_commute_car_alone = estimate_S1811_C03_033,
+    pwd_commute_public_pct = estimate_S1811_C02_035,
+    pwod_commute_public_pct = estimate_S1811_C03_035,
+    pwd_commute_car_alone_pct = estimate_S1811_C02_033,
+    pwod_commute_car_alone_pct = estimate_S1811_C03_033,
     
     ### Educational Attainment
-    pct_pwd_lessthan_highschool = estimate_S1811_C02_040,
-    pct_pwod_lessthan_highschool = estimate_S1811_C03_040,
-    pct_pwd_highschoolequiv = estimate_S1811_C02_041,
-    pct_pwod_highschoolequiv = estimate_S1811_C03_041,
-    pct_pwd_degree_aa = estimate_S1811_C02_042,
-    pct_pwod_degree_aa = estimate_S1811_C03_042, 
-    pct_pwd_degree_grtoeq_ba = estimate_S1811_C02_043,
-    pct_pwod_degree_grtoeq_ba = estimate_S1811_C03_043
+    pwd_lessthan_highschool_pct = estimate_S1811_C02_040,
+    pwod_lessthan_highschool_pct = estimate_S1811_C03_040,
+    pwd_highschoolequiv_pct = estimate_S1811_C02_041,
+    pwod_highschoolequiv_pct = estimate_S1811_C03_041,
+    pwd_degree_aa_pct = estimate_S1811_C02_042,
+    pwod_degree_aa_pct = estimate_S1811_C03_042, 
+    pwd_degree_grtoeq_ba_pct = estimate_S1811_C02_043,
+    pwod_degree_grtoeq_ba_pct = estimate_S1811_C03_043
   ) %>%
-  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
+  mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 national_economic_readable <- national_economic %>%
   transmute(
@@ -480,10 +482,10 @@ national_economic_readable <- national_economic %>%
     pwod_grtoeq_16_med_individual_income = estimate_B18140_005,
     
     ### Working from Home
-    pct_pwd_grtoeq_16_wfm = estimate_S1811_C02_038,
-    pct_pwod_grtoeq_16_wfm = estimate_S1811_C03_038
+    pwd_grtoeq_16_wfh_pct = estimate_S1811_C02_038,
+    pwod_grtoeq_16_wfh_pct = estimate_S1811_C03_038
   ) %>%
-  mutate(across(.cols = starts_with("pct"),.fns = ~ round(.x * 100, 2)))
+  mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 ### Variable dictionary
 # pivot_longer the national_*_readable tables
@@ -493,20 +495,20 @@ national_demographic_readable_varnames <- national_demographic_readable %>%
   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
   mutate(table = "national_demographic")
 
-national_living_readable_varnames <- national_living_readable %>%
-  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-  mutate(table = "national_living")
-
-national_participation_readable_varnames <- national_participation_readable %>%
-  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-  mutate(table = "national_participation")
-
-national_economic_readable_varnames <- national_economic_readable %>%
-  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-  mutate(table = "national_economic")
+# national_living_readable_varnames <- national_living_readable %>%
+#   pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+#   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+#   mutate(table = "national_living")
+# 
+# national_participation_readable_varnames <- national_participation_readable %>%
+#   pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+#   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+#   mutate(table = "national_participation")
+# 
+# national_economic_readable_varnames <- national_economic_readable %>%
+#   pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
+#   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
+#   mutate(table = "national_economic")
 
 # pivot_longer the national_* tables
 national_demographic_acs_varnames <- national_demographic %>%
@@ -515,6 +517,6 @@ national_demographic_acs_varnames <- national_demographic %>%
   mutate(table = "national_demographic")
 
 # left_join national_Varnames to national_* tables by = c("GEOID", "NAME", "NAME_ABBRV", "value")
-left_join(national_demographic_readable_varnames, national_demographic_acs_varnames, by = c("GEOID", "NAME", "NAME_ABBRV" = "state", "value", "table")) %>%
+varnames <- left_join(national_demographic_readable_varnames, national_demographic_acs_varnames, by = c("GEOID", "NAME", "NAME_ABBRV" = "state", "value", "table")) %>%
   distinct(var_name.x, var_name.y) %>%
   mutate(var_name.y = ifelse(is.na(var_name.y), "imputed", var_name.y))
