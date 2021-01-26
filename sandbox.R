@@ -291,14 +291,14 @@ national_demographic_readable <- national_demographic %>%
     
     ### Race
     pwd_white = estimate_S1810_C02_004,
-    pwd_afam = estimate_S1810_C02_005,
+    pwd_black = estimate_S1810_C02_005,
     pwd_hisp = estimate_S1810_C02_012,
-    pwd_whit_nonhisp = estimate_S1810_C02_011,
+    pwd_white_nonhisp = estimate_S1810_C02_011,
     pwd_other = estimate_S1810_C01_006 + estimate_S1810_C01_007 + estimate_S1810_C01_008 + estimate_S1810_C01_009 + estimate_S1810_C01_010,
     pwd_white_pct = pwd_white / pwd_total,
-    pwd_afam_pct = pwd_afam / pwd_total,
+    pwd_black_pct = pwd_black / pwd_total,
     pwd_hisp_pct = pwd_hisp / pwd_total,
-    pwd_white_nonhisp_pct = pwd_whit_nonhisp / pwd_total,
+    pwd_white_nonhisp_pct = pwd_white_nonhisp / pwd_total,
     pwd_other_pct = pwd_other / pwd_total,
     
     ### Gender
@@ -414,7 +414,7 @@ national_participation_readable <- national_participation %>%
     ### Medicare/Medicaid
     pop_total = estimate_S1810_C01_001,
     pwd_total = estimate_S1810_C02_001,
-    pwod = pop_total - pwd_total,
+    pwod_total = pop_total - pwd_total,
     
     ### Transit Usage
     pwd_commute_public_pct = estimate_S1811_C02_035,
@@ -467,12 +467,12 @@ national_economic_readable <- national_economic %>%
     rent_burdened = estimate_B25070_007 + estimate_B25070_008 + estimate_B25070_009 + estimate_B25070_010,
     
     ### Full/Part Time Workers
-    pop_ft = estimate_C18121_002,
-    pwd_ft = estimate_C18121_003,
-    pwod_ft = estimate_C18121_004,
-    pop_not_ft = estimate_C18121_005,
-    pwd_not_ft = estimate_C18121_006,
-    pwod_not_ft = estimate_C18121_007,
+    pop_fulltime = estimate_C18121_002,
+    pwd_fulltime = estimate_C18121_003,
+    pwod_fulltime = estimate_C18121_004,
+    pop_not_fulltime = estimate_C18121_005,
+    pwd_not_fulltime = estimate_C18121_006,
+    pwod_not_fulltime = estimate_C18121_007,
     pop_didnotwork = estimate_C18121_008,
     pwd_didnotwork = estimate_C18121_009,
     pwod_didnotwork = estimate_C18121_010,

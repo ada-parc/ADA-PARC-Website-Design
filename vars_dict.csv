@@ -1,0 +1,154 @@
+var_readable,var_database,var_desc
+pop_total,S1810_C01_001,demographic
+pwd_total,S1810_C02_001,demographic
+pwd_pct,,demographic
+pop_18_64,S1810_C01_015,demographic
+pop_18_64,S1810_C01_016,demographic
+pwd_18_64,S1810_C02_015,demographic
+pwd_18_64,S1810_C02_016,demographic
+pwd_18_64_pct,,demographic
+pop_grtoeq_65,S1810_C01_017,demographic
+pop_grtoeq_65,S1810_C01_018,demographic
+pwd_grtoeq_65,S1810_C02_017,demographic
+pwd_grtoeq_65,S1810_C02_018,demographic
+pwd_grtoeq_65_pct,,demographic
+pwd_white,S1810_C02_004,demographic
+pwd_black,S1810_C02_005,demographic
+pwd_hisp,S1810_C02_012,demographic
+pwd_white_nonhisp,S1810_C02_011,demographic
+pwd_other,S1810_C01_006,demographic
+pwd_other,S1810_C01_007,demographic
+pwd_other,S1810_C01_008,demographic
+pwd_other,S1810_C01_009,demographic
+pwd_other,S1810_C01_010,demographic
+pwd_white_pct,,demographic
+pwd_black_pct,,demographic
+pwd_hisp_pct,,demographic
+pwd_white_nonhisp_pct,,demographic
+pwd_other_pct,,demographic
+pop_female,S1810_C01_003,demographic
+pwd_female,S1810_C02_003,demographic
+female_pwd_pct,,demographic
+pwd_female_pct,,demographic
+pop_male,S1810_C01_002,demographic
+pwd_male,S1810_C02_002,demographic
+male_pwd_pct,,demographic
+pwd_male_pct,,demographic
+pwd_hearing,S1810_C02_019,demographic
+pwd_hearing_pct,,demographic
+pwd_vision,S1810_C02_029,demographic
+pwd_vision_pct,,demographic
+pwd_cognitive,S1810_C02_039,demographic
+pwd_cognitive_pct,,demographic
+pwd_ambulatory,S1810_C02_047,demographic
+pwd_ambulatory_pct,,demographic
+pwd_selfcare,S1810_C02_055,demographic
+pwd_selfcare_pct,,demographic
+pwd_indliving,S1810_C02_063,demographic
+pwd_indliving_pct,,demographic
+pop_total,S2601A_C01_001,community living
+pwd_pct,S2601A_C01_047,community living
+pwd_total,,community living
+pop_grpquarters,S2601A_C02_001,community living
+pwd_grpquarters_pct,S2601A_C02_047,community living
+grpquarters_pct,,community living
+pop_grpquarters_institution,S2601A_C03_001,community living
+pop_grpquarters_noninstitution,S2601A_C04_001,community living
+pwd_grpquarters_institution_pct,S2601A_C03_047,community living
+pwd_grpquarters_institution,,community living
+pwd_grpquarters_noninstitution_pct,S2601A_C04_047,community living
+pwd_grpquarters_noninstitution,,community living
+pop_nursing,S2602_C04_001,community living
+pop_18_64,S2602_C01_047,community living
+pwd_18_64_pct,S2602_C01_048,community living
+pwd_18_64,,community living
+pop_nursing_18_64_pct,S2602_C04_006,community living
+pop_nursing_18_64_pct,S2602_C04_007,community living
+pop_nursing_18_64_pct,S2602_C04_008,community living
+pop_nursing_18_64_pct,S2602_C04_009,community living
+pop_nursing_18_64_pct,S2602_C04_010,community living
+pwd_nursing_18_64_pct,S2602_C04_048,community living
+pwd_nursing_18_64,,community living
+pop_19_64,B18135_013,community participation
+pwd_19_64,B18135_014,community participation
+pwd_19_64_insured,B18135_015,community participation
+pwd_19_64_insured_private,B18135_016,community participation
+pwd_19_64_insured_public,B18135_017,community participation
+pwd_19_64_uninsured,B18135_018,community participation
+pwod_19_64,B18135_019,community participation
+pwod_19_64_insured,B18135_020,community participation
+pwod_19_64_insured_private,B18135_021,community participation
+pwod_19_64_insured_public,B18135_022,community participation
+pwod_19_64_uninsured,B18135_023,community participation
+pop_grtoeq_65,B18135_024,community participation
+pwd_grtoeq_65,B18135_025,community participation
+pwd_grtoeq_65_insured,B18135_026,community participation
+pwd_grtoeq_65_insured_private,B18135_027,community participation
+pwd_grtoeq_65_insured_public,B18135_028,community participation
+pwd_grtoeq_65_uninsured,B18135_029,community participation
+pwod_grtoeq_65,B18135_030,community participation
+pwod_grtoeq_65_insured,B18135_031,community participation
+pwod_grtoeq_65_insured_private,B18135_032,community participation
+pwod_grtoeq_65_insured_public,B18135_033,community participation
+pwod_grtoeq_65_uninsured,B18135_034,community participation
+pwd_19_64_uninsured_pct,,community participation
+pwod_19_64_uninsured_pct,,community participation
+pwd_grtoeq_65_uninsured_pct,,community participation
+pwod_groeq_65_uninsured_pct,,community participation
+pwd_19_64_insured_private_pct,,community participation
+pwod_19_64_insured_private_pct,,community participation
+pwd_grtoeq_65_insured_private_pct,,community participation
+pwod_grtoeq_65_insured_private_pct,,community participation
+pop_total,S1810_C01_001,community participation
+pwd_total,S1810_C02_001,community participation
+pwod_total,,community participation
+pwd_commute_public_pct,S1811_C02_035,community participation
+pwod_commute_public_pct,S1811_C03_035,community participation
+pwd_commute_car_alone_pct,S1811_C02_033,community participation
+pwod_commute_car_alone_pct,S1811_C03_033,community participation
+pwd_lessthan_highschool_pct,S1811_C02_040,community participation
+pwod_lessthan_highschool_pct,S1811_C03_040,community participation
+pwd_highschoolequiv_pct,S1811_C02_041,community participation
+pwod_highschoolequiv_pct,S1811_C03_041,community participation
+pwd_degree_aa_pct,S1811_C02_042,community participation
+pwod_degree_aa_pct,S1811_C03_042,community participation
+pwd_degree_grtoeq_ba_pct,S1811_C02_043,community participation
+pwod_degree_grtoeq_ba_pct,S1811_C03_043,community participation
+pop_total,C18120_001,economic
+pop_19_64,B18135_013,economic
+pwd_19_64,B18135_014,economic
+pwod_19_64,,economic
+pwd_employed,C18120_004,economic
+pwod_employed,C18120_005,economic
+pwd_unemployed,C18120_007,economic
+pwod_unemployed,C18120_008,economic
+pwd_notlabor,C18120_010,economic
+pwod_notlabor,C18120_011,economic
+pop_18_64,C18130_009,economic
+pwd_18_64,C18130_010,economic
+pwod_18_64,C18130_013,economic
+pwd_below_poverty,C18130_011,economic
+pwd_atorbelow_poverty,C18130_012,economic
+pwod_below_poverty,C18130_014,economic
+pwod_atorbelow_poverty,C18130_015,economic
+mortgage_burdened,B25091_008,economic
+mortgage_burdened,B25091_009,economic
+mortgage_burdened,B25091_010,economic
+mortgage_burdened,B25091_011,economic
+rent_burdened,B25070_007,economic
+rent_burdened,B25070_008,economic
+rent_burdened,B25070_009,economic
+rent_burdened,B25070_010,economic
+pop_fulltime,C18121_002,economic
+pwd_fulltime,C18121_003,economic
+pwod_fulltime,C18121_004,economic
+pop_not_fulltime,C18121_005,economic
+pwd_not_fulltime,C18121_006,economic
+pwod_not_fulltime,C18121_007,economic
+pop_didnotwork,C18121_008,economic
+pwd_didnotwork,C18121_009,economic
+pwod_didnotwork,C18121_010,economic
+pwd_grtoeq_16_med_individual_income,B18140_002,economic
+pwod_grtoeq_16_med_individual_income,B18140_005,economic
+pwd_grtoeq_16_wfh_pct,S1811_C02_038,economic
+pwod_grtoeq_16_wfh_pct,S1811_C03_038,economic
