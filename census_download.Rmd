@@ -38,7 +38,7 @@ This interactive walkthrough tool allows users to upload specific American Commu
 
 #### Select ACS Components
 
-Use the following inputs to download ACS data at the state level. 
+Use the following inputs to download ACS data at the state level. This script uses Kyle Walker's tidycensus package to access US Census Bureau APIs. Please consult the [tidycensus documentation](https://cran.r-project.org/web/packages/tidycensus/tidycensus.pdf) for additional information and options. 
 
 ```{r states-input}
 
@@ -64,7 +64,7 @@ selectInput(inputId = "states_acs_year",
             choices = c(2005:2019),
             selected = 2019)
 
-# State variables for selection
+# variables for selection
 states_acs_vars_ref <- reactive({
   
   load_variables(year = input$states_acs_year,
@@ -77,25 +77,42 @@ states_acs_vars_ref <- reactive({
   
 })
 
-# Static check
-states_acs_vars_ref <- load_variables(year = 2019,
-                                      dataset = "acs5/subject", 
-                                      cache = TRUE) %>% 
-  filter(!is.na(concept)) %>% 
-  mutate(table_name = gsub( "_.*$", "", name),
-         label = gsub("!!", "; ", label),
-         shiny_input_label = paste0(table_name, ": ", str_to_title(concept)))
-
-# # Tables
-# test <- states_acs_vars_ref %>% 
-#   tabyl(shiny_input_label)
-# 
-# 
-# states_acs_vars_selected <- states_acs_vars_ref %>% 
-#   filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)")) %>% 
-#   filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% # Removes detailed age data
+# # Static check
+# states_acs_vars_ref <- load_variables(year = 2019,
+#                                       dataset = "acs5/subject", 
+#                                       cache = TRUE) %>% 
+#   filter(!is.na(concept)) %>% 
 #   mutate(table_name = gsub( "_.*$", "", name),
-#          label = gsub("!!", "; ", label))
+#          label = gsub("!!", "; ", label),
+#          shiny_input_label = paste0(table_name, ": ", str_to_title(concept)))
+
+# Tables
+selectizeInput(inputId = "states_acs_tables",
+               label = "Select one or more tables to download:",
+               choices = unique(states_acs_vars_ref()$table_name),
+               selected = c("S1810", "S1811", "S2601A", "S2602"),
+               multiple = TRUE)
+
+states_acs_tables %>% filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)"))
+# Filter variables based on table selection 
+states_acs_vars_selected <- reactive({
+  
+  states_acs_vars_ref %>%
+    filter(table_name %in% input$states_acs_tables) %>%
+    filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% # Removes detailed age data
+    mutate(table_name = gsub( "_.*$", "", name),
+           label = gsub("!!", "; ", label))
+
+  })
+
+```
+
+
+```{r states-output}
+
+# State data selected
+DT::renderDataTable({ datatable(states_acs_vars_selected()) %>% head(5) })
+
 
 ```
 
@@ -109,12 +126,12 @@ You can also embed plots, for example:
 
 ```{r cities-location-input}
 
-most_populated <- get_estimates(geography = "place",
-                                year = 2018,
-                                product = "population",
-                                geometry = FALSE,
-                                output = "wide") %>% 
-  arrange(desc(POP)) %>% 
-  head(200)
+# most_populated <- get_estimates(geography = "place",
+#                                 year = 2018,
+#                                 product = "population",
+#                                 geometry = FALSE,
+#                                 output = "wide") %>% 
+#   arrange(desc(POP)) %>% 
+#   head(200)
 
 ```
