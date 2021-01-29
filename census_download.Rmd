@@ -4,6 +4,7 @@ output:
   html_document:
     toc: TRUE
     toc_float: TRUE
+    toc_depth: 6
     code_folding: hide
 editor_options: 
   chunk_output_type: console
@@ -22,7 +23,7 @@ library(shiny); library(shinyWidgets)
 
 # Set working document, options
 setwd(here::here())
-options(scipen = 999, dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
+options(stringsAsFactors = FALSE, scipen = 999, dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
 knitr::opts_chunk$set(echo = FALSE)
 
 # Load API keys and database connection information
@@ -40,7 +41,7 @@ This interactive walkthrough tool allows users to upload specific American Commu
 
 Use the following inputs to download ACS data at the state level. This script uses Kyle Walker's tidycensus package to access US Census Bureau APIs. Please consult the [tidycensus documentation](https://cran.r-project.org/web/packages/tidycensus/tidycensus.pdf) for additional information and options. 
 
-```{r states-input}
+```{r states-acs-input}
 
 # Dataset
 selectInput(inputId = "states_acs_dataset",
@@ -77,42 +78,230 @@ states_acs_vars_ref <- reactive({
   
 })
 
-# # Static check
+# Static check
 # states_acs_vars_ref <- load_variables(year = 2019,
-#                                       dataset = "acs5/subject", 
-#                                       cache = TRUE) %>% 
-#   filter(!is.na(concept)) %>% 
+#                                       dataset = "acs5/subject",
+#                                       cache = TRUE) %>%
+#   filter(!is.na(concept)) %>%
 #   mutate(table_name = gsub( "_.*$", "", name),
 #          label = gsub("!!", "; ", label),
 #          shiny_input_label = paste0(table_name, ": ", str_to_title(concept)))
 
 # Tables
-selectizeInput(inputId = "states_acs_tables",
-               label = "Select one or more tables to download:",
-               choices = unique(states_acs_vars_ref()$table_name),
-               selected = c("S1810", "S1811", "S2601A", "S2602"),
-               multiple = TRUE)
+renderUI({
+  
+  selectizeInput(inputId = "states_acs_tables",
+                 label = "Select one or more tables to download:",
+                 choices = split(unique(states_acs_vars_ref()$table_name),
+                                 unique(states_acs_vars_ref()$shiny_input_label)),
+                 selected = c("S1810", "S1811", "S2601A", "S2602"),
+                 multiple = TRUE,
+                 options = list(searchField = c("label", "value")))
+  
+  })
 
-states_acs_tables %>% filter(str_detect(name, pattern = "(^S181(0|1)_*)|(^S26(01A|02)_*)"))
 # Filter variables based on table selection 
 states_acs_vars_selected <- reactive({
   
-  states_acs_vars_ref %>%
+  states_acs_vars_ref() %>%
     filter(table_name %in% input$states_acs_tables) %>%
-    filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) %>% # Removes detailed age data
-    mutate(table_name = gsub( "_.*$", "", name),
-           label = gsub("!!", "; ", label))
+    filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+  
+  })
+
+# All states and counties
+fips_codes <- force(fips_codes) %>% 
+  mutate("state_code_num" = as.numeric(state_code)) %>% 
+  distinct(state, state_code, county_code)
+
+```
+
+You can review your selected tables in the table below:
+
+```{r states-acs-variable-preview}
+
+# State data selected
+DT::renderDataTable({ DT::datatable(states_acs_vars_selected(),
+                                    rownames = FALSE,
+                                    options = list(dom = "ft",
+                                                   pageLength = -1,
+                                                   scrollY = 500)) })
+
+```
+
+#### Download ACS Components
+
+Once you are satisfied with your selection, please use the button below to submit your request to the API.
+
+```{r states-acs-download}
+
+# Button to run state-level ACS download code
+actionButton(inputId = "states_download_button",
+             label = "Click here to download state data:")
+
+# Function for ACS download
+fun_download_acs_data <- function(geo) {
+  
+  # ===============
+  # Define intermediate variables
+  # ===============
+  
+  # Year
+  temp_year <- reactive({
+
+    case_when(geo == "state" ~
+                as.numeric(input$states_acs_year),
+              TRUE ~ 2019)
 
   })
+
+  message(paste0("Year = ", as.character(temp_year())))
+  
+  # Survey
+  temp_survey <- reactive({
+
+    case_when(geo == "state" ~
+                coalesce(str_extract(input$states_acs_dataset,
+                                     pattern = "^.*(?=/)"),
+                         input$states_acs_dataset),
+              TRUE ~ "acs5")
+
+  })
+
+  message(paste0("Survey = ", temp_survey()))
+  
+  # ACS variables
+  acs_vars_selected <- reactive({ 
+    
+    case_when(geo == "state" ~
+                states_acs_vars_selected() %>% 
+                pull(name),
+              TRUE ~ 
+                states_acs_vars_selected() %>% 
+                pull(name)) 
+    
+  })
+  
+  # Geometry  
+  temp_geometry <- case_when(geo == "state" ~
+                               FALSE,
+                             TRUE ~ FALSE)
+  
+  message(paste0("Geometry = ", as.character(temp_geometry)))
+          
+  # Wide
+  temp_wide <- case_when(geo == "state" ~
+                           TRUE,
+                         TRUE ~ TRUE)
+  
+  message(paste0("Wide = ", as.character(temp_wide)))
+  
+  # ===============
+  # Download ACS data
+  # ===============
+  
+  # Grab from API 
+  message(paste0("Starting API Call"))
+  
+  acs_raw <- reactive({
+    
+    get_acs(geography = geo,
+            year = temp_year(),
+            variables = acs_vars_selected(),
+            survey = temp_survey(),
+            geometry = temp_geometry,
+            wide = temp_wide)
+    
+    # Static check (state)
+    # get_acs(geography = "state",
+    #         year = 2019,
+    #         variables = states_acs_vars_selected() %>% pull(name),
+    #         survey = "acs5",
+    #         geometry = temp_geometry,
+    #         wide = temp_wide)
+        
+  })
+
+  # # Clean and restructure 
+  # acs_clean <- reactive({
+  #   
+  #   if (geo == "state") {
+  #   
+  #   # Standardize variable names for MongoDB
+  #     temp <- acs_raw() %>% 
+  #       mutate(variable = gsub("PR", "", variable)) %>%
+  #       left_join(fips_codes %>% select(state, state_code), 
+  #                 by = c("GEOID" = "state_code")) %>%
+  #       relocate(state, .after = NAME) %>%
+  #       distinct()
+  #   
+  # # } else if (geo == "place") { 
+  #   
+  # } else { #tracts
+  #   
+  # }
+  #   
+  #   return(temp)
+  #   
+  # })
+  
+  return(acs_raw())
+  
+}
+
+# Execute state download
+acs_state_raw <- eventReactive(input$states_download_button, {
+
+  # Run function
+  temp <- fun_download_acs_data(geo = "state")
+  temp
+
+})
+
+# Show modal during function call
+observeEvent(input$states_download_button, {
+  
+  # Open popup to inform user
+  showModal(modalDialog("Requesting state ACS data from API...",
+                        footer = NULL))
+  
+  # Close popup when rows present
+  if (nrow( acs_state_raw() > 0)) {
+    removeModal()
+  }
+  
+})
+
+```
+
+You can review your downloaded data in the table below:
+
+```{r states-acs-data-preview}
+
+# State data downloaded
+DT::renderDataTable({
+
+  req(acs_state_raw())
+
+  DT::datatable(acs_state_raw() %>% head(100),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500))
+
+})
 
 ```
 
 
-```{r states-output}
 
-# State data selected
-DT::renderDataTable({ datatable(states_acs_vars_selected()) %>% head(5) })
+```{r states-acs-upload}
 
+# Button to run state-level ACS upload code
+actionButton(inputId = "states_upload_button",
+             label = "Click here to upload state data to MongoDB:")
+
+# Function for ACS download
 
 ```
 
