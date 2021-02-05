@@ -19,7 +19,7 @@ library(tigris);library(sf);library(janitor)
 library(tidycensus);library(viridis);library(tmap)
 library(RPostgres);library(RPostgreSQL);library(DBI)
 library(geojsonsf);library(mongolite)
-library(shiny); library(shinyWidgets)
+library(shiny);library(shinyjs);library(shinyWidgets)
 
 # Set working document, options
 setwd(here::here())
@@ -31,13 +31,13 @@ source("secret.R", local = TRUE)
 
 ```
 
-### Background
+### **Background**
 
 This interactive walkthrough tool allows users to upload specific American Community Survey (ACS) data related to people with disabilities to the MongoDB database powering the [ADA-PARC Data Dashboard](https://ada-parc.shinyapps.io/ada_parc/). The rest of the document is organized by the various geographies used in the ADA-PARC dashboard: States, Cities (or Places), and Tracts.
 
-### States
+### **States**
 
-#### Select ACS Components
+#### **Select ACS Components**
 
 Use the following inputs to download ACS data at the state level. This script uses Kyle Walker's tidycensus package to access US Census Bureau APIs. Please consult the [tidycensus documentation](https://cran.r-project.org/web/packages/tidycensus/tidycensus.pdf) for additional information and options. 
 
@@ -65,7 +65,7 @@ selectInput(inputId = "states_acs_year",
             choices = c(2005:2019),
             selected = 2019)
 
-# variables for selection
+# Variables for selection
 states_acs_vars_ref <- reactive({
   
   load_variables(year = input$states_acs_year,
@@ -100,12 +100,44 @@ renderUI({
   
   })
 
-# Filter variables based on table selection 
+# File upload with variables
+fileInput(inputId = "states_acs_variable_file",
+          label = "Or upload a .csv file with your selected variables in the first column",
+          accept = ".csv")
+
+# Filter variables based on table selection or file upload
 states_acs_vars_selected <- reactive({
   
-  states_acs_vars_ref() %>%
-    filter(table_name %in% input$states_acs_tables) %>%
-    filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+  # If file has not been uploaded, base on table selection
+  if (is.null(input$states_acs_variable_file)) {
+    
+    # Filter reference variables
+    states_acs_vars_ref() %>%
+      filter(table_name %in% input$states_acs_tables) %>%
+      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+    
+  }
+  
+  # Otherwise use uploaded file
+  else {
+    
+    # Validate file upload
+    file <- input$states_acs_variable_file
+    ext <- tools::file_ext(file$datapath)
+
+    req(file)
+    validate(need(ext == "csv", "Please upload a .csv file"))
+    
+    # Read in file, rename first column
+    file_upload <- read_csv(file$datapath, header = TRUE) %>% 
+      rename("var_name" = 1)
+    
+    # Filter reference variables
+    states_acs_vars_ref() %>%
+      filter(name %in% file_upload$var_name) %>%
+      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+   
+  }
   
   })
 
@@ -129,7 +161,7 @@ DT::renderDataTable({ DT::datatable(states_acs_vars_selected(),
 
 ```
 
-#### Download ACS Components
+#### **Download ACS Data**
 
 Once you are satisfied with your selection, please use the button below to submit your request to the API.
 
@@ -251,26 +283,22 @@ fun_download_acs_data <- function(geo) {
 
 # Execute state download
 acs_state_raw <- eventReactive(input$states_download_button, {
-
-  # Run function
-  temp <- fun_download_acs_data(geo = "state")
-  temp
-
-})
-
-# Show modal during function call
-observeEvent(input$states_download_button, {
   
-  # Open popup to inform user
+  # Open modal to inform user
   showModal(modalDialog("Requesting state ACS data from API...",
                         footer = NULL))
   
-  # Close popup when rows present
-  if (nrow( acs_state_raw() > 0)) {
-    removeModal()
-  }
+  # Run function
+  temp <- fun_download_acs_data(geo = "state")
+  
+  # Remove modal
+  removeModal()
+  
+  # Return data
+  return(temp)
   
 })
+
 
 ```
 
@@ -293,13 +321,24 @@ DT::renderDataTable({
 
 ```
 
-
+#### **Upload ACS Data to MongoDB**
 
 ```{r states-acs-upload}
 
 # Button to run state-level ACS upload code
-actionButton(inputId = "states_upload_button",
-             label = "Click here to upload state data to MongoDB:")
+renderUI({
+  
+  actionButton(inputId = "states_upload_button",
+               label = "Click here to upload state data to MongoDB:")
+  
+})
+
+# Only enable upload when data exists
+observe({
+  
+  shinyjs::toggleState("states_upload_button", nrow(acs_state_raw() > 0))
+
+})
 
 # Function for ACS download
 
