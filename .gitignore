@@ -1,10 +1,7 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
 secret.R
 lookup.xlsx
-.Rhistory
-.Rproj.user/shared/notebooks/paths
-.Rhistory
-.Rproj.user/shared/notebooks/paths
+*.Rproj.user/shared/notebooks/paths
