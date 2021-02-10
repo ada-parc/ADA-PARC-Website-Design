@@ -180,6 +180,9 @@ plotlyOutput('scatter', width = "80%")
 ### Setup
 ###
 
+### Variable dictionary
+vars_dict <- read_csv("vars_dict.csv")
+
 source("secret.R", local = TRUE)
 
 # Function for pulling data from database with table names as input
@@ -198,6 +201,7 @@ pull_mongo_data <- function(tables, geo) {
 }
 
 # Function to render national tile map
+# Requires vars_dict in environment
 render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") {
   
   # ### Unnecessary if selected is being passed as a string
@@ -211,11 +215,13 @@ render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") 
   # # outputs: "GEOID"
 
   # Provide appropriate variable label to national tile map labels
-  if(grepl("pct", selected_varname)) {
+  if(grepl("pct", selected)) {
     selected_label <- "%"
   } else {
     selected_label <- ""
   }
+  
+  title <- vars_dict$var_pretty[which(vars_dict$var_readable == selected)][1]
   
   data %>%
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
@@ -223,8 +229,8 @@ render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") 
     geom_tile() + # Imports x and y values
     geom_text(aes(label = paste0(!!sym(selected), selected_label)),
               color = "white") + # Adds percentage to the center of the tile
-    labs(x = "", y = "") +
-    facet_geo(facets = ~ NAME, grid = grid) +
+    labs(x = "", y = "", title = title) +
+    facet_geo(facets = ~ NAME_ABBRV, grid = grid) +
     theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
           panel.grid = element_blank(),
           panel.grid.major = element_blank(),
@@ -486,37 +492,3 @@ national_economic_readable <- national_economic %>%
     pwod_grtoeq_16_wfh_pct = estimate_S1811_C03_038
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
-
-### Variable dictionary
-# pivot_longer the national_*_readable tables
-# take all unique var names
-national_demographic_readable_varnames <- national_demographic_readable %>%
-  pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-  distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-  mutate(table = "national_demographic")
-
-# national_living_readable_varnames <- national_living_readable %>%
-#   pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-#   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-#   mutate(table = "national_living")
-# 
-# national_participation_readable_varnames <- national_participation_readable %>%
-#   pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-#   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-#   mutate(table = "national_participation")
-# 
-# national_economic_readable_varnames <- national_economic_readable %>%
-#   pivot_longer(-c(GEOID, NAME, NAME_ABBRV), names_to = "var_name", values_to = "value") %>%
-#   distinct(GEOID, NAME, NAME_ABBRV, var_name, value) %>%
-#   mutate(table = "national_economic")
-
-# pivot_longer the national_* tables
-national_demographic_acs_varnames <- national_demographic %>%
-  pivot_longer(-c(GEOID, NAME, state), names_to = "var_name", values_to = "value") %>%
-  distinct(GEOID, NAME, state, var_name, value) %>%
-  mutate(table = "national_demographic")
-
-# left_join national_Varnames to national_* tables by = c("GEOID", "NAME", "NAME_ABBRV", "value")
-varnames <- left_join(national_demographic_readable_varnames, national_demographic_acs_varnames, by = c("GEOID", "NAME", "NAME_ABBRV" = "state", "value", "table")) %>%
-  distinct(var_name.x, var_name.y) %>%
-  mutate(var_name.y = ifelse(is.na(var_name.y), "imputed", var_name.y))
