@@ -192,7 +192,7 @@ tracts_sf <- pmap_df(places_counties %>%
                                     output = "wide"))) %>% 
   rename("total_population" = B00001_001E)
 
-# Filter to block groups to those within CDPs
+# Filter to tracts to those within CDPs
 tracts_sf <- tracts_sf %>% 
   st_filter(., places) %>% 
   st_join(., places %>% select(place_fips, place_name, state, metro_state), 

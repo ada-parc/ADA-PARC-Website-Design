@@ -4,7 +4,7 @@ output:
   html_document:
     toc: TRUE
     toc_float: TRUE
-    toc_depth: 6
+    toc_depth: 4
     code_folding: hide
 editor_options: 
   chunk_output_type: console
@@ -31,11 +31,218 @@ source("secret.R", local = TRUE)
 
 ```
 
-### **Background**
+## **Background**
 
 This interactive walkthrough tool allows users to upload specific American Community Survey (ACS) data related to people with disabilities to the MongoDB database powering the [ADA-PARC Data Dashboard](https://ada-parc.shinyapps.io/ada_parc/). The rest of the document is organized by the various geographies used in the ADA-PARC dashboard: States, Cities (or Places), and Tracts.
 
-### **States**
+```{r functions}
+
+# Function for ACS download
+fun_download_acs_data <- function(geo) {
+  
+  # ===============
+  # Define intermediate variables
+  # ===============
+  
+  # Year
+  temp_year <- reactive({
+
+    case_when(geo == "state" ~
+                as.numeric(input$states_acs_year),
+              geo == "place" ~
+                as.numeric(input$cities_acs_year),
+              TRUE ~ 2019)
+
+  })
+
+  message(paste0("Year = ", as.character(temp_year())))
+  
+  # Survey
+  temp_survey <- reactive({
+
+    case_when(geo == "state" ~
+                coalesce(str_extract(input$states_acs_dataset,
+                                     pattern = "^.*(?=/)"),
+                         input$states_acs_dataset),
+              geo == "place" ~
+                coalesce(str_extract(input$cities_acs_dataset,
+                                     pattern = "^.*(?=/)"),
+                         input$cities_acs_dataset),
+              TRUE ~ "acs5")
+
+  })
+
+  message(paste0("Survey = ", temp_survey()))
+  
+  # ACS variables
+  acs_vars_selected <- reactive({ 
+    
+    if (geo == "state") {
+      states_acs_vars_selected() %>% 
+        pull(name)
+    } else if (geo == "place") {
+      cities_acs_vars_selected() %>% 
+        pull(name)
+    } else if (geo == "tract"){
+      states_acs_vars_selected() %>% 
+        pull(name)
+    } else {
+      states_acs_vars_selected() %>% 
+        pull(name)
+    }
+    
+  })
+  
+  # Geometry  
+  temp_geometry <- case_when(geo %in% c("state", "place") ~
+                               FALSE,
+                             TRUE ~ FALSE)
+  
+  message(paste0("Geometry = ", as.character(temp_geometry)))
+          
+  # Wide
+  temp_wide <- case_when(geo == "state" ~
+                           TRUE,
+                         TRUE ~ TRUE)
+  
+  message(paste0("Wide = ", as.character(temp_wide)))
+  
+  # ===============
+  # Download ACS data
+  # ===============
+  
+  # Grab from API 
+  message(paste0("Starting API Call"))
+  
+  acs_raw <- reactive({
+    
+    if (geo == "state") {
+      
+      get_acs(geography = geo,
+              year = temp_year(),
+              variables = acs_vars_selected(),
+              survey = temp_survey(),
+              geometry = temp_geometry,
+              wide = temp_wide)
+      
+      # Static check (state)
+      # get_acs(geography = "state",
+      #         year = 2019,
+      #         variables = states_acs_vars_selected() %>% pull(name),
+      #         survey = "acs5",
+      #         geometry = temp_geometry,
+      #         wide = temp_wide)
+      
+    } else if (geo == "place") { 
+      
+      # Place data has to be pulled by state
+      # Mapped by state FIP, filter to selected cities
+      pmap_df(.l = cities_acs_places_selected() %>% 
+                select(clean_state) %>% 
+                distinct(),
+              .f = ~(get_acs(geography = geo,
+                             year = temp_year(),
+                             variables = acs_vars_selected(),
+                             survey = temp_survey(),
+                             state = ..1, 
+                             geometry = temp_geometry,
+                             wide = temp_wide) %>% 
+                       semi_join(cities_acs_places_selected(), 
+                                 by = "GEOID")))
+      
+      # Static check
+      pmap_df(.l = cities_acs_places_selected %>% 
+                select(clean_state) %>% 
+                distinct(),
+              .f = ~(get_acs(geography = "place",
+                             year = 2019,
+                             variables = c("S0101_C01_006",
+                                           "S0101_C01_007",
+                                           "S0101_C01_008"),
+                             survey = "acs5",
+                             state = ..1, 
+                             geometry = FALSE,
+                             wide = TRUE) %>% 
+                       semi_join(cities_acs_places_selected, 
+                                 by = "GEOID")))
+      
+    } else if (geo == "tract") { 
+      
+      # Tract data has to be pulled by state and county
+      # Mapped by state and county FIPs, filter to selected cities
+      pmap_df(.l = tracts_counties_places() %>% 
+                select(state_code) %>% 
+                distinct(),
+              .f = ~(get_acs(geography = geo,
+                             year = temp_year(),
+                             variables = acs_vars_selected(),
+                             survey = temp_survey(),
+                             state = ..1, 
+                             geometry = temp_geometry,
+                             wide = temp_wide) %>% 
+                       semi_join(cities_acs_places_selected(), 
+                                 by = "GEOID")))
+      
+      # Static check
+      test <- pmap_df(.l = tracts_places_counties %>% 
+                select(STATEFP, COUNTYFP) %>% 
+                distinct(),
+              .f = ~(get_acs(geography = "tract",
+                             year = 2019,
+                             variables = c("S0101_C01_006",
+                                           "S0101_C01_007",
+                                           "S0101_C01_008"),
+                             survey = "acs5",
+                             state = ..1,
+                             county = ..2,
+                             geometry = FALSE,
+                             wide = TRUE) %>% 
+                       st_join(tracts_places %>% 
+                                 select(place_GEOID))))
+      
+      }
+
+        
+  })
+
+  # # Clean and restructure 
+  # acs_clean <- reactive({
+  #   
+  #   if (geo == "state") {
+  #   
+  #   # Standardize variable names for MongoDB
+  #     temp <- acs_raw() %>% 
+  #       mutate(variable = gsub("PR", "", variable)) %>%
+  #       left_join(fips_codes_tidy %>% select(state, state_code), 
+  #                 by = c("GEOID" = "state_code")) %>%
+  #       relocate(state, .after = NAME) %>%
+  #       distinct()
+  #   
+  # # } else if (geo == "place") { 
+  #   
+  # } else { #tracts
+  #   
+  # }
+  #   
+  #   return(temp)
+  #   
+  # })
+  
+  return(acs_raw())
+  
+}
+
+# Custom function for download button in Rmd
+downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...)  {
+  tags$a(id = outputId, 
+         class = paste("btn btn-default shiny-download-link", class), 
+         href = "", target = "_blank", download = NA, 
+         icon("download"), label, ...)
+}
+
+```
+
+## **States**
 
 #### **Select ACS Components**
 
@@ -46,17 +253,17 @@ Use the following inputs to download ACS data at the state level. This script us
 # Dataset
 selectInput(inputId = "states_acs_dataset",
             label = "Select a dataset:",
-            choices = list(`5-Year ACS` = list("Default (Detailed)" = "acs5",
-                                               "Subject" = "acs5/subject", 
-                                               "Profile" = "acs5/profile"),
-                           `3-Year ACS` = list("Default (Detailed)" = "acs3",
-                                               "Subject" = "acs3/subject", 
-                                               "Profile" = "acs3/profile"),
-                           `1-Year ACS` = list("Default (Detailed)" = "acs1",
-                                               "Subject" = "acs1/subject", 
-                                               "Profile" = "acs1/profile"),
-                           `Summary File` = list("3-Year" = "sf3", 
-                                                 "1-Year" = "sf1")),
+            choices = list(`5-Year ACS` = list("5-Year: Default (Detailed)" = "acs5",
+                                               "5-Year: Subject" = "acs5/subject", 
+                                               "5-Year: Profile" = "acs5/profile"),
+                           `3-Year ACS` = list("3-Year: Default (Detailed)" = "acs3",
+                                               "3-Year: Subject" = "acs3/subject", 
+                                               "3-Year: Profile" = "acs3/profile"),
+                           `1-Year ACS` = list("1-Year: Default (Detailed)" = "acs1",
+                                               "1-Year: Subject" = "acs1/subject", 
+                                               "1-Year: Profile" = "acs1/profile"),
+                           `Summary File` = list("SF: 3-Year" = "sf3", 
+                                                 "SF: 1-Year" = "sf1")),
             selected = "acs5/subject")
 
 # Year
@@ -87,11 +294,16 @@ states_acs_vars_ref <- reactive({
 #          label = gsub("!!", "; ", label),
 #          shiny_input_label = paste0(table_name, ": ", str_to_title(concept)))
 
+# Text for either/or option below
+HTML("<p>")
+h5(HTML("<b>Use either of the options below to select tables</b>"))
+
 # Tables
 renderUI({
   
+  # Select dropdown
   selectizeInput(inputId = "states_acs_tables",
-                 label = "Select one or more tables to download:",
+                 label = "1.) Select one or more tables to download:",
                  choices = split(unique(states_acs_vars_ref()$table_name),
                                  unique(states_acs_vars_ref()$shiny_input_label)),
                  selected = c("S1810", "S1811", "S2601A", "S2602"),
@@ -102,8 +314,15 @@ renderUI({
 
 # File upload with variables
 fileInput(inputId = "states_acs_variable_file",
-          label = "Or upload a .csv file with your selected variables in the first column",
+          label = "Or 2.) upload a .csv file with your selected variables in the first column",
           accept = ".csv")
+
+# Disable button based on use
+observeEvent(input$states_acs_variable_file, {
+  
+  shinyjs::disable("states_acs_tables")
+  
+})
 
 # Filter variables based on table selection or file upload
 states_acs_vars_selected <- reactive({
@@ -129,7 +348,7 @@ states_acs_vars_selected <- reactive({
     validate(need(ext == "csv", "Please upload a .csv file"))
     
     # Read in file, rename first column
-    file_upload <- read_csv(file$datapath, header = TRUE) %>% 
+    file_upload <- read_csv(file$datapath) %>% 
       rename("var_name" = 1)
     
     # Filter reference variables
@@ -138,13 +357,11 @@ states_acs_vars_selected <- reactive({
       filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
    
   }
-  
+
   })
 
 # All states and counties
-fips_codes <- force(fips_codes) %>% 
-  mutate("state_code_num" = as.numeric(state_code)) %>% 
-  distinct(state, state_code, county_code)
+fips_codes_tidy <- force(fips_codes)
 
 ```
 
@@ -153,11 +370,15 @@ You can review your selected tables in the table below:
 ```{r states-acs-variable-preview}
 
 # State data selected
-DT::renderDataTable({ DT::datatable(states_acs_vars_selected(),
-                                    rownames = FALSE,
-                                    options = list(dom = "ft",
-                                                   pageLength = -1,
-                                                   scrollY = 500)) })
+DT::renderDataTable({
+  
+  DT::datatable(states_acs_vars_selected(),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500)) 
+  
+  })
 
 ```
 
@@ -171,118 +392,8 @@ Once you are satisfied with your selection, please use the button below to submi
 actionButton(inputId = "states_download_button",
              label = "Click here to download state data:")
 
-# Function for ACS download
-fun_download_acs_data <- function(geo) {
-  
-  # ===============
-  # Define intermediate variables
-  # ===============
-  
-  # Year
-  temp_year <- reactive({
-
-    case_when(geo == "state" ~
-                as.numeric(input$states_acs_year),
-              TRUE ~ 2019)
-
-  })
-
-  message(paste0("Year = ", as.character(temp_year())))
-  
-  # Survey
-  temp_survey <- reactive({
-
-    case_when(geo == "state" ~
-                coalesce(str_extract(input$states_acs_dataset,
-                                     pattern = "^.*(?=/)"),
-                         input$states_acs_dataset),
-              TRUE ~ "acs5")
-
-  })
-
-  message(paste0("Survey = ", temp_survey()))
-  
-  # ACS variables
-  acs_vars_selected <- reactive({ 
-    
-    case_when(geo == "state" ~
-                states_acs_vars_selected() %>% 
-                pull(name),
-              TRUE ~ 
-                states_acs_vars_selected() %>% 
-                pull(name)) 
-    
-  })
-  
-  # Geometry  
-  temp_geometry <- case_when(geo == "state" ~
-                               FALSE,
-                             TRUE ~ FALSE)
-  
-  message(paste0("Geometry = ", as.character(temp_geometry)))
-          
-  # Wide
-  temp_wide <- case_when(geo == "state" ~
-                           TRUE,
-                         TRUE ~ TRUE)
-  
-  message(paste0("Wide = ", as.character(temp_wide)))
-  
-  # ===============
-  # Download ACS data
-  # ===============
-  
-  # Grab from API 
-  message(paste0("Starting API Call"))
-  
-  acs_raw <- reactive({
-    
-    get_acs(geography = geo,
-            year = temp_year(),
-            variables = acs_vars_selected(),
-            survey = temp_survey(),
-            geometry = temp_geometry,
-            wide = temp_wide)
-    
-    # Static check (state)
-    # get_acs(geography = "state",
-    #         year = 2019,
-    #         variables = states_acs_vars_selected() %>% pull(name),
-    #         survey = "acs5",
-    #         geometry = temp_geometry,
-    #         wide = temp_wide)
-        
-  })
-
-  # # Clean and restructure 
-  # acs_clean <- reactive({
-  #   
-  #   if (geo == "state") {
-  #   
-  #   # Standardize variable names for MongoDB
-  #     temp <- acs_raw() %>% 
-  #       mutate(variable = gsub("PR", "", variable)) %>%
-  #       left_join(fips_codes %>% select(state, state_code), 
-  #                 by = c("GEOID" = "state_code")) %>%
-  #       relocate(state, .after = NAME) %>%
-  #       distinct()
-  #   
-  # # } else if (geo == "place") { 
-  #   
-  # } else { #tracts
-  #   
-  # }
-  #   
-  #   return(temp)
-  #   
-  # })
-  
-  return(acs_raw())
-  
-}
-
 # Execute state download
-acs_state_raw <- eventReactive(input$states_download_button, {
+acs_states_raw <- eventReactive(input$states_download_button, {
   
   # Open modal to inform user
   showModal(modalDialog("Requesting state ACS data from API...",
@@ -309,9 +420,9 @@ You can review your downloaded data in the table below:
 # State data downloaded
 DT::renderDataTable({
 
-  req(acs_state_raw())
+  req(acs_states_raw())
 
-  DT::datatable(acs_state_raw() %>% head(100),
+  DT::datatable(acs_states_raw() %>% head(100),
                 rownames = FALSE,
                 options = list(dom = "ft",
                                pageLength = -1,
@@ -336,7 +447,7 @@ renderUI({
 # Only enable upload when data exists
 observe({
   
-  shinyjs::toggleState("states_upload_button", nrow(acs_state_raw() > 0))
+  shinyjs::toggleState("states_upload_button", nrow(acs_states_raw() > 0))
 
 })
 
@@ -344,22 +455,583 @@ observe({
 
 ```
 
-### Cities
+## **Cities**
 
-#### Select ACS Components
+### **Cities**
 
-You can also embed plots, for example:
+#### **Select ACS Components**
 
-#### Select Cities (Census-Defined Places) 
+Use the following inputs to download ACS data at the city level. This script uses Kyle Walker's tidycensus package to access US Census Bureau APIs. Please consult the [tidycensus documentation](https://cran.r-project.org/web/packages/tidycensus/tidycensus.pdf) for additional information and options. 
 
-```{r cities-location-input}
+```{r cities-acs-input}
 
-# most_populated <- get_estimates(geography = "place",
-#                                 year = 2018,
-#                                 product = "population",
-#                                 geometry = FALSE,
-#                                 output = "wide") %>% 
-#   arrange(desc(POP)) %>% 
-#   head(200)
+# Dataset
+selectInput(inputId = "cities_acs_dataset",
+            label = "Select a dataset:",
+            choices = list(`5-Year ACS` = list("5-Year: Default (Detailed)" = "acs5",
+                                               "5-Year: Subject" = "acs5/subject", 
+                                               "5-Year: Profile" = "acs5/profile"),
+                           `3-Year ACS` = list("3-Year: Default (Detailed)" = "acs3",
+                                               "3-Year: Subject" = "acs3/subject", 
+                                               "3-Year: Profile" = "acs3/profile"),
+                           `1-Year ACS` = list("1-Year: Default (Detailed)" = "acs1",
+                                               "1-Year: Subject" = "acs1/subject", 
+                                               "1-Year: Profile" = "acs1/profile"),
+                           `Summary File` = list("SF: 3-Year" = "sf3", 
+                                                 "SF: 1-Year" = "sf1")),
+            selected = "acs5/subject")
+
+# Year
+selectInput(inputId = "cities_acs_year",
+            label = "Select a data endpoint year:",
+            choices = c(2005:2019),
+            selected = 2019)
+
+# Variables for selection
+cities_acs_vars_ref <- reactive({
+  
+  load_variables(year = input$cities_acs_year,
+                 dataset =  input$cities_acs_dataset, 
+                 cache = TRUE) %>% 
+    filter(!is.na(concept)) %>% 
+    mutate(table_name = gsub( "_.*$", "", name),
+           label = gsub("!!", "; ", label),
+           shiny_input_label = paste0(table_name, ": ", str_to_title(concept)))
+  
+})
+
+# Text for either/or option below
+HTML("<p>")
+h5(HTML("<b>Use either of the options below to select tables</b>"))
+
+# Tables
+renderUI({
+  
+  # Select dropdown
+  selectizeInput(inputId = "cities_acs_tables",
+                 label = "1.) Select one or more tables to download:",
+                 choices = split(unique(cities_acs_vars_ref()$table_name),
+                                 unique(cities_acs_vars_ref()$shiny_input_label)),
+                 selected = c("S1810", "S1811", "S2601A", "S2602"),
+                 multiple = TRUE,
+                 options = list(searchField = c("label", "value")))
+  
+  })
+
+# File upload with variables
+fileInput(inputId = "cities_acs_variable_file",
+          label = "Or 2.) upload a .csv file with your selected variables in the first column",
+          accept = ".csv")
+
+# Disable button based on use
+observeEvent(input$cities_acs_variable_file, {
+  
+  shinyjs::disable("cities_acs_tables")
+  
+})
+
+# Filter variables based on table selection or file upload
+cities_acs_vars_selected <- reactive({
+  
+  # If file has not been uploaded, base on table selection
+  if (is.null(input$cities_acs_variable_file)) {
+    
+    # Filter reference variables
+    cities_acs_vars_ref() %>%
+      filter(table_name %in% input$cities_acs_tables) %>%
+      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+    
+  }
+  
+  # Otherwise use uploaded file
+  else {
+    
+    # Validate file upload
+    file <- input$cities_acs_variable_file
+    ext <- tools::file_ext(file$datapath)
+
+    req(file)
+    validate(need(ext == "csv", "Please upload a .csv file"))
+    
+    # Read in file, rename first column
+    file_upload <- read_csv(file$datapath) %>% 
+      rename("var_name" = 1)
+    
+    # Filter reference variables
+    cities_acs_vars_ref() %>%
+      filter(name %in% file_upload$var_name) %>%
+      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+   
+  }
+
+  })
 
 ```
+
+You can review your selected tables in the table below:
+
+```{r cities-acs-variable-preview}
+
+# State data selected
+DT::renderDataTable({ 
+  
+  DT::datatable(cities_acs_vars_selected(),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500)) 
+  
+  })
+
+```
+
+#### **Select Cities**
+
+The US Census Bureau defines a "Place" as a concentration of population. This includes incorporated cities and towns, as well as unincorporated areas with no strict legal boundaries (Census-designated places or CDPs). For additional information, please consult the US Census Bureau's [Geographic Glossary](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_14).
+
+```{r cities-acs-places-input, warning=FALSE}
+
+# Load Census places
+cities_acs_places_ref <- get_estimates(geography = "place",
+                                product = "population",
+                                geometry = FALSE,
+                                output = "wide")
+
+# Clean place names for labels
+cities_acs_places_ref <- cities_acs_places_ref %>%
+  separate(NAME, sep =  ", ",
+           into = c("city", "state_name"),
+           remove = FALSE) %>% 
+  left_join(fips_codes_tidy %>% 
+              select(state_name, state) %>% 
+              distinct(),
+            by = c("state_name")) %>% 
+  mutate("shiny_input_label" = paste0(city, ", ", state) %>% 
+           str_replace_all(.,
+                           pattern = " (city|village|municipality|town|city and borough|borough|(city|((unified|consolidated|metro|metropolitan) government)) \\(balance\\)|\\(balance\\)), ",
+                           replacement = ", ")) %>% 
+  mutate("shiny_input_label" = case_when(GEOID == "3651000" ~
+                                           "New York City, NY",
+                                         GEOID == "4752006" ~
+                                           "Nashville, TN",
+                                         GEOID == "1571550" ~
+                                           "Honolulu, HI",
+                                         GEOID == "2146027" ~
+                                           "Lexington, KY",
+                                         GEOID == "2148006" ~
+                                           "Louisville, KY",
+                                         TRUE ~
+                                           shiny_input_label)) %>% 
+  select(-c(city, state)) %>% 
+  select(GEOID, NAME, shiny_input_label, state_name, everything())
+
+# Text for either/or option below
+HTML("<p>")
+h5(HTML("<b>Use either of the options below to select cities</b>"))
+
+# City dropdown
+selectizeInput(inputId = "cities_acs_places",
+               label = "1.) Select one or more cities:",
+               choices = tibble::deframe(cities_acs_places_ref %>%
+                                           arrange(desc(POP)) %>% 
+                                           select(shiny_input_label, GEOID)),
+               multiple = TRUE)
+
+# Reference list for download
+HTML("<b>Or 2.) upload a .csv file with your selected cities' Census GEOIDs in the first column</b>")
+
+# Download button
+downloadButtonRmd(outputId = "download_cities_ref_file",
+                  label = "Download CSV of cities for reference")
+
+output$download_cities_ref_file <- downloadHandler(
+  
+  filename = function() {
+    return("cities_reference_file.csv")
+  },
+  content = function(file) {
+    write.csv(cities_acs_places_ref %>%
+                separate(shiny_input_label,
+                         sep = ", ", 
+                         into = c("clean_city", "clean_state")) %>% 
+                select("census_GEOID" = GEOID, "census_NAME" = NAME,
+                       clean_city, clean_state,
+                       "population" = POP, "density" = DENSITY), 
+              file, row.names = FALSE)
+  }
+)
+
+# File upload with cities
+HTML("<p>")
+fileInput(inputId = "cities_acs_places_file",
+          label = "Upload .csv file",
+          accept = ".csv")
+
+# Disable button based on use
+observeEvent(input$cities_acs_places_file, {
+  
+  shinyjs::disable("cities_acs_places")
+  
+})
+
+# Filter places based on table selection or file upload
+cities_acs_places_selected <- reactive({
+  
+  # If file has not been uploaded, base on table selection
+  if (is.null(input$cities_acs_places_file)) {
+    
+    # Filter reference variables
+    cities_acs_places_ref %>%
+      filter(GEOID %in% input$cities_acs_places)
+    
+  }
+  
+  # Otherwise use uploaded file
+  else {
+    
+    # Validate file upload
+    file <- input$cities_acs_places_file
+    ext <- tools::file_ext(file$datapath)
+
+    req(file)
+    validate(need(ext == "csv", "Please upload a .csv file"))
+    
+    # Read in file, rename first column
+    file_upload <- read_csv(file$datapath) %>% 
+      rename("GEOID" = 1) %>% 
+      mutate("GEOID" = as.character(GEOID) %>% 
+               stringr::str_pad(7, side = "left", pad = "0"))
+    
+    # Filter reference variables
+    cities_acs_places_ref %>%
+      filter(GEOID %in% file_upload$GEOID)
+   
+  }
+
+  })
+
+```
+
+You can review your selected cities in the table below:
+
+```{r cities-acs-places-preview}
+
+# City data selected
+DT::renderDataTable({ 
+  
+  DT::datatable(cities_acs_places_selected() %>%
+                  arrange(desc(POP)) %>%  
+                  select(GEOID, 
+                         "City" = shiny_input_label,
+                         "Pop." = POP),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500)) %>% 
+    DT::formatCurrency(columns = "Pop.", currency = "", digits = 0)
+  
+  })
+
+```
+
+#### **Download ACS Data**
+
+Once you are satisfied with your selection, please use the button below to submit your request to the API.
+
+```{r cities-acs-download}
+
+# Button to run state-level ACS download code
+actionButton(inputId = "cities_download_button",
+             label = "Click here to download city/place data:")
+
+# Execute state download
+acs_cities_raw <- eventReactive(input$cities_download_button, {
+  
+  # Open modal to inform user
+  showModal(modalDialog("Requesting city/place ACS data from API...",
+                        footer = NULL))
+  
+  # Run function
+  temp <- fun_download_acs_data(geo = "place")
+  
+  # Remove modal
+  removeModal()
+  
+  # Return data
+  return(temp)
+  
+})
+
+```
+
+You can review your downloaded data in the table below:
+
+```{r cities-acs-data-preview}
+
+# State data downloaded
+DT::renderDataTable({
+
+  req(acs_cities_raw())
+
+  DT::datatable(acs_cities_raw() %>% head(100),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500))
+
+})
+
+```
+
+#### **Upload ACS Data to MongoDB**
+
+### **Tracts**
+
+#### **Select ACS Components**
+
+```{r tracts-acs-input}
+
+# Dataset
+selectInput(inputId = "tracts_acs_dataset",
+            label = "Select a dataset:",
+            choices = list(`5-Year ACS` = list("5-Year: Default (Detailed)" = "acs5",
+                                               "5-Year: Subject" = "acs5/subject", 
+                                               "5-Year: Profile" = "acs5/profile"),
+                           `3-Year ACS` = list("3-Year: Default (Detailed)" = "acs3",
+                                               "3-Year: Subject" = "acs3/subject", 
+                                               "3-Year: Profile" = "acs3/profile"),
+                           `1-Year ACS` = list("1-Year: Default (Detailed)" = "acs1",
+                                               "1-Year: Subject" = "acs1/subject", 
+                                               "1-Year: Profile" = "acs1/profile"),
+                           `Summary File` = list("SF: 3-Year" = "sf3", 
+                                                 "SF: 1-Year" = "sf1")),
+            selected = "acs5/subject")
+
+# Year
+selectInput(inputId = "tracts_acs_year",
+            label = "Select a data endpoint year:",
+            choices = c(2005:2019),
+            selected = 2019)
+
+# Variables for selection
+tracts_acs_vars_ref <- reactive({
+  
+  load_variables(year = input$tracts_acs_year,
+                 dataset =  input$tracts_acs_dataset, 
+                 cache = TRUE) %>% 
+    filter(!is.na(concept)) %>% 
+    mutate(table_name = gsub( "_.*$", "", name),
+           label = gsub("!!", "; ", label),
+           shiny_input_label = paste0(table_name, ": ", str_to_title(concept)))
+  
+})
+
+# Text for either/or option below
+HTML("<p>")
+h5(HTML("<b>Use either of the options below to select tables</b>"))
+
+# Tables
+renderUI({
+  
+  # Select dropdown
+  selectizeInput(inputId = "tracts_acs_tables",
+                 label = "1.) Select one or more tables to download:",
+                 choices = split(unique(tracts_acs_vars_ref()$table_name),
+                                 unique(tracts_acs_vars_ref()$shiny_input_label)),
+                 selected = c("S1810", "S1811"),
+                 multiple = TRUE,
+                 options = list(searchField = c("label", "value")))
+  
+  })
+
+# File upload with variables
+fileInput(inputId = "tracts_acs_variable_file",
+          label = "Or 2.) upload a .csv file with your selected variables in the first column",
+          accept = ".csv")
+
+# Disable button based on use
+observeEvent(input$tracts_acs_variable_file, {
+  
+  shinyjs::disable("tracts_acs_tables")
+  
+})
+
+# Filter variables based on table selection or file upload
+tracts_acs_vars_selected <- reactive({
+  
+  # If file has not been uploaded, base on table selection
+  if (is.null(input$tracts_acs_variable_file)) {
+    
+    # Filter reference variables
+    tracts_acs_vars_ref() %>%
+      filter(table_name %in% input$tracts_acs_tables) %>%
+      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+    
+  }
+  
+  # Otherwise use uploaded file
+  else {
+    
+    # Validate file upload
+    file <- input$tracts_acs_variable_file
+    ext <- tools::file_ext(file$datapath)
+
+    req(file)
+    validate(need(ext == "csv", "Please upload a .csv file"))
+    
+    # Read in file, rename first column
+    file_upload <- read_csv(file$datapath) %>% 
+      rename("var_name" = 1)
+    
+    # Filter reference variables
+    tracts_acs_vars_ref() %>%
+      filter(name %in% file_upload$var_name) %>%
+      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+   
+  }
+
+  })
+
+```
+
+You can review your selected tables in the table below:
+
+```{r tracts-acs-variable-preview}
+
+# State data selected
+DT::renderDataTable({ 
+  
+  DT::datatable(tracts_acs_vars_selected(),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500)) 
+  
+  })
+
+```
+
+
+#### **Select Census Tracts**
+
+The US Census Bureau defines a "Census Tract" as a small, relatively permanent statistical subdivision of a county that generally has a population size of 1,200 and 8,000 people, with an optimum size of 4,000 people. These generally trace legal (e.g. city limits) and physical (e.g. major streets, rivers, etc.) boundaries. For additional information, please consult the US Census Bureau's [Geographic Glossary](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_13).
+
+Census Tracts are available by state and county. To access tract data, please ensure that you have filled out the "Select Cities" section above.
+
+```{r tracts-acs-location-input}
+
+# Get spatial footprint of cities/places selected
+# Remove US Outlying Islands/US Virgin Islands (<=72)
+tracts_places <- reactive({
+  
+  pmap_df(.l = fips_codes_tidy %>% 
+            filter(as.numeric(state_code) <= 72) %>% 
+            select(state_code) %>% 
+            distinct(),
+          .f = ~(tigris::places(state = ..1, 
+                                cb = TRUE, 
+                                class = "sf") %>% 
+                   rename("place_GEOID" = GEOID, 
+                          "place_NAME" = NAME) %>%
+                   filter(place_GEOID %in% 
+                            cities_acs_places_selected()$GEOID)))
+                 
+})
+
+# Use subset of states from places to get counties 
+# Unique city/state/county codes for preview
+tracts_places_counties <- reactive({
+  
+  # Pull counties by state
+  temp <- pmap_df(.l = tracts_places() %>%
+            st_drop_geometry() %>% 
+            select(STATEFP) %>% 
+            distinct(),
+          .f = ~(tigris::counties(state = ..1, 
+                                  cb = TRUE, 
+                                  class = "sf") %>% 
+                   rename("county_GEOID" = GEOID, 
+                          "county_NAME" = NAME)))
+  
+  # Filter counties by joining to cities
+  st_join(tracts_places(), 
+          temp %>% 
+            select(COUNTYFP, county_GEOID, county_NAME)) %>%
+    st_drop_geometry() %>% 
+    select(PLACEFP, place_GEOID, place_NAME, 
+           STATEFP, COUNTYFP, county_GEOID, county_NAME) %>% 
+    distinct()
+
+})
+
+```
+
+You can review your selected state and county pairings in the table below:
+
+```{tracts-acs-location-preview}
+
+# City/state/county combinations for tract data
+DT::renderDataTable({ 
+  
+  DT::datatable(tracts_places_counties(),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500))
+  
+})
+
+```
+
+#### **Download ACS Data**
+
+Once you are satisfied with your selection, please use the button below to submit your request to the API.
+
+```{r tracts-acs-download}
+
+# Button to run state-level ACS download code
+actionButton(inputId = "tracts_download_button",
+             label = "Click here to download Census Tract data:")
+
+# Execute state download
+acs_tracts_raw <- eventReactive(input$tracts_download_button, {
+  
+  # Open modal to inform user
+  showModal(modalDialog("Requesting Census Tract ACS data from API...",
+                        footer = NULL))
+  
+  # Run function
+  temp <- fun_download_acs_data(geo = "tract")
+  
+  # Remove modal
+  removeModal()
+  
+  # Return data
+  return(temp)
+  
+})
+
+```
+
+You can review your downloaded data in the table below:
+
+```{r tracts-acs-data-preview}
+
+# State data downloaded
+DT::renderDataTable({
+
+  req(acs_tracts_raw())
+
+  DT::datatable(acs_tracts_raw() %>% head(100),
+                rownames = FALSE,
+                options = list(dom = "ft",
+                               pageLength = -1,
+                               scrollY = 500))
+
+})
+
+```
+
+#### **Upload ACS Data to MongoDB**
+
+

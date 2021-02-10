@@ -1,0 +1,11 @@
+census_GEOID,census_NAME,clean_city,clean_state,population,density
+3651000,"New York city, New York",New York City,NY,8336817,27754.15859
+644000,"Los Angeles city, California",Los Angeles,CA,3979576,8486.02652
+1714000,"Chicago city, Illinois",Chicago,IL,2693976,11848.49807
+4835000,"Houston city, Texas",Houston,TX,2320268,3624.32253
+455000,"Phoenix city, Arizona",Phoenix,AZ,1680992,3247.209286
+4260000,"Philadelphia city, Pennsylvania",Philadelphia,PA,1584064,11796.78275
+4865000,"San Antonio city, Texas",San Antonio,TX,1547253,3189.46899
+666000,"San Diego city, California",San Diego,CA,1423851,4369.284595
+4819000,"Dallas city, Texas",Dallas,TX,1343573,3954.759498
+668000,"San Jose city, California",San Jose,CA,1021795,5746.613827
