@@ -184,21 +184,19 @@ fun_download_acs_data <- function(geo) {
                                  by = "GEOID")))
       
       # Static check
-      test <- pmap_df(.l = tracts_places_counties %>% 
-                select(STATEFP, COUNTYFP) %>% 
-                distinct(),
-              .f = ~(get_acs(geography = "tract",
-                             year = 2019,
-                             variables = c("S0101_C01_006",
-                                           "S0101_C01_007",
-                                           "S0101_C01_008"),
-                             survey = "acs5",
-                             state = ..1,
-                             county = ..2,
-                             geometry = FALSE,
-                             wide = TRUE) %>% 
-                       st_join(tracts_places %>% 
-                                 select(place_GEOID))))
+      # pmap_df(.l = tracts_places_counties %>% 
+      #           select(STATEFP, COUNTYFP) %>% 
+      #           distinct(),
+      #         .f = ~(get_acs(geography = "tract",
+      #                        year = 2019,
+      #                        variables = c("S0101_C01_006",
+      #                                      "S0101_C01_007",
+      #                                      "S0101_C01_008"),
+      #                        survey = "acs5",
+      #                        state = ..1,
+      #                        county = ..2,
+      #                        geometry = FALSE,
+      #                        wide = TRUE)))
       
       }
 
