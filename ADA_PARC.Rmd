@@ -32,10 +32,15 @@ library(mongolite)
 source("secret.R", local = TRUE)
 
 ### --------------------
+### Variable Dictionary
+###
+
+vars_dict <- read_csv(here("vars_dict.csv"))
+
+### --------------------
 ### Functions
 ###
 
-# Pull data from database
 pull_mongo_data <- function(tables, geo) {
   for (t in seq_along(tables)) {
     print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
@@ -50,71 +55,47 @@ pull_mongo_data <- function(tables, geo) {
                left_join, by = c("GEOID", "NAME"))
 }
 
-# Render national tile map
-render_tile_map <- function(data, selected) {
+render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") {
+  
+  # ### Unnecessary if selected is being passed as a string
+  # # but we may want to pass the variable itself at some point
+  # selected_varname <- deparse(substitute(!!sym(selected))) %>% gsub("^[^\\$]*\\$", "", .) 
+  # ### Parsing the regex
+  # # ^ anchor for beginning of string
+  # # [^\\$]* matches everything excluding "$" char
+  # # \\$ terminates match at "$" char
+  # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
+  # # outputs: "GEOID"
+
+  # Provide appropriate variable label to national tile map labels
+  if(grepl("pct", selected)) {
+    selected_label <- "%"
+  } else {
+    selected_label <- ""
+  }
+  
+  title <- vars_dict$var_pretty[which(vars_dict$var_readable == selected)][1]
+  
   data %>%
-  ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
-             fill = !!sym(selected))) + # Selected variable
-  geom_tile() + # Imports x and y values
-  geom_text(aes(label = paste0(as.character(!!sym(selected)), "%")), 
-            color = "white") + # Adds percentage to the center of the tile
-  labs(x = "", y = "") +
-  facet_geo(facets = ~ state_abbv, grid = "us_state_with_DC_PR_grid2") + 
-  theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
-        panel.grid = element_blank(),
-        panel.grid.major = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        axis.line = element_blank(),
-        panel.spacing = unit(0L, "pt"),
-        legend.position = "none",
-        strip.text.x = element_text(size = 9L))
+    ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
+               fill = !!sym(selected))) + # Selected variable
+    geom_tile() + # Imports x and y values
+    geom_text(aes(label = paste0(!!sym(selected), selected_label)),
+              color = "white") + # Adds percentage to the center of the tile
+    labs(x = "", y = "", title = title) +
+    facet_geo(facets = ~ NAME_ABBRV, grid = grid) +
+    theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "none",
+          strip.text.x = element_text(size = 9L)) +
+    scale_fill_continuous(high = "#132B43", low = "#56B1F7") # reverses the default gradient direction so that dark blue is associated with larger values
 }
 
-# Transform data to spatial data
-# Not used in national tile map version
-# map_data <- function(data) {
-#   data %>% 
-#     left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-#     st_transform(4326)
-# }
-
-# Create color palette for national data
-# Not used in national tile map version
-# create_palette <- function(data, selected) {
-#   colorQuantile(palette = input$access_map_palette, 
-#                 domain = pull(data, !!sym(selected)),
-#                 n = 4)
-# }
-
-# Render leaflet national map
-# Not used in national tile map version
-# render_map <- function(data, selected, palette) {
-#   title <- selected
-#   
-#   map <- data %>%
-#     mutate(map_focus = !!sym(selected)) %>% 
-#     leaflet() %>%
-#     clearShapes() %>%
-#     addResetMapButton() %>% 
-#     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-#                 fillColor = ~palette(map_focus),
-#                 fillOpacity = 1,
-#                 popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-#                                percent(map_focus,
-#                                        scale = 1, accuracy = 0.1)),
-#                 layerId = ~state_name) %>% 
-#     addLegend(position = "topright", pal = palette,
-#               values = ~map_focus,
-#               labFormat =  function(type, cuts, p) {
-#                 n = length(cuts)
-#                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-#               },
-#               title = title)
-#   
-#   map
-#   
-# }
 ```
 
 

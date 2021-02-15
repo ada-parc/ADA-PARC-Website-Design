@@ -239,7 +239,8 @@ render_tile_map <- function(data, selected, grid = "us_state_with_DC_PR_grid2") 
           axis.line = element_blank(),
           panel.spacing = unit(0L, "pt"),
           legend.position = "none",
-          strip.text.x = element_text(size = 9L))
+          strip.text.x = element_text(size = 9L)) +
+    scale_fill_continuous(high = "#132B43", low = "#56B1F7") # reverses the default gradient direction so that dark blue is associated with larger values
 }
 
 # render_tile_map(national_demographic_readable, "pct_pwd")
