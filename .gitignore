@@ -5,3 +5,5 @@
 secret.R
 lookup.xlsx
 *.Rproj.user/shared/notebooks/paths
+config.yml
+tracts.geojson
