@@ -401,39 +401,8 @@ The US Census Bureau defines a "Place" as a concentration of population. This in
 
 ```{r cities-acs-places-input, warning=FALSE}
 
-# Load Census places
-cities_acs_places_ref <- get_estimates(geography = "place",
-                                product = "population",
-                                geometry = FALSE,
-                                output = "wide")
-
-# Clean place names for labels
-cities_acs_places_ref <- cities_acs_places_ref %>%
-  separate(NAME, sep =  ", ",
-           into = c("city", "state_name"),
-           remove = FALSE) %>% 
-  left_join(fips_codes_tidy %>% 
-              select(state_name, state) %>% 
-              distinct(),
-            by = c("state_name")) %>% 
-  mutate("shiny_input_label" = paste0(city, ", ", state) %>% 
-           str_replace_all(.,
-                           pattern = " (city|village|municipality|town|city and borough|borough|(city|((unified|consolidated|metro|metropolitan) government)) \\(balance\\)|\\(balance\\)), ",
-                           replacement = ", ")) %>% 
-  mutate("shiny_input_label" = case_when(GEOID == "3651000" ~
-                                           "New York City, NY",
-                                         GEOID == "4752006" ~
-                                           "Nashville, TN",
-                                         GEOID == "1571550" ~
-                                           "Honolulu, HI",
-                                         GEOID == "2146027" ~
-                                           "Lexington, KY",
-                                         GEOID == "2148006" ~
-                                           "Louisville, KY",
-                                         TRUE ~
-                                           shiny_input_label)) %>% 
-  select(-c(city, state)) %>% 
-  select(GEOID, NAME, shiny_input_label, state_name, everything())
+# Load Census places from GitHub repo
+cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt?token=AGLBDEZ3AAV7MV7JXHW7ELLAG3XGQ")
 
 # Text for either/or option below
 HTML("<p>")
@@ -444,7 +413,7 @@ selectizeInput(inputId = "cities_acs_places",
                label = "1.) Select one or more cities:",
                choices = tibble::deframe(cities_acs_places_ref %>%
                                            arrange(desc(POP)) %>% 
-                                           select(shiny_input_label, GEOID)),
+                                           select(metro_state, GEOID)),
                multiple = TRUE)
 
 # Reference list for download
@@ -461,7 +430,7 @@ output$download_cities_ref_file <- downloadHandler(
   },
   content = function(file) {
     write.csv(cities_acs_places_ref %>%
-                separate(shiny_input_label,
+                separate(metro_state,
                          sep = ", ", 
                          into = c("clean_city", "clean_state")) %>% 
                 select("census_GEOID" = GEOID, "census_NAME" = NAME,

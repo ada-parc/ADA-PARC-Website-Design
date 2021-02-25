@@ -62,7 +62,8 @@ dict_places <- places_sf %>%
               distinct(),
             by = c("STATEFP" = "state_code")) %>% 
   # Basic scrubbing
-  mutate("metro_state" = paste0(NAME, ", ", state) %>% 
+  mutate("metro_state" = paste0(str_remove(NAME, ",.*$"),
+                                ", ", state) %>% 
            str_replace_all(.,
                            pattern = " (city|village|municipality|town|city and borough|borough|(city|((unified|consolidated|metro|metropolitan) government)) \\(balance\\)|\\(balance\\)), ",
                            replacement = ", ")) %>% 
