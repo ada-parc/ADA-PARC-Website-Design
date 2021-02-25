@@ -5,13 +5,16 @@
 
 # Libraries
 library(tidyverse);library(readxl)
-library(tigris);library(sf)
+library(tidycensus);library(tigris);library(sf)
 library(geojsonsf);library(mongolite)
 
 # Set working dictionary, options
 setwd(here::here())
 options(stringsAsFactors = FALSE, scipen = 999, 
         dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
+
+# Load API keys
+api_key_census <- config::get("api_key_census")
 
 
 # FIPS codes --------------------------------------------------------------
@@ -25,9 +28,9 @@ fips_codes_tidy <- force(fips_codes)
 
 
 # Get spatial footprint of cities/places
-# Remove US Outlying Islands/US Virgin Islands (<=72)
+# Remove US Outlying Islands/US Virgin Islands (c(1:56, 72))
 places_sf <- pmap_df(.l = fips_codes_tidy %>% 
-                       filter(as.numeric(state_code) <= 72) %>% 
+                       filter(as.numeric(state_code) %in% c(1:56, 72)) %>% 
                        select(state_code) %>% 
                        distinct(),
                      .f = ~(tigris::places(state = ..1, 
@@ -40,9 +43,16 @@ places_sf <- pmap_df(.l = fips_codes_tidy %>%
          "place_area_num" = as.numeric(place_area)) %>% 
   relocate(geometry, .after = last_col())
 
+# Get population estimates for lookup
+places_pop_est <- get_estimates(geography = "place",
+                                product = "population",
+                                geometry = FALSE,
+                                output = "wide")
+
 # Clean for lookup
 dict_places <- places_sf %>% 
   st_drop_geometry() %>%
+  # Metro/State names
   left_join(fips_codes_tidy %>% 
               select(state_code, state) %>% 
               distinct(),
@@ -65,14 +75,18 @@ dict_places <- places_sf %>%
                                    GEOID == "2148006" ~
                                      "Louisville, KY",
                                    TRUE ~
-                                     metro_state))
+                                     metro_state)) %>% 
+  # Population to order list
+  left_join(places_pop_est %>% 
+              select(GEOID, POP),
+            by = "GEOID")
 
 
 # Places, counties, tracts crosswalk --------------------------------------
 
 
 ## ----- Get spatial footprint of counties -----
-# Remove US Outlying Islands/US Virgin Islands (<=72)
+# Remove US Outlying Islands/US Virgin Islands (c(1:56, 72))
 counties_sf <- pmap_df(.l = places_sf %>%
                       st_drop_geometry() %>% 
                       select(STATEFP) %>% 
