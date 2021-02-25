@@ -52,18 +52,21 @@ places_pop_est <- get_estimates(geography = "place",
 # Clean for lookup
 dict_places <- places_sf %>% 
   st_drop_geometry() %>%
+  select(STATEFP, "GEOID" = place_GEOID) %>% 
+  # Population to order list
+  left_join(places_pop_est,
+            by = "GEOID") %>% 
   # Metro/State names
   left_join(fips_codes_tidy %>% 
               select(state_code, state) %>% 
               distinct(),
             by = c("STATEFP" = "state_code")) %>% 
   # Basic scrubbing
-  mutate("metro_state" = paste0(place_NAME, ", ", state) %>% 
+  mutate("metro_state" = paste0(NAME, ", ", state) %>% 
            str_replace_all(.,
                            pattern = " (city|village|municipality|town|city and borough|borough|(city|((unified|consolidated|metro|metropolitan) government)) \\(balance\\)|\\(balance\\)), ",
                            replacement = ", ")) %>% 
   # Individual cases
-  select("GEOID" = place_GEOID, metro_state) %>% 
   mutate("metro_state" = case_when(GEOID == "3651000" ~
                                      "New York City, NY",
                                    GEOID == "4752006" ~
@@ -76,10 +79,9 @@ dict_places <- places_sf %>%
                                      "Louisville, KY",
                                    TRUE ~
                                      metro_state)) %>% 
-  # Population to order list
-  left_join(places_pop_est %>% 
-              select(GEOID, POP),
-            by = "GEOID")
+  select(GEOID, NAME, metro_state,
+         POP, DENSITY)
+
 
 
 # Places, counties, tracts crosswalk --------------------------------------
@@ -186,10 +188,10 @@ dict_location_crosswalk <- places_sf %>%
 
 
 # Places
-write_csv(dict_places, "dict_places.txt")
+write_csv(dict_places, "dictionaries/dict_places.txt")
 
 # Tracts
-st_write(tracts_sf, "tracts.geojson", delete_dsn = TRUE)
+st_write(tracts_sf, "dictionaries/geo_tract/geo_tract.shp", delete_dsn = TRUE)
 
 # Places, counties, tracts crosswalk
-write_csv(dict_location_crosswalk, "dict_location_crosswalk.txt")
+write_csv(dict_location_crosswalk, "dictionaries/dict_location_crosswalk.txt")
