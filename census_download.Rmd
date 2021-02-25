@@ -401,8 +401,8 @@ The US Census Bureau defines a "Place" as a concentration of population. This in
 
 ```{r cities-acs-places-input, warning=FALSE}
 
-# Load Census places from GitHub repo
-cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt?token=AGLBDEZ3AAV7MV7JXHW7ELLAG3XGQ")
+# Pull Census places dictionary from GitHub repo
+cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt?token=AGLBDE3JMXVTYDBOZ6CYFUDAG3YCM")
 
 # Text for either/or option below
 HTML("<p>")
@@ -742,72 +742,15 @@ Census Tracts are available by state and county. To access tract data, please en
 
 ```{r tracts-acs-location-input}
 
-# Get spatial footprint of cities/places selected
-# Remove US Outlying Islands/US Virgin Islands (<=72)
-tracts_places <- reactive({
-  
-  pmap_df(.l = fips_codes_tidy %>% 
-            filter(as.numeric(state_code) <= 72) %>% 
-            select(state_code) %>% 
-            distinct(),
-          .f = ~(tigris::places(state = ..1, 
-                                cb = TRUE, 
-                                class = "sf") %>% 
-                   rename("place_GEOID" = GEOID, 
-                          "place_NAME" = NAME) %>%
-                   filter(place_GEOID %in% 
-                            cities_acs_places_selected()$GEOID))) %>%
-    select(STATEFP, PLACEFP, place_GEOID, place_NAME) %>% 
-    mutate("place_area" = st_area(.),
-           "place_area_num" = as.numeric(place_area)) %>% 
-    relocate(geometry, .after = last_col())
-  
-})
-
-# Use subset of states from places to get counties 
-# Pull counties by state
-tracts_counties <- reactive({
-  
-  pmap_df(.l = tracts_places() %>%
-            st_drop_geometry() %>% 
-            select(STATEFP) %>% 
-            distinct(),
-          .f = ~(tigris::counties(state = ..1, 
-                                  cb = TRUE, 
-                                  class = "sf") %>% 
-                   rename("county_GEOID" = GEOID, 
-                          "county_NAME" = NAME))) %>% 
-    select(COUNTYFP, county_GEOID, county_NAME)
-  
-})
-
-# Unique city/state/county codes
-# Filter counties by joining to cities
+# Pull city/county/tract dictionary from GitHub repo 
 # Set minimum overlap threshold, default units [m^2]
-tracts_places_counties <- reactive({
+tracts_places_counties <- reactive({ 
   
-  st_intersection(tracts_places(), 
-                  tracts_counties()) %>% 
-    mutate("overlap_area" = st_area(.),
-           "overlap_area_num" = as.numeric(overlap_area),
-           "overlap_pct" = overlap_area_num / place_area_num) %>%
-    filter(overlap_pct > 0) %>%
-    st_drop_geometry()
-  # relocate(geometry, .after = last_col())
-  
+  test <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt?token=AGLBDE7J3YJYQSCAA7QVO5TAG3ZNY") %>%
+    filter(county_place_overlap_pct > 0,
+           place_GEOID %in% c(cities_acs_places_selected()$GEOID))
+    
 })
-
-# Spatial join check (don't want counties that only border included)
-# mapview::mapshot(
-  # mapview::mapview(tracts_places, 
-  #                  col.regions = "orange") +
-  #   mapview::mapview(tracts_counties %>% 
-  #                      filter(county_GEOID %in% 
-  #                               tracts_places_counties$county_GEOID),
-  #                    color = "white",
-  #                    col.regions = "blue",
-  #                    alpha.regions = 0.4) # ,
-  # url = paste0(getwd(), "/places_counties.html"))
 
 ```
 
@@ -819,7 +762,7 @@ You can review your selected state and county pairings in the table below:
 DT::renderDataTable({ 
   
   DT::datatable(tracts_places_counties() %>%
-                  group_by("City" = place_NAME) %>% 
+                  group_by("City" = metro_state) %>% 
                   mutate("Counties" = str_c(county_NAME, 
                                             collapse = ", ")) %>% 
                   select(City, Counties) %>% 

@@ -152,7 +152,9 @@ fun_download_acs_data <- function(geo) {
       # Tract data has to be pulled by state and county
       # Mapped by state and county FIPs, filter to selected cities
       # Summary variable --> total population
-      pmap_df(.l = tracts_places_counties() %>% 
+      pmap_df(.l = tracts_places_counties() %>%
+                mutate("STATEFP" = str_sub(county_GEOID, 1, 2),
+                       "COUNTYFP" = str_sub(county_GEOID, 3, 5)) %>% 
                 select(STATEFP, COUNTYFP) %>% 
                 distinct(),
               .f = ~(get_acs(geography = geo,
@@ -166,6 +168,8 @@ fun_download_acs_data <- function(geo) {
       
       # Static check
       # pmap_df(.l = tracts_places_counties %>%
+      #           mutate("STATEFP" = str_sub(county_GEOID, 1, 2),
+      #                  "COUNTYFP" = str_sub(county_GEOID, 3, 5)) %>% 
       #           select(STATEFP, COUNTYFP) %>%
       #           distinct(),
       #         .f = ~(get_acs(geography = "tract",
@@ -194,7 +198,9 @@ fun_download_acs_data <- function(geo) {
     req(geo == "tract")
     
     # Download tract geographies, filter using places
-    pmap_df(.l = tracts_places_counties() %>% 
+    pmap_df(.l = tracts_places_counties() %>%
+              mutate("STATEFP" = str_sub(county_GEOID, 1, 2),
+                     "COUNTYFP" = str_sub(county_GEOID, 3, 5)) %>% 
               select(STATEFP, COUNTYFP) %>% 
               distinct(),
             .f = ~(tigris::tracts(state = ..1,  
@@ -202,23 +208,21 @@ fun_download_acs_data <- function(geo) {
                                   cb = TRUE, 
                                   class = "sf") %>% 
                      select(GEOID) %>% 
-                     st_join(tracts_places() %>%
-                               select(place_GEOID),
-                             left = FALSE)))
+                     filter(GEOID %in% tracts_places_counties()$tract_GEOID)))
     
     # Static check
     # pmap_df(.l = tracts_places_counties %>%
+    #           mutate("STATEFP" = str_sub(county_GEOID, 1, 2),
+    #                  "COUNTYFP" = str_sub(county_GEOID, 3, 5)) %>% 
     #           select(STATEFP, COUNTYFP) %>%
     #           distinct() %>%
-    #           head(1),
+    #           head(2),
     #         .f = ~(tigris::tracts(state = ..1,
     #                               county = ..2,
     #                               cb = TRUE,
     #                               class = "sf") %>%
-    #                  select(GEOID) %>%
-    #                  st_join(tracts_places %>%
-    #                            select(place_GEOID),
-    #                          left = FALSE)))
+    #                  # select(GEOID) %>% 
+    #                  filter(GEOID %in% tracts_places_counties$tract_GEOID)))
     
   })
   
