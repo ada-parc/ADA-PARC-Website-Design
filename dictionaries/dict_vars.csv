@@ -3,10 +3,10 @@ pop_total,Total Population,S1810_C01_001,demographic
 pwd_total,Total Persons with Disabilities,S1810_C02_001,demographic
 pwd_pct,Percent Persons with Disabilities,,demographic
 pop_18_64,Total Population Aged 18 - 64,S1810_C01_015,demographic
-pop_18_64,Total Population Aged 18 - 65,S1810_C01_016,demographic
+pop_18_64,Total Population Aged 18 - 64,S1810_C01_016,demographic
 pwd_18_64,Total Persons with Disabilities Aged 18 - 64,S1810_C02_015,demographic
-pwd_18_64,Total Persons with Disabilities Aged 18 - 65,S1810_C02_016,demographic
-pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 65,,demographic
+pwd_18_64,Total Persons with Disabilities Aged 18 - 64,S1810_C02_016,demographic
+pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,,demographic
 pop_grtoeq_65,Total Population Aged 65 or Older,S1810_C01_017,demographic
 pop_grtoeq_65,Total Population Aged 65 or Older,S1810_C01_018,demographic
 pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,S1810_C02_017,demographic
@@ -63,10 +63,10 @@ pop_18_64,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C01_047,co
 pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,S2602_C01_048,community living
 pwd_18_64,Total Persons with Disabilities Aged 18 - 64,,community living
 pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_006,community living
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 65,S2602_C04_007,community living
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 66,S2602_C04_008,community living
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 67,S2602_C04_009,community living
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 68,S2602_C04_010,community living
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_007,community living
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_008,community living
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_009,community living
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_010,community living
 pwd_nursing_18_64_pct,Percent Persons with Disabilities Living in Nursing Homes Aged 18 - 64,S2602_C04_048,community living
 pwd_nursing_18_64,Total Persons with Disabilities Living in Nursing Homes Aged 18 - 64,,community living
 pop_19_64,Total Population Aged 19 - 64,B18135_013,community participation
