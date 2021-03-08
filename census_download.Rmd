@@ -70,7 +70,7 @@ selectInput(inputId = "states_acs_year",
 states_acs_vars_ref <- reactive({
   
   load_variables(year = input$states_acs_year,
-                 dataset =  input$states_acs_dataset, 
+                 dataset = input$states_acs_dataset, 
                  cache = TRUE) %>% 
     filter(!is.na(concept)) %>% 
     mutate(table_name = gsub( "_.*$", "", name),
@@ -399,10 +399,10 @@ DT::renderDataTable({
 
 The US Census Bureau defines a "Place" as a concentration of population. This includes incorporated cities and towns, as well as unincorporated areas with no strict legal boundaries (Census-designated places or CDPs). For additional information, please consult the US Census Bureau's [Geographic Glossary](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_14).
 
-```{r cities-acs-places-input, warning=FALSE}
+```{r cities-acs-places-input, warning=FALSE, message=FALSE}
 
 # Pull Census places dictionary from GitHub repo
-cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt?token=AGLBDE3JMXVTYDBOZ6CYFUDAG3YCM")
+cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt")
 
 # Text for either/or option below
 HTML("<p>")
@@ -740,13 +740,13 @@ The US Census Bureau defines a "Census Tract" as a small, relatively permanent s
 
 Census Tracts are available by state and county. To access tract data, please ensure that you have filled out the "Select Cities" section above.
 
-```{r tracts-acs-location-input}
+```{r tracts-acs-location-input, message=FALSE}
 
 # Pull city/county/tract dictionary from GitHub repo 
 # Set minimum overlap threshold, default units [m^2]
 tracts_places_counties <- reactive({ 
   
-  test <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt?token=AGLBDE7J3YJYQSCAA7QVO5TAG3ZNY") %>%
+  read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt") %>%
     filter(county_place_overlap_pct > 0,
            place_GEOID %in% c(cities_acs_places_selected()$GEOID))
     
