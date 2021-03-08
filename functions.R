@@ -118,7 +118,8 @@ fun_download_acs_data <- function(geo) {
       # Place data has to be pulled by state
       # Mapped by state FIP, filter to selected cities
       pmap_df(.l = cities_acs_places_selected() %>% 
-                select(clean_state) %>% 
+                mutate("STATEFP" = str_sub(GEOID, 1, 2)) %>% 
+                select(STATEFP) %>% 
                 distinct(),
               .f = ~(get_acs(geography = geo,
                              year = temp_year(),
@@ -132,7 +133,8 @@ fun_download_acs_data <- function(geo) {
       
       # Static check
       # pmap_df(.l = cities_acs_places_selected %>%
-      #           select(clean_state) %>%
+      #           mutate("STATEFP" = str_sub(GEOID, 1, 2)) %>% 
+      #           select(STATEFP) %>%
       #           distinct(),
       #         .f = ~(get_acs(geography = "place",
       #                        year = 2019,
@@ -198,31 +200,42 @@ fun_download_acs_data <- function(geo) {
     req(geo == "tract")
     
     # Download tract geographies, filter using places
-    pmap_df(.l = tracts_places_counties() %>%
-              mutate("STATEFP" = str_sub(county_GEOID, 1, 2),
-                     "COUNTYFP" = str_sub(county_GEOID, 3, 5)) %>% 
-              select(STATEFP, COUNTYFP) %>% 
-              distinct(),
-            .f = ~(tigris::tracts(state = ..1,  
-                                  county = ..2,
-                                  cb = TRUE, 
-                                  class = "sf") %>% 
-                     select(GEOID) %>% 
-                     filter(GEOID %in% tracts_places_counties()$tract_GEOID)))
+    # Temp files
+    temp <- tempfile()
+    tempd <- tempdir()
     
-    # Static check
-    # pmap_df(.l = tracts_places_counties %>%
-    #           mutate("STATEFP" = str_sub(county_GEOID, 1, 2),
-    #                  "COUNTYFP" = str_sub(county_GEOID, 3, 5)) %>% 
-    #           select(STATEFP, COUNTYFP) %>%
-    #           distinct() %>%
-    #           head(2),
-    #         .f = ~(tigris::tracts(state = ..1,
-    #                               county = ..2,
-    #                               cb = TRUE,
-    #                               class = "sf") %>%
-    #                  # select(GEOID) %>% 
-    #                  filter(GEOID %in% tracts_places_counties$tract_GEOID)))
+    # Download and unzip shapefile
+    download.file("https://github.com/sean-connelly/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip",
+                  destfile = temp,
+                  mode = "wb")
+    unzip(temp, exdir = tempd)
+    
+    # Filter
+    st_read(paste0(tempd, "/geo_tract/geo_tract.shp")) %>% 
+      select("GEOID" = t_GEOID, 
+             "NAME" = tr_NAME) %>% 
+      filter(GEOID %in% tracts_places_counties()$tract_GEOID)
+    
+    # # Static check
+    # # Temp files
+    # temp <- tempfile()
+    # tempd <- tempdir()
+    # 
+    # # Download and unzip shapefile
+    # download.file("https://github.com/sean-connelly/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip",
+    #               destfile = temp,
+    #               mode = "wb")
+    # unzip(temp, exdir = tempd)
+    # 
+    # # Filter
+    # st_read(paste0(tempd, "/geo_tract/geo_tract.shp")) %>%
+    # select("tract_GEOID" = t_GEOID, 
+    #        "tract_NAME" = tr_NAME) %>% 
+    #   filter(GEOID %in% tracts_places_counties$tract_GEOID)
+    # 
+    # # Remove temp files
+    # unlink(temp)
+    # unlink(tempd)
     
   })
   

@@ -402,7 +402,8 @@ The US Census Bureau defines a "Place" as a concentration of population. This in
 ```{r cities-acs-places-input, warning=FALSE, message=FALSE}
 
 # Pull Census places dictionary from GitHub repo
-cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt")
+cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt") %>% 
+  filter(!is.na(POP))
 
 # Text for either/or option below
 HTML("<p>")
@@ -430,11 +431,8 @@ output$download_cities_ref_file <- downloadHandler(
   },
   content = function(file) {
     write.csv(cities_acs_places_ref %>%
-                separate(metro_state,
-                         sep = ", ", 
-                         into = c("clean_city", "clean_state")) %>% 
                 select("census_GEOID" = GEOID, "census_NAME" = NAME,
-                       clean_city, clean_state,
+                       metro_state,
                        "population" = POP, "density" = DENSITY), 
               file, row.names = FALSE)
   }
@@ -507,7 +505,7 @@ DT::renderDataTable({
   DT::datatable(cities_acs_places_selected() %>%
                   arrange(desc(POP)) %>%  
                   select(GEOID, 
-                         "City" = shiny_input_label,
+                         "City" = metro_state,
                          "Pop." = POP),
                 rownames = FALSE,
                 options = list(dom = "ft",
@@ -762,11 +760,11 @@ You can review your selected state and county pairings in the table below:
 DT::renderDataTable({ 
   
   DT::datatable(tracts_places_counties() %>%
+                  select(metro_state, county_NAME) %>% 
+                  distinct() %>% 
                   group_by("City" = metro_state) %>% 
-                  mutate("Counties" = str_c(county_NAME, 
-                                            collapse = ", ")) %>% 
-                  select(City, Counties) %>% 
-                  distinct(),
+                  summarize("Counties" = str_c(county_NAME, 
+                                            collapse = ", ")),
                 rownames = FALSE,
                 options = list(dom = "ft",
                                pageLength = -1,
@@ -874,8 +872,6 @@ observeEvent(input$tracts_upload_button, {
   rm(temp_geo)
   rm(mongo_conn)
 
-  
-  
   # Remove modal
   removeModal()
   
