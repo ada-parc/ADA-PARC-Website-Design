@@ -862,7 +862,7 @@ observeEvent(input$tracts_upload_button, {
                                   database_name = "ADA-PARC")
   
   # Write to database and add spatial index
-  temp_geo <- geojsonsf::sf_geojson(tracts_sf, 
+  temp_geo <- geojsonsf::sf_geojson(acs_tracts_raw()[["geography"]], 
                                     atomise = TRUE) 
   mongo_conn$drop()
   mongo_conn$insert(temp_geo)
