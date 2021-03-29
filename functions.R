@@ -1,6 +1,6 @@
 
 
-# MongoDB connection function ------------------------------------------------
+# MongoDB functions ------------------------------------------------
 
 
 # MongoDB connection using config.yml values
@@ -10,10 +10,81 @@ fun_mongo_connect <- function(host_name, collection_name, database_name){
                    url = sprintf("mongodb+srv://%s:%s@%s/%s",
                                  config::get("user"),
                                  config::get("password"),
-                                 host_name,
+                                 config::get(host_name),
                                  database_name))
   
 }
+
+# MongoDB download table 
+# TODO: Change these for loops into map/apply function calls
+fun_pull_mongo_data <- function(tables, host_name = "host_dev", geo = F) { 
+  
+  if (geo == T) { # Generally this function will be used to pull data from geographic tables
+    for (t in seq_along(tables)) {
+      print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
+      temp_mongo_conn <- fun_mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
+                                           database_name = "ADA-PARC",
+                                           config::get(host_name))
+      
+      assign(paste0("temp_df", t), temp_mongo_conn$find())
+      }
+    df <- reduce(mget(ls(pattern = "temp_df")), 
+                 left_join, by = c("GEOID", "NAME"))
+  } else { # But sometimes it needs to be used to pull dictionaries or other
+    temp_mongo_conn <- fun_mongo_connect(collection_name = tables,
+                                         database_name = "ADA-PARC",
+                                         host_name = host_name)
+    
+    df <- temp_mongo_conn$find()
+    
+    return(df)
+  }
+}
+
+# Plotting functions
+
+render_tile_map <- function(data, selected) {
+  
+  # ### Unnecessary if selected is being passed as a string
+  # # but we may want to pass the variable itself at some point
+  # selected_varname <- deparse(substitute(!!sym(selected))) %>% gsub("^[^\\$]*\\$", "", .) 
+  # ### Parsing the regex
+  # # ^ anchor for beginning of string
+  # # [^\\$]* matches everything excluding "$" char
+  # # \\$ terminates match at "$" char
+  # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
+  # # outputs: "GEOID"
+  
+  # Provide appropriate variable label to national tile map labels
+  if(grepl("pct", selected)) {
+    selected_label <- "%"
+  } else {
+    selected_label <- ""
+  }
+  
+  title <- vars_dict$var_pretty[which(vars_dict$var_readable == selected)][1]
+  
+  data %>%
+    ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
+               fill = !!sym(selected))) + # Selected variable
+    geom_tile() + # Imports x and y values
+    geom_text(aes(label = paste0(!!sym(selected), selected_label)),
+              color = "white") + # Adds percentage to the center of the tile
+    labs(x = "", y = "", title = title) +
+    facet_geo(facets = ~ NAME_ABBRV, grid = "us_state_with_DC_PR_grid2") +
+    theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "none",
+          strip.text.x = element_text(size = 9L)) +
+    scale_fill_continuous(high = "#132B43", low = "#56B1F7") # reverses the default gradient direction so that dark blue is associated with larger values
+}
+
+
 
 
 # census_download.Rmd functions -----------------------------------------------
