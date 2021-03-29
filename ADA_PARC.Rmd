@@ -84,10 +84,10 @@ Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research projec
 
 The ADA-PARC research has four purposes:
 
-  1. **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
-  2. **To identify & examine key environmental factors** contributing to these disparities
-  3. **To benchmark participation disparities and highlight promising practices** at state & city levels
-  4. **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
+1. **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
+2. **To identify & examine key environmental factors** contributing to these disparities
+3. **To benchmark participation disparities and highlight promising practices** at state & city levels
+4. **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
 
 <br>
 
@@ -97,8 +97,8 @@ The ADA-PARC has research teams focused on Community Living, Community Participa
 
 The intent of this effort is to use this information to inform:
 
-  1. ADA Center technical assistance and resource dissemination, and
-  2. Community level stakeholders to increase participation opportunities in their communities.
+1. ADA Center technical assistance and resource dissemination, and
+2. Community level stakeholders to increase participation opportunities in their communities.
 
 <br>
 
@@ -106,25 +106,25 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-  - Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
-  - Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
-  - Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
-  - Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
-  - Region 8 Rocky Mountain ADA Center: Bob Gattis
-  - Region 3 Mid-Atlantic ADA Center: Marian Vessels
-  - Region 10 Great Northwest ADA Center: Kathe Matrone
-  - Region 1 New England ADA Center: Valerie Fletcher
-  - Region 2 Northeast ADA Center: Wendy Strobel Gower
-  - Region 7 Great Plains ADA Center: Julie Brinkhoff
+- Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
+- Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
+- Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
+- Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
+- Region 8 Rocky Mountain ADA Center: Bob Gattis
+- Region 3 Mid-Atlantic ADA Center: Marian Vessels
+- Region 10 Great Northwest ADA Center: Kathe Matrone
+- Region 1 New England ADA Center: Valerie Fletcher
+- Region 2 Northeast ADA Center: Wendy Strobel Gower
+- Region 7 Great Plains ADA Center: Julie Brinkhoff
 
 Other institutions collaborating in the ADA-PARC are:
 
-  - The ADA Knowledge Translation Center
-  - The Center on Disability at the Public Health Institute
-  - TIRR Memorial Hermann
-  - Syracuse University
-  - The University of Illinois at Chicago
-  - The University of Northern Colorado
+- The ADA Knowledge Translation Center
+- The Center on Disability at the Public Health Institute
+- TIRR Memorial Hermann
+- Syracuse University
+- The University of Illinois at Chicago
+- The University of Northern Colorado
 
 <br>
 
@@ -141,33 +141,6 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 National Data {data-navmenu="National" data-icon="fa-user"}
 ======================================================================
 
-```{r, national import}
-
-# ====================
-# Import national data
-# ====================
-
-### Demographics
-tables <- c("S1810")
-national_demographic <- fun_pull_mongo_data(tables, "state")
-rm(tables)
-
-### Community Living
-tables <- c("S2601A", "S2602", "S1810")
-national_living <- fun_pull_mongo_data(tables, "state")
-rm(tables)
-
-### Community Participation
-tables <- c("B18135", "S1811", "S1810")
-national_participation <- fun_pull_mongo_data(tables, "state")
-rm(tables)
-
-### Work/Economic
-tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070")
-national_economic <- fun_pull_mongo_data(tables, "state")
-rm(tables)
-```
-
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
@@ -176,69 +149,43 @@ Sidebar {.sidebar}
 ```{r national input}
 
 # State Lookup
-mongo_conn_input <- fun_mongo_connect(collection_name = "acs_place_S1810",
-                               database_name = "ADA-PARC")
+mongo_conn_input <- fun_mongo_connect(host_name = "host_prod",
+                                      collection_name = "acs_state_S1810",
+                                      database_name = "ADA-PARC")
 
-metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true}')
+national_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true, "state" : true}')
 
 # Define inputs
-selectInput(inputId = "metro_snapshot", 
-            label = "Select a City or Town", 
-            choices = tibble::deframe(metro_snapshot_input %>% select(label, GEOID)))
+selectInput(inputId = "category", 
+            label = "Select a category", 
+            choices = c("demographic", "community participation", "community living", "economic"))
 
-# ===============
-# Pull Census place data
-# ===============
-tables <- c("S1810", "S1811")
-metro_snapshot_place_full <- fun_pull_mongo_data(tables, "place")
+selectInput(inputId = "variable",
+            label = "Select a variable",
+            choices = c()) # TODO: Build out reactivity to category input
+
+# ====================
+# Import national data
+# ====================
+
+# TODO: Make data import reactive to cat/var inputs
+
+### Demographics
+tables <- c("S1810")
+national_demographic <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+
+### Community Living
+tables <- c("S2601A", "S2602", "S1810")
+national_living <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+
+### Community Participation
+tables <- c("B18135", "S1811", "S1810") # TODO: B18135 is not joining with the other tables
+national_participation <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+
+### Work/Economic
+tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070") # TODO: Multiple problem tables in this set as well
+national_economic <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
 rm(tables)
-
-# Place for selected metro
-metro_snapshot_place <- reactive({
-  
-  metro_snapshot_place_full %>% 
-    filter(GEOID == input$metro_snapshot)
-
-})
-  
-# ===============
-# Pull Census tract data for selected metro
-# ===============
-
-# Spatial
-metro_snapshot_tract_sf <- reactive({
-  
-  # Input for odd Census place names
-  temp_metro <-  list(temp_metro = input$metro_snapshot)
-
-  # Connect and pull
-  temp_mongo_conn <- mongo_connect(collection_name = "geo_tract",
-                                   database_name = "ADA-PARC")
-  temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.place_fips" : "%s" }',
-                                                      temp_metro))
-  temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
-  return(temp_sf)
-  
-})
-
-# Tabular
-metro_snapshot_tract <- reactive ({
-  
-  # Connect and pull
-  temp_mongo_conn <- mongo_connect(collection_name = "acs_tract_S1810",
-                                   database_name = "ADA-PARC")
-  temp <- temp_mongo_conn$find(
-    query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
-                    str_c(metro_snapshot_tract_sf()$GEOID, collapse = '", "')))
-  return(temp)
-  
-  })
-  
-# Variable Lookup
-mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
-                               database_name = "ADA-PARC")
-metro_snapshot_lu <-mongo_conn_lu$find()
-
 ```
 
 Row {data-height=500}
@@ -248,7 +195,8 @@ Row {data-height=500}
 
 ```{r, demographics general map}
 
-# Data for this section
+# Selected data
+# TODO: Dynamic based on inputs in sidebar
 demo_gen_data <- national_demographic %>% 
   filter(is.na(city)) %>% 
   select("state_name" = state, "state_abbv" = abbrev, 
@@ -256,10 +204,7 @@ demo_gen_data <- national_demographic %>%
   mutate(percent_of_total_population_with_a_disability =
            round(percent_of_total_population_with_a_disability, 1))
 
-# # SF data and palette
-# demo_gen_map_data <- map_data(demo_gen_data)
-
-demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
+demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" }) # TODO: Reactive to new inputs in sidebar
 
 renderPlot({
   render_tile_map(demo_gen_data, demo_gen_selected())
@@ -300,15 +245,16 @@ renderPlot({
 # })
 # 
 # Fetch data for the clicked state
+# TODO: Make this possible (plotly?)
 demo_gen_data_selected <- reactive({
-
+  
   if(is.null(input$demo1map_shape_click)){
     demo_gen_data
   } else {
     demo_gen_data %>%
       filter(state_name == click_demo1map())
   }
-
+  
 })
 # 
 # leafletOutput("demo1map")  
@@ -320,17 +266,7 @@ demo_gen_data_selected <- reactive({
 
 # Data table
 DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    demo_gen_data_selected() %>% 
-      rename("percent_pwd" = percent_of_total_population_with_a_disability,
-             "total_pop" = total_population) %>% 
-      mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
-             pwd = comma(pwd),
-             total_pop = comma(total_pop)),
-  options(scrollX = "200px"))
-  
+  # TODO
 })
 
 ```
@@ -372,7 +308,7 @@ Sidebar {.sidebar}
 
 # City Lookup
 mongo_conn_input <- mongo_connect(collection_name = "acs_place_S1810",
-                               database_name = "ADA-PARC")
+                                  database_name = "ADA-PARC")
 metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true}') %>% 
   mutate(label = case_when(
     NAME == "Augusta-Richmond County consolidated government (balance), Georgia" ~
@@ -415,9 +351,9 @@ metro_snapshot_place <- reactive({
   
   metro_snapshot_place_full %>% 
     filter(GEOID == input$metro_snapshot)
-
-})
   
+})
+
 # ===============
 # Pull Census tract data for selected metro
 # ===============
@@ -427,7 +363,7 @@ metro_snapshot_tract_sf <- reactive({
   
   # Input for odd Census place names
   temp_metro <-  list(temp_metro = input$metro_snapshot)
-
+  
   # Connect and pull
   temp_mongo_conn <- mongo_connect(collection_name = "geo_tract",
                                    database_name = "ADA-PARC")
@@ -449,8 +385,8 @@ metro_snapshot_tract <- reactive ({
                     str_c(metro_snapshot_tract_sf()$GEOID, collapse = '", "')))
   return(temp)
   
-  })
-  
+})
+
 # Variable Lookup
 mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
                                database_name = "ADA-PARC")
@@ -476,7 +412,7 @@ renderUI({
   metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
     
     "Demographics text/table/etc"
-
+    
   } else if (input$active_tab == 1) {
     
     "Community Participation text/table/etc"
@@ -500,12 +436,12 @@ renderUI({
 
 # Palette
 pal_metro_snapshot <- reactive ({
-
-    colorQuantile(palette = input$access_map_palette,
-                  domain = pull(metro_snapshot_tract(), estimate_S1810_C02_001),
-                  n = 4)
-
-  })
+  
+  colorQuantile(palette = input$access_map_palette,
+                domain = pull(metro_snapshot_tract(), estimate_S1810_C02_001),
+                n = 4)
+  
+})
 
 # Tract map
 output$snapshotmap <- renderLeaflet({
@@ -532,7 +468,7 @@ output$snapshotmap <- renderLeaflet({
     addLayersControl(position = "bottomright",
                      baseGroups = c("Esri", "CartoDB"),
                      options = layersControlOptions(collapsed = FALSE))
-
+  
 })
 
 # Click event for the map
@@ -542,7 +478,7 @@ click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
   y <- x$id
   
   return(y)
-
+  
 })
 
 # Add the clicked state to the map, and remove when a new one is clicked
@@ -613,7 +549,7 @@ output$metro_snapshot_cp_plot <- renderPlotly({
   
   gg <- ggplot(mtcars, aes(x = mpg)) + 
     geom_histogram(binwidth = 5)
-
+  
   plotly::ggplotly(gg)
   
 })
@@ -701,19 +637,19 @@ metro_snapshot_table_data <- reactive ({
               by = "variable") %>%
     mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
     mutate(label = case_when(variable == "S1810_C02_001" ~
-                                 "Overall; People with Disabilities",
-                               TRUE ~ label)) %>% 
+                               "Overall; People with Disabilities",
+                             TRUE ~ label)) %>% 
     separate(label, into = c("category", "label"), 
              sep = "; ", extra = "merge") %>%
     mutate(category = str_to_title(category)) %>% 
     select(GEOID, NAME, category, variable, label,
            estimate, moe, pct)
-
+  
 })
 
 # Table
 renderUI({ HTML(
-
+  
   kbl(x = metro_snapshot_table_data() %>%
         mutate(output_est = paste0(comma(estimate, digits = 0), " (", pct, "%)"),
                output_moe = "(±", comma(moe), ")") %>% 
@@ -728,9 +664,9 @@ renderUI({ HTML(
     kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                   full_width = TRUE) %>% 
     scroll_box(width = "600px", height = "310px")
-
-) })
   
+) })
+
 ```
 
 Comparison {data-navmenu="By Metro"}
@@ -758,7 +694,7 @@ selectizeInput(inputId = "compare",
                  maxItems = 3,
                  placeholder = "select up to 3 cities"
                )
-               )
+)
 
 
 ### I want to model something similar to the AARP website
@@ -778,7 +714,7 @@ Row
 
 DT::renderDataTable({
   
-if(is.null(input$compare)){
+  if(is.null(input$compare)){
     DT::datatable(
       metro_demo_data %>% 
         rename("City" = metro_state),
@@ -792,11 +728,11 @@ if(is.null(input$compare)){
         pivot_longer(
           cols = -"City",
           names_to = "Variable"
-          ) %>%
+        ) %>%
         pivot_wider(
           id_cols = Variable,
           names_from = City
-          ) %>%
+        ) %>%
         select(" " = Variable, everything()),
       options (pageLength = 50)
     )
@@ -880,11 +816,11 @@ Row
 ```{r metro overview chart}
 
 output$metro_explore_plot <- renderPlotly({
-
+  
   # Require input action and non-null variable before plotting chart
   req(input$metro_explore_select)
   req(!is.null(input$var_explore_select))
-
+  
   # Plot
   plotly::ggplotly(
     metro_demo_data %>%
@@ -903,7 +839,7 @@ output$metro_explore_plot <- renderPlotly({
       ggplot_theme_selected() +
       theme(legend.position = "top")
   )
-
+  
 })
 
 plotlyOutput("metro_explore_plot")
@@ -930,7 +866,7 @@ Sidebar {.sidebar}
 radioButtons(inputId = "data_download_national",
              label = "Select an Area of Interest",
              choices = c("Demographics", "Community Living", 
-                             "Community Participation", "Work/Economic"),
+                         "Community Participation", "Work/Economic"),
              selected = "Demographics")
 
 # Restrict statistic breakdown based on type
@@ -1052,7 +988,7 @@ community_living_lu <- names(community_living) %>%
 radioButtons(inputId = "fact_sheet_national",
              label = "Select an Area of Interest",
              choices = c("Demographics", "Community Living", 
-                             "Community Participation", "Work/Economic"))
+                         "Community Participation", "Work/Economic"))
 
 # Restrict statistic breakdown based on type
 fact_sheet_national_selected <- reactive({
@@ -1061,8 +997,8 @@ fact_sheet_national_selected <- reactive({
     demographics_lu
   } else if (input$fact_sheet_national == "Community Living"){
     community_living_lu
-  # } else if (input$fact_sheet_national == "Community Living"){
-  #   community_participation_lu
+    # } else if (input$fact_sheet_national == "Community Living"){
+    #   community_participation_lu
   } else {
     NA
   }
@@ -1085,8 +1021,8 @@ stat_base <- reactive({
     demographics
   } else if (input$fact_sheet_national == "Community Living"){
     community_living
-  # } else if (input$fact_sheet_national == "Community Participation"){
-  #   community_participation
+    # } else if (input$fact_sheet_national == "Community Participation"){
+    #   community_participation
   } else {
     NA
   }
@@ -1101,7 +1037,7 @@ stat_subset <- reactive({
            all_of(fact_sheet_national_selected() %>% 
                     filter(filter_label == input$fact_sheet_stat) %>% 
                     pull(column_names)))
-    
+  
 })
 
 
@@ -1154,7 +1090,7 @@ ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_th
 <!-- Custom Javascript  -->
 <script>
 $("body").on("shown.bs.tab", "a[data-toggle='tab']", function(e) {
-   Shiny.setInputValue("active_tab", $(e.target).parent().index());
+Shiny.setInputValue("active_tab", $(e.target).parent().index());
 })
 </script>
 
@@ -1169,7 +1105,7 @@ $("body").on("shown.bs.tab", "a[data-toggle='tab']", function(e) {
 
 /* Headers */
 h2,h3,h4,h5 { 
-  font-weight: bold;
+font-weight: bold;
 }
 
 /* #################### */
@@ -1178,37 +1114,37 @@ h2,h3,h4,h5 {
 
 /* Leaflet border */
 .leaflet .legend i{
-    border-left:1px solid #000000;
-    border-right:1px solid #000000;
-    border-top:1px solid #000000;
-    border-bottom:1px solid #000000;
+border-left:1px solid #000000;
+border-right:1px solid #000000;
+border-top:1px solid #000000;
+border-bottom:1px solid #000000;
 }
 
 /* Leaflet background */
 .leaflet-container {
-  background: #696969;
+background: #696969;
 }
 
 /* Section dividers */
 .section-divider { 
-  background-color: #CCCCCC;
-  color: #000000;
+background-color: #CCCCCC;
+color: #000000;
 }
 
 /* Colors for map palette dropdown */
 #access_map_palette ~ .selectize-control .option[data-value=YlOrBr]{ 
-  background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
-  background-size: auto !important;
+background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
+background-size: auto !important;
 }
 
 #access_map_palette ~ .selectize-control .option[data-value=YlOrRd]{ 
-  background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
-  background-size: auto !important;
+background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
+background-size: auto !important;
 }
 
 #access_map_palette ~ .selectize-control .option[data-value=GnBu]{ 
-  background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
-  background-size: auto !important;
+background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
+background-size: auto !important;
 }
 
 
@@ -1224,24 +1160,24 @@ padding: 10px;
 
 /* Allow dropdowns to be visible for short containers */
 #access_ggplot_theme+ div>.selectize-dropdown, #access_map_palette+ div>.selectize-dropdown {
-  position: static;
+position: static;
 }
 
 /* Have dropdowns display on top of Leaflet */
 .selectize-dropdown {
-  z-index: 10000;
-  overflow-y: auto;
+z-index: 10000;
+overflow-y: auto;
 }
 
 /* Scroll overflow for tables */
 .table-wrapper {
-  overflow-x: scroll;
+overflow-x: scroll;
 }
 
 /* Scroll overflow for Download */
 .download-DT {
-  overflow-x: scroll;
-  overflow-y: scroll;
+overflow-x: scroll;
+overflow-y: scroll;
 }
 
 </style>
