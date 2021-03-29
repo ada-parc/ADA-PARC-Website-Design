@@ -30,14 +30,13 @@ library(here)
 # devtools::install_github("UrbanInstitute/urbnmapr")
 
 # Load API keys and database connection information
-source("secret.R", local = TRUE)
 source("functions.R", local = T)
 
 ### --------------------
 ### Variable Dictionary
 ###
 
-vars_dict <-  read_csv(here("dictionaries", "dict_vars.csv")) # TODO: Change fun_pull_mongo_data() so it can pull vars_dict from db
+dict_vars <-  fun_pull_mongo_data(tables = "vars_dict", host_name = "host_prod")
 ```
 
 

@@ -17,14 +17,14 @@ fun_mongo_connect <- function(host_name, collection_name, database_name){
 
 # MongoDB download table 
 # TODO: Change these for loops into map/apply function calls
-fun_pull_mongo_data <- function(tables, host_name = "host_dev", geo = F) { 
+fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) { 
   
-  if (geo == T) { # Generally this function will be used to pull data from geographic tables
+  if (geo != F) { # Generally this function will be used to pull data from geographic tables
     for (t in seq_along(tables)) {
       print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
       temp_mongo_conn <- fun_mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
                                            database_name = "ADA-PARC",
-                                           config::get(host_name))
+                                           host_name = host_name)
       
       assign(paste0("temp_df", t), temp_mongo_conn$find())
       }
