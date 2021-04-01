@@ -14,7 +14,7 @@ runtime: shiny
 ```{r setup, include=FALSE}
 
 # Libraries
-library(tidyverse);library(readxl)
+library(tidyverse);library(readxl);library(openxlsx)
 library(tigris);library(sf);library(janitor)
 library(tidycensus);library(viridis);library(tmap)
 library(RPostgres);library(RPostgreSQL);library(DBI)
@@ -262,6 +262,23 @@ observeEvent(input$states_upload_button, {
   removeModal()
   
 })
+
+# States export button
+downloadButtonRmd(outputId = "states_export_button",
+                  label = "Click here to export state data to Excel:")
+
+output$states_export_button <- downloadHandler(
+  
+  filename = function() {
+    return("states_export_file.xlsx")
+  },
+  content = function(file) {
+    openxlsx::write.xlsx(list("data" = acs_states_raw(),
+                              "lookup" = states_acs_vars_selected() %>% 
+                                select(-shiny_input_label)),
+                         file)
+  }
+)
 
 ```
 
@@ -603,6 +620,23 @@ observeEvent(input$cities_upload_button, {
   
 })
 
+# Cities export button
+downloadButtonRmd(outputId = "cities_export_button",
+                  label = "Click here to export city/place data to Excel:")
+
+output$cities_export_button <- downloadHandler(
+  
+  filename = function() {
+    return("cities_export_file.xlsx")
+  },
+  content = function(file) {
+    openxlsx::write.xlsx(list("data" = acs_cities_raw(),
+                              "lookup" = cities_acs_vars_selected() %>% 
+                                select(-shiny_input_label)),
+                         file)
+  }
+)
+
 ```
 
 ### **Tracts**
@@ -831,7 +865,7 @@ DT::renderDataTable({
 renderUI({
   
   actionButton(inputId = "tracts_upload_button",
-               label = "Click here to upload city/place data to MongoDB:")
+               label = "Click here to upload tract data to MongoDB:")
   
 })
 
@@ -847,7 +881,7 @@ observe({
 observeEvent(input$tracts_upload_button, {
   
   # Open modal to inform user
-  showModal(modalDialog("Writing place/city ACS data to MongoDB...",
+  showModal(modalDialog("Writing tract ACS data to MongoDB...",
                         footer = NULL))
   
   # Run function
@@ -876,5 +910,46 @@ observeEvent(input$tracts_upload_button, {
   removeModal()
   
 })
+
+# tracts export button
+downloadButtonRmd(outputId = "tracts_export_button",
+                  label = "Click here to export tract data to a ZIP file:")
+
+output$tracts_export_button <- downloadHandler(
+  
+  filename = function() {
+    return("tracts_export_files.zip")
+  },
+  content = function(file) {
+    
+    # Files
+    tmpdir <- tempdir()
+    setwd(tempdir())
+    files = c("tracts_export_data.xlsx",
+              "tracts_export_geography.shp")
+    
+    # Excel worksheet
+    openxlsx::write.xlsx(list("data" = acs_tracts_raw()[["data"]],
+                              "lookup" = tracts_acs_vars_selected() %>% 
+                                select(-shiny_input_label)),
+                         "tracts_export_data.xlsx")
+    
+    # Shapefile
+    sf::st_write(acs_tracts_raw()[["geography"]],
+                 "tracts_export_geography.shp",
+                 delete_dsn = TRUE)
+    
+    # ZIP
+    zip("tracts_export_files.zip", files)
+    # system2("zip", 
+    #         args = paste("tracts_export_files.zip",
+    #                      files,
+    #                      sep = " "))
+    if(file.exists(paste0(file, ".zip"))) {
+      file.rename(paste0(file, ".zip"), file)}
+    
+  },
+  contentType = "application/zip"
+)
 
 ```
