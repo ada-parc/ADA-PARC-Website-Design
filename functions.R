@@ -276,7 +276,7 @@ fun_download_acs_data <- function(geo) {
     tempd <- tempdir()
     
     # Download and unzip shapefile
-    download.file("https://github.com/sean-connelly/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip",
+    download.file("https://github.com/sean-connelly/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip", # TODO: Host this on MongoDb instead of github
                   destfile = temp,
                   mode = "wb")
     unzip(temp, exdir = tempd)
@@ -343,7 +343,7 @@ fun_write_by_geo_table <- function(df, host_name, geo) {
   
   # Group by table name
   df <- df %>% 
-    mutate("table_name" = gsub( "_.*$", "", variable)) %>% 
+    mutate("table_name" = str_extract(variable, "^[^_]*")) %>%
     group_by(table_name) %>% 
     drop_na(estimate) %>% 
     distinct()

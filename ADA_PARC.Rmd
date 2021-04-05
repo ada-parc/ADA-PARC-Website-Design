@@ -16,7 +16,7 @@ output:
 
 # Packages
 library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor) 
-library(sf); library(urbnmapr); library(geofacet); library(leaflet); library(leaflet.extras);
+library(sf); library(geofacet); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard)
 library(colourpicker); library(DT); library(gghighlight)
 library(knitr); library(kableExtra)
