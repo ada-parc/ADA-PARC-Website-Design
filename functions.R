@@ -10,7 +10,7 @@ fun_mongo_connect <- function(host_name, collection_name, database_name){
                    url = sprintf("mongodb+srv://%s:%s@%s/%s",
                                  config::get("user"),
                                  config::get("password"),
-                                 config::get(host_name),
+                                 host_name,
                                  database_name))
   
 }
@@ -339,7 +339,7 @@ fun_write_by_geo_table <- function(df, host_name, geo) {
   
   
   ## ----- Prep data for MongoDB insertion ----- 
-  
+
   
   # Group by table name
   df <- df %>% 
@@ -366,7 +366,7 @@ fun_write_by_geo_table <- function(df, host_name, geo) {
   
   
   ## ----- Write to MongoDB , loop over table names -----
-  
+
   
   # Iterate over list of dataframes
   map2(.x = df_list,
