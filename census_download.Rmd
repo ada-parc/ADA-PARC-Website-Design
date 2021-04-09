@@ -1,5 +1,5 @@
 ---
-title: "ADA-PARC Census Database Builder Tool"
+title: "ADA-PARC American Community Survey Download Tool"
 output:
   html_document:
     toc: TRUE

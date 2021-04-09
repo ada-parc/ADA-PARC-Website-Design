@@ -1,4 +1,4 @@
-acs_variable,label,concept,table_name
-S0101_C01_006,Estimate; Total; Total population; AGE; 20 to 24 years,AGE AND SEX,S0101
-S0101_C01_007,Estimate; Total; Total population; AGE; 25 to 29 years,AGE AND SEX,S0101
-S0101_C01_008,Estimate; Total; Total population; AGE; 30 to 34 years,AGE AND SEX,S0101
+acs_variable
+S1810_C01_001
+S1810_C01_002
+S1810_C01_003
