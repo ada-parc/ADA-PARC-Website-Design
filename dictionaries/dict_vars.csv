@@ -1,51 +1,51 @@
 var_readable,var_group,var_pretty,var_database,var_desc,national_dropdown_label,mapping_variable
-pop_total,Total Population,,S1810_C01_001,demographic,,
-pwd_total,Total Persons with Disabilities,,S1810_C02_001,demographic,,
-pwd_pct,Percent Persons with Disabilities,,,demographic,,
+pop_total,Total Population,Total Population,S1810_C01_001,demographic,Percentage of Total Population with Disabilities,FALSE
+pwd_total,Total Persons with Disabilities,Total Persons with Disabilities,S1810_C02_001,demographic,Percentage of Total Population with Disabilities,FALSE
+pwd_pct,Percent Persons with Disabilities,Percent Persons with Disabilities,,demographic,Percentage of Total Population with Disabilities,TRUE
 pop_18_64,Total Population Aged 18 - 64,Total Population Aged 18 - 34,S1810_C01_015,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
 pop_18_64,Total Population Aged 18 - 64,Total Population Aged 35 - 64,S1810_C01_016,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
 pwd_18_64,Total Persons with Disabilities Aged 18 - 64,Total Persons with Disabilities Aged 18 - 34,S1810_C02_015,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
 pwd_18_64,Total Persons with Disabilities Aged 18 - 64,Total Persons with Disabilities Aged 35 - 64,S1810_C02_016,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
 pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,Percent Persons with Disabilities Aged 18 - 64,,demographic,"Percentage of People with a Disability, Age 18 to 64",TRUE
-pop_grtoeq_65,Total Population Aged 65 or Older,,S1810_C01_017,demographic,,
-pop_grtoeq_65,Total Population Aged 65 or Older,,S1810_C01_018,demographic,,
-pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,,S1810_C02_017,demographic,,
-pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,,S1810_C02_018,demographic,,
-pwd_grtoeq_65_pct,Percent Persons with Disabilities Aged 65 or Older,,,demographic,,
-pwd_white,"Total Persons with Disabilities, White",,S1810_C02_004,demographic,,
-pwd_black,"Total Persons with Disabilities, Black",,S1810_C02_005,demographic,,
-pwd_hisp,"Total Persons with Disabilities, Hispanic",,S1810_C02_012,demographic,,
-pwd_white_nonhisp,"Total Persons with Disabilities, Not Hispanic, White Alone",,S1810_C02_011,demographic,,
-pwd_other,"Total Persons with Disabilities, Other Race",,S1810_C01_006,demographic,,
-pwd_other,"Total Persons with Disabilities, Other Race",,S1810_C01_007,demographic,,
-pwd_other,"Total Persons with Disabilities, Other Race",,S1810_C01_008,demographic,,
-pwd_other,"Total Persons with Disabilities, Other Race",,S1810_C01_009,demographic,,
-pwd_other,"Total Persons with Disabilities, Other Race",,S1810_C01_010,demographic,,
-pwd_white_pct,"Percent Persons with Disabilities, White",,,demographic,,
-pwd_black_pct,"Percent Persons with Disabilities, Black",,,demographic,,
-pwd_hisp_pct,"Percent Persons with Disabilities, Hispanic",,,demographic,,
-pwd_white_nonhisp_pct,"Percent Persons with Disabilities, Nonhispanic",,,demographic,,
-pwd_other_pct,"Percent Persons with Disabilities, Other Race",,,demographic,,
-pop_female,"Total Population, Female",,S1810_C01_003,demographic,,
-pwd_female,"Total Persons with Disabilities, Female",,S1810_C02_003,demographic,,
-female_pwd_pct,"Percent Persons with Disabilities, Female",,,demographic,,
-pwd_female_pct,Percent of Total Female Population with Disabilities,,,demographic,,
-pop_male,"Total Population, Male",,S1810_C01_002,demographic,,
-pwd_male,"Total Persons with Disabilities, Male",,S1810_C02_002,demographic,,
-male_pwd_pct,"Percent Persons with Disabilities, Male",,,demographic,,
-pwd_male_pct,Percent of Total Male Population with Disabilities,,,demographic,,
-pwd_hearing,Total Persons with Disabilities with Hearing Difficulty,,S1810_C02_019,demographic,,
-pwd_hearing_pct,Percent Persons with Disabilities with Hearing Difficulty,,,demographic,,
-pwd_vision,Total Persons with Disabilities with Vision Difficulty,,S1810_C02_029,demographic,,
-pwd_vision_pct,Percent Persons with Disabilities with Vision Difficulty,,,demographic,,
-pwd_cognitive,Total Persons with Disabilities with Cognitive Difficulty,,S1810_C02_039,demographic,,
-pwd_cognitive_pct,Percent Persons with Disabilities with Cognitive Difficulty,,,demographic,,
-pwd_ambulatory,Total Persons with Disabilities with Ambulatory Difficulty,,S1810_C02_047,demographic,,
-pwd_ambulatory_pct,Percent Persons with Disabilities with Ambulatory Difficulty,,,demographic,,
-pwd_selfcare,Total Persons with Disabilities with Self-Care Difficulty,,S1810_C02_055,demographic,,
-pwd_selfcare_pct,Percent Persons with Disabilities with Self-Care Difficulty,,,demographic,,
-pwd_indliving,Total Persons with Disabilities with Independent Living Difficulty,,S1810_C02_063,demographic,,
-pwd_indliving_pct,Percent Persons with Disabilities with Independent Living Difficulty,,,demographic,,
+pop_grtoeq_65,Total Population Aged 65 or Older,Total Population Aged 65 - 74,S1810_C01_017,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
+pop_grtoeq_65,Total Population Aged 65 or Older,Total Population Aged 75 or Older,S1810_C01_018,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
+pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,Total Persons with Disabilities Aged 65 - 74,S1810_C02_017,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
+pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,Total Persons with Disabilities Aged 75 or Older,S1810_C02_018,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
+pwd_grtoeq_65_pct,Percent Persons with Disabilities Aged 65 or Older,Percent Persons with Disabilities Aged 65 or Older,,demographic,Percent Persons with Disabilities Aged 65 and Older,TRUE
+pwd_white,"Total Persons with Disabilities, White","Total Persons with Disabilities, White",S1810_C02_004,demographic,Percentage of People with a Disability who are White,FALSE
+pwd_black,"Total Persons with Disabilities, Black","Total Persons with Disabilities, Black",S1810_C02_005,demographic,Percentage of People with a Disability who are Black,FALSE
+pwd_hisp,"Total Persons with Disabilities, Hispanic","Total Persons with Disabilities, Hispanic",S1810_C02_012,demographic,Percentage of People with a Disability who are Hispanic,FALSE
+pwd_white_nonhisp,"Total Persons with Disabilities, Not Hispanic, White Alone","Total Persons with Disabilities, Not Hispanic, White Alone",S1810_C02_011,demographic,"Percentage of People with a Disability who are White, Non-Hispanic",FALSE
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, American Indian and Alaskan Native alone",S1810_C02_006,demographic,Percentage of People with a Disability who are of Another Race,FALSE
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Asian alone",S1810_C02_007,demographic,Percentage of People with a Disability who are of Another Race,FALSE
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Native Hawaiian or Other Pacific Islander alone",S1810_C02_008,demographic,Percentage of People with a Disability who are of Another Race,FALSE
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Some other race alone",S1810_C02_009,demographic,Percentage of People with a Disability who are of Another Race,FALSE
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Two or more races",S1810_C02_010,demographic,Percentage of People with a Disability who are of Another Race,FALSE
+pwd_white_pct,"Percent Persons with Disabilities, White","Percent Persons with Disabilities, White",,demographic,Percentage of People with a Disability who are White,TRUE
+pwd_black_pct,"Percent Persons with Disabilities, Black","Percent Persons with Disabilities, Black",,demographic,Percentage of People with a Disability who are Black,TRUE
+pwd_hisp_pct,"Percent Persons with Disabilities, Hispanic","Percent Persons with Disabilities, Hispanic",,demographic,Percentage of People with a Disability who are Hispanic,TRUE
+pwd_white_nonhisp_pct,"Percent Persons with Disabilities, Nonhispanic","Percent Persons with Disabilities, Nonhispanic",,demographic,"Percentage of People with a Disability who are White, Non-Hispanic",TRUE
+pwd_other_pct,"Percent Persons with Disabilities, Other Race","Percent Persons with Disabilities, Other Race",,demographic,Percentage of People with a Disability who are of Another Race,TRUE
+pop_female,"Total Population, Female","Total Population, Female",S1810_C01_003,demographic,,FALSE
+pwd_female,"Total Persons with Disabilities, Female","Total Persons with Disabilities, Female",S1810_C02_003,demographic,,FALSE
+female_pwd_pct,"Percent Persons with Disabilities, Female","Percent Persons with Disabilities, Female",,demographic,,FALSE
+pwd_female_pct,Percent of Total Female Population with Disabilities,Percent of Total Female Population with Disabilities,,demographic,,FALSE
+pop_male,"Total Population, Male","Total Population, Male",S1810_C01_002,demographic,,FALSE
+pwd_male,"Total Persons with Disabilities, Male","Total Persons with Disabilities, Male",S1810_C02_002,demographic,,FALSE
+male_pwd_pct,"Percent Persons with Disabilities, Male","Percent Persons with Disabilities, Male",,demographic,,FALSE
+pwd_male_pct,Percent of Total Male Population with Disabilities,Percent of Total Male Population with Disabilities,,demographic,,FALSE
+pwd_hearing,Total Persons with Disabilities with Hearing Difficulty,Total Persons with Disabilities with Hearing Difficulty,S1810_C02_019,demographic,Percentage of People with a Hearing Disability,FALSE
+pwd_hearing_pct,Percent Persons with Disabilities with Hearing Difficulty,Percent Persons with Disabilities with Hearing Difficulty,,demographic,Percentage of People with a Hearing Disability,TRUE
+pwd_vision,Total Persons with Disabilities with Vision Difficulty,Total Persons with Disabilities with Vision Difficulty,S1810_C02_029,demographic,Percentage of People with a Vision Disability,FALSE
+pwd_vision_pct,Percent Persons with Disabilities with Vision Difficulty,Percent Persons with Disabilities with Vision Difficulty,,demographic,Percentage of People with a Vision Disability,TRUE
+pwd_cognitive,Total Persons with Disabilities with Cognitive Difficulty,Total Persons with Disabilities with Cognitive Difficulty,S1810_C02_039,demographic,Percentage of People with a Cognitive Disability,FALSE
+pwd_cognitive_pct,Percent Persons with Disabilities with Cognitive Difficulty,Percent Persons with Disabilities with Cognitive Difficulty,,demographic,Percentage of People with a Cognitive Disability,TRUE
+pwd_ambulatory,Total Persons with Disabilities with Ambulatory Difficulty,Total Persons with Disabilities with Ambulatory Difficulty,S1810_C02_047,demographic,Percentage of People with an Ambulatory Disability,FALSE
+pwd_ambulatory_pct,Percent Persons with Disabilities with Ambulatory Difficulty,Percent Persons with Disabilities with Ambulatory Difficulty,,demographic,Percentage of People with an Ambulatory Disability,TRUE
+pwd_selfcare,Total Persons with Disabilities with Self-Care Difficulty,Total Persons with Disabilities with Self-Care Difficulty,S1810_C02_055,demographic,Percentage of People with a Self Care Disability,FALSE
+pwd_selfcare_pct,Percent Persons with Disabilities with Self-Care Difficulty,Percent Persons with Disabilities with Self-Care Difficulty,,demographic,Percentage of People with a Self Care Disability,TRUE
+pwd_indliving,Total Persons with Disabilities with Independent Living Difficulty,Total Persons with Disabilities with Independent Living Difficulty,S1810_C02_063,demographic,Percentage of people with an Independent Living Disability,FALSE
+pwd_indliving_pct,Percent Persons with Disabilities with Independent Living Difficulty,Percent Persons with Disabilities with Independent Living Difficulty,,demographic,Percentage of people with an Independent Living Disability,TRUE
 pop_total,Total Population,,S2601A_C01_001,community living,,
 pwd_pct,Percent Persons with Disabilities,,S2601A_C01_047,community living,,
 pwd_total,Total Persons with Disabilities,,,community living,,
