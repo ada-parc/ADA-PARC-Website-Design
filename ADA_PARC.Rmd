@@ -25,10 +25,6 @@ library(extrafont); library(plotly)
 library(mongolite)
 library(here)
 
-# Must install urbnmapr via GitHUb if is not already installed
-# install.packages("devtools")
-# devtools::install_github("UrbanInstitute/urbnmapr")
-
 # Load API keys and database connection information
 source("functions.R", local = T)
 

@@ -164,6 +164,12 @@ fun_download_acs_data <- function(geo) {
   
   message(paste0("Wide = ", as.character(temp_wide)))
   
+  # We want state abbreviations in the data
+  if(geo == "state"){
+    state_id <- tibble(NAME = state.name,
+                       ABBR = state.abb)
+  }
+  
   ## ----- Download ACS data -----
   
   # Grab from API 
@@ -178,7 +184,9 @@ fun_download_acs_data <- function(geo) {
               variables = acs_vars_selected(),
               survey = temp_survey(),
               geometry = temp_geometry,
-              wide = temp_wide)
+              wide = temp_wide) %>%
+        left_join(state_id, by = "NAME") %>%
+        relocate(ABBR, .after = "NAME")
       
       # Static check (state)
       # get_acs(geography = "state",

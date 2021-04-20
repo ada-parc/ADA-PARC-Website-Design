@@ -255,7 +255,7 @@ observeEvent(input$states_upload_button, {
   
   # Run function
   fun_write_by_geo_table(df = acs_states_raw(), 
-                         host_name = config::get("host_dev"),
+                         host_name = "host_dev",
                          geo = "state")
   
   # Remove modal
@@ -612,7 +612,7 @@ observeEvent(input$cities_upload_button, {
   
   # Run function
   fun_write_by_geo_table(df = acs_cities_raw(), 
-                         host_name = config::get("host_dev"),
+                         host_name = "host_dev",
                          geo = "place")
   
   # Remove modal
