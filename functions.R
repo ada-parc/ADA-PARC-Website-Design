@@ -6,12 +6,14 @@
 # MongoDB connection using config.yml values
 fun_mongo_connect <- function(host_name, collection_name, database_name){
   
+  url <- sprintf("mongodb+srv://%s:%s@%s/%s",
+                 config::get("user"),
+                 config::get("password"),
+                 config::get(host_name),
+                 database_name)
+  
   mongolite::mongo(collection = collection_name,
-                   url = sprintf("mongodb+srv://%s:%s@%s/%s",
-                                 config::get("user"),
-                                 config::get("password"),
-                                 host_name,
-                                 database_name))
+                   url = url)
   
 }
 
@@ -26,12 +28,14 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
                                            database_name = "ADA-PARC",
                                            host_name = host_name)
       
+      # Creates one temp_df object per value in tables
       assign(paste0("temp_df", t), temp_mongo_conn$find())
-      }
+    }
+    # joins all of the temp_dfs into one large table
     df <- reduce(mget(ls(pattern = "temp_df")), 
                  left_join, by = c("GEOID", "NAME"))
-  } else { # But sometimes it needs to be used to pull dictionaries or other
-    temp_mongo_conn <- fun_mongo_connect(collection_name = tables,
+  } else { # But sometimes it needs to be used to pull dictionaries or other data
+    temp_mongo_conn <- fun_mongo_connect(collection_name = tables, # tables should be something like "vars_dict" or "variable_lu"
                                          database_name = "ADA-PARC",
                                          host_name = host_name)
     
