@@ -25,14 +25,14 @@ library(extrafont); library(plotly)
 library(mongolite)
 library(here)
 
+# Set this to host_prod or host_dev
+host_name = "host_prod"
+
 # Load API keys and database connection information
 source("functions.R", local = T)
 
-### --------------------
-### Variable Dictionary
-###
-
-dict_vars <-  fun_pull_mongo_data(tables = "vars_dict", host_name = "host_prod")
+# Load variable dictionary for relating tables, variable codes, and readable values
+dict_vars <-  fun_pull_mongo_data(tables = "vars_dict", host_name = host_name)
 ```
 
 
@@ -145,7 +145,7 @@ Sidebar {.sidebar}
 ```{r national input}
 
 # State Lookup
-mongo_conn_input <- fun_mongo_connect(host_name = "host_dev",
+mongo_conn_input <- fun_mongo_connect(host_name = host_name,
                                       collection_name = "acs_state_S1810",
                                       database_name = "ADA-PARC")
 
@@ -175,19 +175,19 @@ selectInput(inputId = "variable",
 
 ### Demographics
 tables <- c("S1810")
-national_demographic <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+national_demographic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Community Living
 tables <- c("S2601A", "S2602", "S1810")
-national_living <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+national_living <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Community Participation
-tables <- c("B18135", "S1811", "S1810") # TODO: B18135 is not joining with the other tables
-national_participation <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+tables <- c("B18135", "S1811", "S1810") 
+national_participation <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Work/Economic
-tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070") # TODO: Multiple problem tables in this set as well
-national_economic <- fun_pull_mongo_data(tables, host_name = "host_dev", "state")
+tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070") 
+national_economic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 rm(tables)
 ```
 
