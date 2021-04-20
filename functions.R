@@ -167,7 +167,10 @@ fun_download_acs_data <- function(geo) {
   # We want state abbreviations in the data
   if(geo == "state"){
     state_id <- tibble(NAME = state.name,
-                       ABBR = state.abb)
+                       ABBR = state.abb) %>%
+      # Add DC and Puerto Rico values to ABBR
+      tibble_row(NAME = c("District of Columbia", "Puerto Rico"),
+                 ABBR = c("DC", "PR"))
   }
   
   ## ----- Download ACS data -----

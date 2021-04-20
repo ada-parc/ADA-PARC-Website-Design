@@ -145,7 +145,7 @@ Sidebar {.sidebar}
 ```{r national input}
 
 # State Lookup
-mongo_conn_input <- fun_mongo_connect(host_name = "host_prod",
+mongo_conn_input <- fun_mongo_connect(host_name = "host_dev",
                                       collection_name = "acs_state_S1810",
                                       database_name = "ADA-PARC")
 
@@ -154,11 +154,18 @@ national_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true
 # Define inputs
 selectInput(inputId = "category", 
             label = "Select a category", 
-            choices = c("demographic", "community participation", "community living", "economic"))
+            choices = c("Demographics" = "national_demographic", # input$category returns the name of the table
+                                                                 # and that is used to pull the list of variables
+                                                                 # using dict_vars
+                        "Community Participation" = "national_participation", 
+                        "Community Living" = "national_living", 
+                        "Work/Economic" = "national_economic"))
 
 selectInput(inputId = "variable",
             label = "Select a variable",
             choices = c()) # TODO: Build out reactivity to category input
+            # Below should pull the list of variables in database code format
+            # choices = get(input$category) %>% names() %>% str_extract(pattern = "[:alnum:]*_[:alnum:]*_[:alnum:]*") %>% unique() %>% na.omit()
 
 # ====================
 # Import national data
