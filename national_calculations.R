@@ -30,7 +30,7 @@ national_demographic <- national_demographic %>%
     pwd_black = S1810_C02_005_estimate,
     pwd_hisp = S1810_C02_012_estimate,
     pwd_white_nonhisp = S1810_C02_011_estimate,
-    pwd_other = S1810_C01_006_estimate + S1810_C01_007_estimate + S1810_C01_008_estimate + S1810_C01_009_estimate + S1810_C01_010_estimate,
+    pwd_other = S1810_C02_006_estimate + S1810_C02_007_estimate + S1810_C02_008_estimate + S1810_C02_009_estimate + S1810_C02_010_estimate,
     pwd_white_pct = pwd_white / pwd_total,
     pwd_black_pct = pwd_black / pwd_total,
     pwd_hisp_pct = pwd_hisp / pwd_total,
@@ -175,7 +175,7 @@ national_economic <- national_economic %>%
     ### ID
     GEOID = GEOID,
     NAME = NAME,
-    ABBR = ABBR,
+    ABBR = ABBR.x, # for some reason, national_economic doesn't properly join ABBR
     
     ### Employment Status
     pop_total = C18120_001_estimate,
