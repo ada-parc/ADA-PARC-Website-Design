@@ -1,3 +1,24 @@
+# ====================
+# Import national data
+# ====================
+
+### Demographics
+tables <- c("S1810")
+national_demographic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
+
+### Community Living
+tables <- c("S2601A", "S2602", "S1810")
+national_living <- fun_pull_mongo_data(tables, host_name = host_name, "state")
+
+### Community Participation
+tables <- c("B18135", "S1811", "S1810") 
+national_participation <- fun_pull_mongo_data(tables, host_name = host_name, "state")
+
+### Work/Economic
+tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070") 
+national_economic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
+rm(tables)
+
 ### ---------------
 ### Clean data
 ###
