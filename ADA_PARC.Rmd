@@ -26,7 +26,7 @@ library(mongolite)
 library(here)
 
 # Set this to host_prod or host_dev
-host_name = "host_prod"
+host_name = "host_dev"
 
 # Load API keys and database connection information
 source("functions.R", local = T)
@@ -154,41 +154,23 @@ national_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true
 # Define inputs
 selectInput(inputId = "category", 
             label = "Select a category", 
-            choices = c("Demographics" = "national_demographic", # input$category returns the name of the table
-                                                                 # and that is used to pull the list of variables
-                                                                 # using dict_vars
+            choices = c("Demographics" = "national_demographic", 
                         "Community Participation" = "national_participation", 
                         "Community Living" = "national_living", 
                         "Work/Economic" = "national_economic"))
 
 selectInput(inputId = "variable",
             label = "Select a variable",
-            choices = c()) # TODO: Build out reactivity to category input
+            choices = NULL) # TODO: Build out reactivity to category input
             # Below should pull the list of variables in database code format
             # choices = get(input$category) %>% names() %>% str_extract(pattern = "[:alnum:]*_[:alnum:]*_[:alnum:]*") %>% unique() %>% na.omit()
 
-# ====================
-# Import national data
-# ====================
-
-# TODO: Make data import reactive to cat/var inputs
-
-### Demographics
-tables <- c("S1810")
-national_demographic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
-
-### Community Living
-tables <- c("S2601A", "S2602", "S1810")
-national_living <- fun_pull_mongo_data(tables, host_name = host_name, "state")
-
-### Community Participation
-tables <- c("B18135", "S1811", "S1810") 
-national_participation <- fun_pull_mongo_data(tables, host_name = host_name, "state")
-
-### Work/Economic
-tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070") 
-national_economic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
-rm(tables)
+### ------------------------
+### National data import and clean
+###
+# This script takes the national_* objects and transforms them
+# into the final datasets for mapping
+source(here("national_import.R"), local = T)
 ```
 
 Row {data-height=500}
@@ -200,14 +182,9 @@ Row {data-height=500}
 
 # Selected data
 # TODO: Dynamic based on inputs in sidebar
-demo_gen_data <- national_demographic %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         percent_of_total_population_with_a_disability, pwd, total_population) %>% 
-  mutate(percent_of_total_population_with_a_disability =
-           round(percent_of_total_population_with_a_disability, 1))
+demo_gen_data <- reactive({input$category})
 
-demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" }) # TODO: Reactive to new inputs in sidebar
+demo_gen_selected <- reactive({ "pwd_total" }) # TODO: Reactive to new inputs in sidebar
 
 renderPlot({
   render_tile_map(demo_gen_data, demo_gen_selected())
@@ -310,8 +287,10 @@ Sidebar {.sidebar}
 ```{r metro snapshot input}
 
 # City Lookup
-mongo_conn_input <- mongo_connect(collection_name = "acs_place_S1810",
-                                  database_name = "ADA-PARC")
+mongo_conn_input <- fun_mongo_connect(host_name, 
+                                      collection_name = "acs_place_S1810",
+                                      database_name = "ADA-PARC")
+
 metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true}') %>% 
   mutate(label = case_when(
     NAME == "Augusta-Richmond County consolidated government (balance), Georgia" ~
@@ -368,8 +347,9 @@ metro_snapshot_tract_sf <- reactive({
   temp_metro <-  list(temp_metro = input$metro_snapshot)
   
   # Connect and pull
-  temp_mongo_conn <- mongo_connect(collection_name = "geo_tract",
-                                   database_name = "ADA-PARC")
+  temp_mongo_conn <- fun_mongo_connect(host_name,
+                                       collection_name = "geo_tract",
+                                       database_name = "ADA-PARC")
   temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.place_fips" : "%s" }',
                                                       temp_metro))
   temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
@@ -381,8 +361,9 @@ metro_snapshot_tract_sf <- reactive({
 metro_snapshot_tract <- reactive ({
   
   # Connect and pull
-  temp_mongo_conn <- mongo_connect(collection_name = "acs_tract_S1810",
-                                   database_name = "ADA-PARC")
+  temp_mongo_conn <- fun_mongo_connect(host_name,
+                                       collection_name = "acs_tract_S1810",
+                                       database_name = "ADA-PARC")
   temp <- temp_mongo_conn$find(
     query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
                     str_c(metro_snapshot_tract_sf()$GEOID, collapse = '", "')))
@@ -391,8 +372,9 @@ metro_snapshot_tract <- reactive ({
 })
 
 # Variable Lookup
-mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
-                               database_name = "ADA-PARC")
+mongo_conn_lu <- fun_mongo_connect(host_name,
+                                   collection_name = "acs_variable_lu",
+                                   database_name = "ADA-PARC")
 metro_snapshot_lu <-mongo_conn_lu$find()
 
 ```
