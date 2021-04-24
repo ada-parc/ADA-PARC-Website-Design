@@ -66,7 +66,7 @@ render_tile_map <- function(data, selected) {
     selected_label <- ""
   }
   
-  title <- vars_dict$var_pretty[which(vars_dict$var_readable == selected)][1]
+  title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
   
   data %>%
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
@@ -75,7 +75,7 @@ render_tile_map <- function(data, selected) {
     geom_text(aes(label = paste0(!!sym(selected), selected_label)),
               color = "white") + # Adds percentage to the center of the tile
     labs(x = "", y = "", title = title) +
-    facet_geo(facets = ~ NAME_ABBRV, grid = "us_state_with_DC_PR_grid2") +
+    facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
     theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
           panel.grid = element_blank(),
           panel.grid.major = element_blank(),
