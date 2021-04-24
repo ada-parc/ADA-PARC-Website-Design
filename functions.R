@@ -169,8 +169,10 @@ fun_download_acs_data <- function(geo) {
     state_id <- tibble(NAME = state.name,
                        ABBR = state.abb) %>%
       # Add DC and Puerto Rico values to ABBR
-      tibble_row(NAME = c("District of Columbia", "Puerto Rico"),
-                 ABBR = c("DC", "PR"))
+      bind_rows(
+        tibble(NAME = c("District of Columbia", "Puerto Rico"),
+                       ABBR = c("DC", "PR"))
+        )
   }
   
   ## ----- Download ACS data -----

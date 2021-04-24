@@ -27,6 +27,8 @@ options(stringsAsFactors = FALSE, scipen = 999,
         dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
 knitr::opts_chunk$set(echo = FALSE)
 
+host_name <- "host_dev" # or "host_dev"
+
 # Load API keys and database connection information
 source("functions.R", local = TRUE)
 
@@ -126,8 +128,7 @@ states_acs_vars_selected <- reactive({
     
     # Filter reference variables
     states_acs_vars_ref() %>%
-      filter(table_name %in% input$states_acs_tables) %>%
-      filter(!str_detect(label, pattern = "DISABILITY TYPE BY DETAILED AGE")) # Removes detailed age data
+      filter(table_name %in% input$states_acs_tables)
     
   }
   
@@ -255,7 +256,7 @@ observeEvent(input$states_upload_button, {
   
   # Run function
   fun_write_by_geo_table(df = acs_states_raw(), 
-                         host_name = "host_dev",
+                         host_name = host_name,
                          geo = "state")
   
   # Remove modal
@@ -612,7 +613,7 @@ observeEvent(input$cities_upload_button, {
   
   # Run function
   fun_write_by_geo_table(df = acs_cities_raw(), 
-                         host_name = "host_dev",
+                         host_name = host_name,
                          geo = "place")
   
   # Remove modal
@@ -886,12 +887,12 @@ observeEvent(input$tracts_upload_button, {
   
   # Run function
   fun_write_by_geo_table(df = acs_tracts_raw()[["data"]], 
-                         host_name = config::get("host_dev"),
+                         host_name = host_name,
                          geo = "tract")
   
   # Upload geographies
   # Connect to MongoDB database/collection
-  mongo_conn <- fun_mongo_connect(host_name = config::get("host_dev"),
+  mongo_conn <- fun_mongo_connect(host_name = host_name,
                                   collection_name = "geo_tract",
                                   database_name = "ADA-PARC")
   
