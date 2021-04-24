@@ -325,7 +325,7 @@ selectInput(inputId = "metro_snapshot",
 # Pull Census place data
 # ===============
 tables <- c("S1810", "S1811")
-metro_snapshot_place_full <- fun_pull_mongo_data(tables, "place")
+metro_snapshot_place_full <- fun_pull_mongo_data(tables, host_name, "place")
 rm(tables)
 
 # Place for selected metro
@@ -673,7 +673,7 @@ Sidebar {.sidebar}
 # Metro
 selectizeInput(inputId = "compare", 
                label = "Select Metro Areas to Compare", 
-               choices = metro_demo_data %>% select(metro_state),
+               choices = metro_snapshot_tract() %>% select(metro_state),
                multiple = TRUE,
                options = list(
                  maxItems = 3,
