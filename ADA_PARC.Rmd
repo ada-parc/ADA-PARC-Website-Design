@@ -134,7 +134,7 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 
 
-National Data {data-navmenu="National" data-icon="fa-user"}
+National Data
 ======================================================================
 
 Sidebar {.sidebar}
@@ -142,7 +142,7 @@ Sidebar {.sidebar}
 
 <br>
 
-```{r national input}
+```{r national input, message=FALSE, warning=FALSE}
 
 # State Lookup
 mongo_conn_input <- fun_mongo_connect(host_name = host_name,
@@ -154,14 +154,14 @@ national_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true
 # Define inputs
 selectInput(inputId = "category", 
             label = "Select a category", 
-            choices = c("Demographics" = "national_demographic", 
-                        "Community Participation" = "national_participation", 
-                        "Community Living" = "national_living", 
-                        "Work/Economic" = "national_economic"))
+            choices = c("Demographics" = "demographics", 
+                        "Community Participation" = "community_participation", 
+                        "Community Living" = "community_living", 
+                        "Work/Economic" = "work_economic"))
 
-selectInput(inputId = "variable",
-            label = "Select a variable",
-            choices = NULL) # TODO: Build out reactivity to category input
+# selectInput(inputId = "variable",
+#             label = "Select a variable",
+#             choices = NULL) # TODO: Build out reactivity to category input
             # Below should pull the list of variables in database code format
             # choices = get(input$category) %>% names() %>% str_extract(pattern = "[:alnum:]*_[:alnum:]*_[:alnum:]*") %>% unique() %>% na.omit()
 
@@ -182,60 +182,27 @@ Row {data-height=500}
 
 # Selected data
 # TODO: Dynamic based on inputs in sidebar
-demo_gen_data <- reactive({input$category})
+national_data <- reactive({!!sym(input$category)})
 
-demo_gen_selected <- reactive({ "pwd_total" }) # TODO: Reactive to new inputs in sidebar
+national_variable <- reactive({ "pwd_total" }) # TODO: Reactive to new inputs in sidebar
 
 renderPlot({
-  render_tile_map(demo_gen_data, demo_gen_selected())
+  render_tile_map(demographics, "pwd_total")
 })
 
-# pal_demo1 <- reactive ({ 
-#   
-#   create_palette(demo_gen_map_data, demo_gen_selected())
-#   
-# })
-#   
-# # State map
-# output$demo1map <- renderLeaflet({
-#   render_map(demo_gen_data, demo_gen_selected(), pal_demo1())
-# })
-# 
-# # Click event for the map
-# click_demo1map <- eventReactive(input$demo1map_shape_click, {
-#   
-#   x <- input$demo1map_shape_click
-#   y <- x$id
-#   
-#   return(y)
-# 
-# })
-# 
-# # Add the clicked state to the map, and remove when a new one is clicked
-# observe({
-#   
-#   req(click_demo1map())
-#   
-#   demo1map <- leafletProxy("demo1map") %>%
-#     removeShape("highlight_state") %>%
-#     addPolygons(data = demo_gen_map_data[demo_gen_map_data$state_name == click_demo1map(), ], 
-#                 fill = FALSE, weight = 3,
-#                 color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-#   
-# })
-# 
+
 # Fetch data for the clicked state
 # TODO: Make this possible (plotly?)
-demo_gen_data_selected <- reactive({
-  
-  if(is.null(input$demo1map_shape_click)){
-    demo_gen_data
-  } else {
-    demo_gen_data %>%
-      filter(state_name == click_demo1map())
-  }
-  
-})
+# demo_gen_data_selected <- reactive({
+#   
+#   if(is.null(input$demo1map_shape_click)){
+#     demo_gen_data
+#   } else {
+#     demo_gen_data %>%
+#       filter(state_name == click_demo1map())
+#   }
+#   
+# })
 # 
 # leafletOutput("demo1map")  
 ```
@@ -391,7 +358,7 @@ renderUI({
   # Overview text  
   metro_snap_overview_text <- paste0(
     "<h3>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h3>", "<br>",
-    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(estimate_S1810_C02_001) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(estimate_S1810_C01_001) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(estimate_S1810_C03_001), "%</b>) are persons with disabilities.<br>")
+    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(S1810_C03_001_estimate), "%</b>) are persons with disabilities.<br>")
   
   # Conditional text based on selected tab
   metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
@@ -423,7 +390,7 @@ renderUI({
 pal_metro_snapshot <- reactive ({
   
   colorQuantile(palette = input$access_map_palette,
-                domain = pull(metro_snapshot_tract(), estimate_S1810_C02_001),
+                domain = pull(metro_snapshot_tract(), S1810_C02_001_estimate),
                 n = 4)
   
 })
@@ -432,7 +399,7 @@ pal_metro_snapshot <- reactive ({
 output$snapshotmap <- renderLeaflet({
   
   left_join(metro_snapshot_tract_sf(),
-            metro_snapshot_tract() %>% select(GEOID, estimate_S1810_C02_001),
+            metro_snapshot_tract() %>% select(GEOID, S1810_C02_001_estimate),
             by = "GEOID") %>%
     leaflet() %>%
     clearShapes() %>%
@@ -440,11 +407,11 @@ output$snapshotmap <- renderLeaflet({
     addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
-                fillColor = ~pal_metro_snapshot()(estimate_S1810_C02_001),
+                fillColor = ~pal_metro_snapshot()(S1810_C02_001_estimate),
                 fillOpacity = 0.7,
                 layerId = ~GEOID) %>%
     addLegend(position = "topright", pal = pal_metro_snapshot(),
-              values = ~estimate_S1810_C02_001,
+              values = ~S1810_C02_001_estimate,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
@@ -501,9 +468,9 @@ output$metro_snapshot_demo_plot <- renderPlotly({
   gg <- metro_snapshot_place_full %>%
     select(GEOID,
            NAME, 
-           "pwd" = estimate_S1810_C02_001,
-           "total_population" = estimate_S1810_C01_001,
-           "pwd_pct" = estimate_S1810_C03_001) %>%
+           "pwd" = S1810_C02_001_estimate,
+           "total_population" = S1810_C01_001_estimate,
+           "pwd_pct" = S1810_C03_001_estimate) %>%
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD: ", scales::comma(pwd), 
                              " (", pwd_pct, "%)",
@@ -550,8 +517,8 @@ output$metro_snapshot_we_plot <- renderPlotly({
   gg <- metro_snapshot_place_full %>%
     select(GEOID,
            NAME,
-           "pwd_employed" = estimate_S1811_C02_002,
-           "pwd" = estimate_S1811_C02_001) %>% 
+           "pwd_employed" = S1811_C02_002_estimate,
+           "pwd" = S1811_C02_001_estimate) %>% 
     mutate("pwd_employed_pct" = round((pwd_employed /
                                          pwd) * 100, 1)) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
