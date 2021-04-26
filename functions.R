@@ -23,7 +23,7 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
   
   if (geo != F) { # Generally this function will be used to pull data from geographic tables
     for (t in seq_along(tables)) {
-      print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
+      # print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
       temp_mongo_conn <- fun_mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
                                            database_name = "ADA-PARC",
                                            host_name = host_name)
