@@ -159,31 +159,42 @@ selectInput(inputId = "national_category_selector",
                         "Community Living" = "community_living", 
                         "Work/Economic" = "work_economic"))
 
-national_data <- reactive({sym(input$national_category_selector)})
+# This line takes the RHS value of input$natinal_category_selector, converts it
+# into a symbol (think object name like `demographics`), and then asks R to 
+# evaluate that symbol, returning the object itself. This works differently
+# than when passing the value of a selector as a variable name within a 
+# data.frame object, where passing !!sym(input$selector) tells R to parse
+# input$selector as the name of a vector within a data.frame in a mutate() or
+# select() context. 
+national_data <- reactive({eval(sym(input$national_category_selector))})
 
-textOutput("check")
+# national_category_selector is a subset of variable names from
+# a selected category. Until a category is selected choices = NULL
+selectInput(inputId = "national_variable_selector",
+            label = "Select a variable",
+            choices = NULL)
 
-output$check <- renderText({
-  paste0("national_data() is of class: ", class(national_data()))
-})
+# This updates the selector choices using an observer
+observeEvent(input$national_category_selector,
+             {
+               updateSelectizeInput(session,
+                                    input = "national_variable_selector",
+                                    choices = national_data() %>%
+                                      select(-c(GEOID, NAME, ABBR)) %>%
+                                      names())
+             })
 
-# # national_category_selector is a subset of variable names from 
-# # a selected category. Until a category is selected choices = NULL
-# selectInput(inputId = "national_variable_selector",
-#             label = "Select a variable",
-#             choices = NULL) 
+# You can use this chunk of code to test whether a selector is working
+# as intended. Here the intention is to have the input return a string.
+# Uncommenting this code puts a small message beneath the selectors in 
+# the sidebar showeing the result. 
+# output$check <- renderText({ 
+#   paste0("national_variable is: ", input$national_variable_selector)
+# })
 # 
-# # This updates the selector choices using an observer
-# observeEvent(input$national_category_selector,
-#              {
-#                updateSelectizeInput(session, 
-#                                     input = "national_variable_selector",
-#                                     choices = national_data() %>% 
-#                                       select(-c(GEOID, NAME, ABBR)) %>% 
-#                                       names())
-#              })
+# textOutput("check")
 
-national_variable <- reactive({ "pwd_total" }) # TODO: Reactive to new inputs in sidebar
+national_variable <- reactive({ input$national_variable_selector })
 ```
 
 Row {data-height=500}
@@ -194,24 +205,9 @@ Row {data-height=500}
 ```{r, demographics general map}
 
 renderPlot({
-  render_tile_map(demographics, "pwd_total")
+  render_tile_map(national_data(), national_variable())
 })
 
-
-# Fetch data for the clicked state
-# TODO: Make this possible (plotly?)
-# demo_gen_data_selected <- reactive({
-#   
-#   if(is.null(input$demo1map_shape_click)){
-#     demo_gen_data
-#   } else {
-#     demo_gen_data %>%
-#       filter(state_name == click_demo1map())
-#   }
-#   
-# })
-# 
-# leafletOutput("demo1map")  
 ```
 
 ### Table {.table-wrapper}
