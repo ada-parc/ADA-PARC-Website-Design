@@ -33,6 +33,14 @@ source("functions.R", local = T)
 
 # Load variable dictionary for relating tables, variable codes, and readable values
 dict_vars <-  fun_pull_mongo_data(tables = "vars_dict", host_name = host_name)
+
+
+### ------------------------
+### National data import and clean
+###
+# This script takes the national_* objects and transforms them
+# into the final datasets for mapping
+source(here("national_import.R"), local = T)
 ```
 
 
@@ -143,34 +151,39 @@ Sidebar {.sidebar}
 <br>
 
 ```{r national input, message=FALSE, warning=FALSE}
-
-# State Lookup
-mongo_conn_input <- fun_mongo_connect(host_name = host_name,
-                                      collection_name = "acs_state_S1810",
-                                      database_name = "ADA-PARC")
-
-national_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true, "state" : true}')
-
-# Define inputs
-selectInput(inputId = "category", 
+# Select the dataset to use
+selectInput(inputId = "national_category_selector", 
             label = "Select a category", 
             choices = c("Demographics" = "demographics", 
                         "Community Participation" = "community_participation", 
                         "Community Living" = "community_living", 
                         "Work/Economic" = "work_economic"))
 
-# selectInput(inputId = "variable",
-#             label = "Select a variable",
-#             choices = NULL) # TODO: Build out reactivity to category input
-            # Below should pull the list of variables in database code format
-            # choices = get(input$category) %>% names() %>% str_extract(pattern = "[:alnum:]*_[:alnum:]*_[:alnum:]*") %>% unique() %>% na.omit()
+national_data <- reactive({sym(input$national_category_selector)})
 
-### ------------------------
-### National data import and clean
-###
-# This script takes the national_* objects and transforms them
-# into the final datasets for mapping
-source(here("national_import.R"), local = T)
+textOutput("check")
+
+output$check <- renderText({
+  paste0("national_data() is of class: ", class(national_data()))
+})
+
+# # national_category_selector is a subset of variable names from 
+# # a selected category. Until a category is selected choices = NULL
+# selectInput(inputId = "national_variable_selector",
+#             label = "Select a variable",
+#             choices = NULL) 
+# 
+# # This updates the selector choices using an observer
+# observeEvent(input$national_category_selector,
+#              {
+#                updateSelectizeInput(session, 
+#                                     input = "national_variable_selector",
+#                                     choices = national_data() %>% 
+#                                       select(-c(GEOID, NAME, ABBR)) %>% 
+#                                       names())
+#              })
+
+national_variable <- reactive({ "pwd_total" }) # TODO: Reactive to new inputs in sidebar
 ```
 
 Row {data-height=500}
@@ -179,12 +192,6 @@ Row {data-height=500}
 ### Map
 
 ```{r, demographics general map}
-
-# Selected data
-# TODO: Dynamic based on inputs in sidebar
-national_data <- reactive({!!sym(input$category)})
-
-national_variable <- reactive({ "pwd_total" }) # TODO: Reactive to new inputs in sidebar
 
 renderPlot({
   render_tile_map(demographics, "pwd_total")
@@ -213,9 +220,21 @@ renderPlot({
 
 # Data table
 DT::renderDataTable({
-  # TODO
+  national_data <- national_data()
+  
+  DT::datatable(national_data,
+                extensions = "Buttons",
+                options = list(pageLength = 5,
+                               lengthMenu = list(c(5, 10, 20, -1),
+                                                 c("5", "10", "20", "All")),
+                               searching = T,
+                               scrollX = 100,
+                               dom = 'Bfrtip',
+                               # https://datatables.net/reference/option/dom
+                               buttons = c('copy', 'csv', 'excel')))
 })
 
+DT::dataTableOutput("national_data")
 ```
 
 Snapshot {data-navmenu="By Metro"}
