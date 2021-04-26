@@ -654,182 +654,182 @@ renderUI({ HTML(
 
 ```
 
-Comparison {data-navmenu="By Metro"}
-======================================================================
+<!-- Comparison {data-navmenu="By Metro"} -->
+<!-- ====================================================================== -->
 
-Sidebar {.sidebar}
------------------------------------------------------------------------
+<!-- Sidebar {.sidebar} -->
+<!-- ----------------------------------------------------------------------- -->
 
-<br>
+<!-- <br> -->
 
-```{r }
-# Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well)
+<!-- ```{r } -->
+<!-- # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well) -->
 
-```
+<!-- ``` -->
 
-```{r }
+<!-- ```{r } -->
 
-# Define inputs
-# Metro
-selectizeInput(inputId = "compare", 
-               label = "Select Metro Areas to Compare", 
-               choices = metro_snapshot_tract() %>% select(metro_state),
-               multiple = TRUE,
-               options = list(
-                 maxItems = 3,
-                 placeholder = "select up to 3 cities"
-               )
-)
-
-
-### I want to model something similar to the AARP website
-### So these three inputs would feed into the DT and then we could do a transposed table of
-### some subset of relevant fields for the user based on a selection
-
-```
-
-Row
------------------------------------------------------------------------
+<!-- # Define inputs -->
+<!-- # Metro -->
+<!-- selectizeInput(inputId = "compare",  -->
+<!--                label = "Select Metro Areas to Compare",  -->
+<!--                choices = metro_snapshot_tract() %>% select(metro_state), -->
+<!--                multiple = TRUE, -->
+<!--                options = list( -->
+<!--                  maxItems = 3, -->
+<!--                  placeholder = "select up to 3 cities" -->
+<!--                ) -->
+<!-- ) -->
 
 
-### Table {.download-DT}
+<!-- ### I want to model something similar to the AARP website -->
+<!-- ### So these three inputs would feed into the DT and then we could do a transposed table of -->
+<!-- ### some subset of relevant fields for the user based on a selection -->
 
-```{r }
+<!-- ``` -->
 
-
-DT::renderDataTable({
-  
-  if(is.null(input$compare)){
-    DT::datatable(
-      metro_demo_data %>% 
-        rename("City" = metro_state),
-      options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))
-    )
-  }else{
-    DT::datatable(
-      metro_demo_data %>% 
-        filter(metro_state %in% input$compare) %>% 
-        select("City" = metro_state, everything()) %>%
-        pivot_longer(
-          cols = -"City",
-          names_to = "Variable"
-        ) %>%
-        pivot_wider(
-          id_cols = Variable,
-          names_from = City
-        ) %>%
-        select(" " = Variable, everything()),
-      options (pageLength = 50)
-    )
-  }
-  
-})
-
-```
+<!-- Row -->
+<!-- ----------------------------------------------------------------------- -->
 
 
+<!-- ### Table {.download-DT} -->
 
-Explore {data-navmenu="By Metro"}
-======================================================================
+<!-- ```{r } -->
 
-Sidebar {.sidebar}
------------------------------------------------------------------------
 
-<br>
+<!-- DT::renderDataTable({ -->
 
-```{r metro explore sidebar}
+<!--   if(is.null(input$compare)){ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         rename("City" = metro_state), -->
+<!--       options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))) -->
+<!--     ) -->
+<!--   }else{ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         filter(metro_state %in% input$compare) %>%  -->
+<!--         select("City" = metro_state, everything()) %>% -->
+<!--         pivot_longer( -->
+<!--           cols = -"City", -->
+<!--           names_to = "Variable" -->
+<!--         ) %>% -->
+<!--         pivot_wider( -->
+<!--           id_cols = Variable, -->
+<!--           names_from = City -->
+<!--         ) %>% -->
+<!--         select(" " = Variable, everything()), -->
+<!--       options (pageLength = 50) -->
+<!--     ) -->
+<!--   } -->
 
-# Define inputs
-# Metro
-selectizeInput(inputId = "metro_explore_select", 
-               label = "Select Metro Areas to explore", 
-               choices = metro_demo_data %>% select(metro_state), 
-               multiple = TRUE, 
-               options = list("plugins" = list("remove_button"), 
-                              "create" = TRUE,
-                              "persist" = FALSE))
+<!-- }) -->
 
-# Variable of interest
-selectizeInput(inputId = "var_explore_select", 
-               label = "Select a demographic variable", 
-               choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)), 
-               selected = names(metro_demo_data %>% select(pwd)),
-               multiple = TRUE, 
-               options = list("plugins" = list("remove_button"), 
-                              "create" = TRUE,
-                              "persist" = FALSE))
+<!-- ``` -->
 
-```
 
-Row {data-height=400}
------------------------------------------------------------------------
 
-### Table {.download-DT}
+<!-- Explore {data-navmenu="By Metro"} -->
+<!-- ====================================================================== -->
 
-```{r metro explore table}
+<!-- Sidebar {.sidebar} -->
+<!-- ----------------------------------------------------------------------- -->
 
-DT::renderDataTable({
-  
-  if(is.null(input$metro_explore_select)){
-    DT::datatable(
-      metro_demo_data %>% 
-        rename("City" = metro_state),
-      options(list(scrollX = "200px",
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
-    )
-  }else{
-    DT::datatable(
-      metro_demo_data %>% 
-        filter(metro_state %in% input$metro_explore_select) %>% 
-        select("City" = metro_state, input$var_explore_select),
-      options(list(scrollX = "200px", 
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
-    )
-  }
-  
-})
+<!-- <br> -->
 
-```
+<!-- ```{r metro explore sidebar} -->
 
-Row
------------------------------------------------------------------------
+<!-- # Define inputs -->
+<!-- # Metro -->
+<!-- selectizeInput(inputId = "metro_explore_select",  -->
+<!--                label = "Select Metro Areas to explore",  -->
+<!--                choices = metro_demo_data %>% select(metro_state),  -->
+<!--                multiple = TRUE,  -->
+<!--                options = list("plugins" = list("remove_button"),  -->
+<!--                               "create" = TRUE, -->
+<!--                               "persist" = FALSE)) -->
 
-### Selected Variables by Metro
+<!-- # Variable of interest -->
+<!-- selectizeInput(inputId = "var_explore_select",  -->
+<!--                label = "Select a demographic variable",  -->
+<!--                choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)),  -->
+<!--                selected = names(metro_demo_data %>% select(pwd)), -->
+<!--                multiple = TRUE,  -->
+<!--                options = list("plugins" = list("remove_button"),  -->
+<!--                               "create" = TRUE, -->
+<!--                               "persist" = FALSE)) -->
 
-```{r metro overview chart}
+<!-- ``` -->
 
-output$metro_explore_plot <- renderPlotly({
-  
-  # Require input action and non-null variable before plotting chart
-  req(input$metro_explore_select)
-  req(!is.null(input$var_explore_select))
-  
-  # Plot
-  plotly::ggplotly(
-    metro_demo_data %>%
-      filter(metro_state %in% input$metro_explore_select) %>%
-      select(metro_state, input$var_explore_select) %>%
-      pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>%
-      mutate(variable = str_replace_all(variable, "_", " "),
-             value = as.numeric(value)) %>%
-      ggplot(aes(x = variable, y = value, fill = metro_state)) +
-      geom_bar(stat = "identity", width = 0.8,
-               position = position_dodge2(width = 0.6, preserve = "single")) +
-      labs(x = "Variable", y = "Value") +
-      scale_y_comma() +
-      coord_flip() +
-      ggplot_fill_selected() +
-      ggplot_theme_selected() +
-      theme(legend.position = "top")
-  )
-  
-})
+<!-- Row {data-height=400} -->
+<!-- ----------------------------------------------------------------------- -->
 
-plotlyOutput("metro_explore_plot")
+<!-- ### Table {.download-DT} -->
 
-```
+<!-- ```{r metro explore table} -->
+
+<!-- DT::renderDataTable({ -->
+
+<!--   if(is.null(input$metro_explore_select)){ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         rename("City" = metro_state), -->
+<!--       options(list(scrollX = "200px", -->
+<!--                    pageLength = 5, -->
+<!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
+<!--     ) -->
+<!--   }else{ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         filter(metro_state %in% input$metro_explore_select) %>%  -->
+<!--         select("City" = metro_state, input$var_explore_select), -->
+<!--       options(list(scrollX = "200px",  -->
+<!--                    pageLength = 5, -->
+<!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
+<!--     ) -->
+<!--   } -->
+
+<!-- }) -->
+
+<!-- ``` -->
+
+<!-- Row -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- ### Selected Variables by Metro -->
+
+<!-- ```{r metro overview chart} -->
+
+<!-- output$metro_explore_plot <- renderPlotly({ -->
+
+<!--   # Require input action and non-null variable before plotting chart -->
+<!--   req(input$metro_explore_select) -->
+<!--   req(!is.null(input$var_explore_select)) -->
+
+<!--   # Plot -->
+<!--   plotly::ggplotly( -->
+<!--     metro_demo_data %>% -->
+<!--       filter(metro_state %in% input$metro_explore_select) %>% -->
+<!--       select(metro_state, input$var_explore_select) %>% -->
+<!--       pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% -->
+<!--       mutate(variable = str_replace_all(variable, "_", " "), -->
+<!--              value = as.numeric(value)) %>% -->
+<!--       ggplot(aes(x = variable, y = value, fill = metro_state)) + -->
+<!--       geom_bar(stat = "identity", width = 0.8, -->
+<!--                position = position_dodge2(width = 0.6, preserve = "single")) + -->
+<!--       labs(x = "Variable", y = "Value") + -->
+<!--       scale_y_comma() + -->
+<!--       coord_flip() + -->
+<!--       ggplot_fill_selected() + -->
+<!--       ggplot_theme_selected() + -->
+<!--       theme(legend.position = "top") -->
+<!--   ) -->
+
+<!-- }) -->
+
+<!-- plotlyOutput("metro_explore_plot") -->
+
+<!-- ``` -->
 
 
 
