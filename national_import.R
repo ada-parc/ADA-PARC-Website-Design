@@ -106,11 +106,8 @@ community_living <- national_living %>%
     pwd_grpquarters_institution = round(pop_grpquarters * (pwd_grpquarters_institution_pct/100), 0),
     pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate,
     pwd_grpquarters_noninstitution = round(pop_grpquarters * (pwd_grpquarters_noninstitution_pct/100), 0),
-    
-    # DatabaseUpdate Instruction.xlsx says these stats are calculated via formula from above vars?
-    # pct_pwd_institution = , # Is this just pct_pwd_grpquarters_institution?
-    # pct_pwd_home = , # Not sure what variables are used to calculate this
-    # pct_pwd_grpquarters_other = , # Couldn't find this in lookup_var df
+    pwd_home_pct = round((pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution) / pwd_total, 2),
+    pwd_grpquarters_other_pct = round((pwd_grpquarters_noninstitution / pwd_total) * 100, 2),
     
     ### Nursing homes
     pop_nursing = S2602_C04_001_estimate,
