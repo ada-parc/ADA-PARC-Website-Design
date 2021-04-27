@@ -4,7 +4,7 @@ runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_layout: scroll
+    vertical_layout: fill
     theme: cosmo
 ---
 
@@ -29,10 +29,10 @@ library(here)
 host_name = "host_dev"
 
 # Load API keys and database connection information
-source("functions.R", local = T)
+source("functions.R", local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes, and readable values
-dict_vars <-  fun_pull_mongo_data(tables = "vars_dict", host_name = host_name)
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", host_name = host_name)
 
 
 ### ------------------------
@@ -40,7 +40,8 @@ dict_vars <-  fun_pull_mongo_data(tables = "vars_dict", host_name = host_name)
 ###
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
-source(here("national_import.R"), local = T)
+source(here("national_import.R"), local = TRUE)
+
 ```
 
 
@@ -110,16 +111,16 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-- Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
-- Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
-- Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
-- Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
-- Region 8 Rocky Mountain ADA Center: Bob Gattis
-- Region 3 Mid-Atlantic ADA Center: Marian Vessels
-- Region 10 Great Northwest ADA Center: Kathe Matrone
 - Region 1 New England ADA Center: Valerie Fletcher
 - Region 2 Northeast ADA Center: Wendy Strobel Gower
+- Region 3 Mid-Atlantic ADA Center: Marian Vessels
+- Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
+- Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
+- Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
 - Region 7 Great Plains ADA Center: Julie Brinkhoff
+- Region 8 Rocky Mountain ADA Center: Emily Shuman
+- Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
+- Region 10 Great Northwest ADA Center: Kathe Matrone
 
 Other institutions collaborating in the ADA-PARC are:
 
@@ -151,13 +152,15 @@ Sidebar {.sidebar}
 <br>
 
 ```{r national input, message=FALSE, warning=FALSE}
+
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
             label = "Select a category", 
             choices = c("Demographics" = "demographics", 
                         "Community Participation" = "community_participation", 
                         "Community Living" = "community_living", 
-                        "Work/Economic" = "work_economic"))
+                        "Work/Economic" = "work_economic"),
+            selected = "demographics")
 
 # This line takes the RHS value of input$natinal_category_selector, converts it
 # into a symbol (think object name like `demographics`), and then asks R to 
@@ -168,21 +171,31 @@ selectInput(inputId = "national_category_selector",
 # select() context. 
 national_data <- reactive({eval(sym(input$national_category_selector))})
 
-# national_category_selector is a subset of variable names from
-# a selected category. Until a category is selected choices = NULL
-selectInput(inputId = "national_variable_selector",
-            label = "Select a variable",
-            choices = NULL)
+# Create reactive named list of choices based on selection of
+# national category selected
+national_variable_choices <- reactive({
+  
+  tibble::deframe(
+    dict_vars %>% 
+      filter(var_desc == input$national_category_selector,
+             var_readable %in% (
+               national_data() %>%
+                 select(-c(GEOID, NAME, ABBR)) %>%
+                 names()
+             ),
+             !is.na(var_pretty)) %>% 
+      select(var_pretty, var_readable))
+  
+})
 
-# This updates the selector choices using an observer
-observeEvent(input$national_category_selector,
-             {
-               updateSelectizeInput(session,
-                                    input = "national_variable_selector",
-                                    choices = national_data() %>%
-                                      select(-c(GEOID, NAME, ABBR)) %>%
-                                      names())
-             })
+# Update select dropdown with named list of values created above
+renderUI({ 
+  
+  selectInput(inputId = "national_variable_selector",
+              label = "Select a variable",
+              choices = national_variable_choices())
+  
+})
 
 # You can use this chunk of code to test whether a selector is working
 # as intended. Here the intention is to have the input return a string.
@@ -219,15 +232,17 @@ DT::renderDataTable({
   national_data <- national_data()
   
   DT::datatable(national_data,
-                extensions = "Buttons",
-                options = list(pageLength = 5,
-                               lengthMenu = list(c(5, 10, 20, -1),
-                                                 c("5", "10", "20", "All")),
-                               searching = T,
-                               scrollX = 100,
-                               dom = 'Bfrtip',
+                rownames = FALSE,
+                fillContainer = TRUE,
+                extensions = c("Buttons"),
+                options = list(pageLength = -1,
+                               searching = TRUE,
+                               autoWidth = TRUE,
+                               scrollY = "100vh",
+                               scrollX = "100px",
+                               dom = "Bfti",
                                # https://datatables.net/reference/option/dom
-                               buttons = c('copy', 'csv', 'excel')))
+                               buttons = c("copy", "csv", "excel")))
 })
 
 DT::dataTableOutput("national_data")
@@ -1139,6 +1154,7 @@ overflow-y: auto;
 /* Scroll overflow for tables */
 .table-wrapper {
 overflow-x: scroll;
+overflow-y: scroll;
 }
 
 /* Scroll overflow for Download */
