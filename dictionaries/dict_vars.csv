@@ -1,154 +1,154 @@
-var_readable,var_group,var_pretty,var_database,var_desc,national_dropdown_label,mapping_variable
-pop_total,Total Population,Total Population,S1810_C01_001,demographic,Percentage of Total Population with Disabilities,FALSE
-pwd_total,Total Persons with Disabilities,Total Persons with Disabilities,S1810_C02_001,demographic,Percentage of Total Population with Disabilities,FALSE
-pwd_pct,Percent Persons with Disabilities,Percent Persons with Disabilities,,demographic,Percentage of Total Population with Disabilities,TRUE
-pop_18_64,Total Population Aged 18 - 64,Total Population Aged 18 - 34,S1810_C01_015,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
-pop_18_64,Total Population Aged 18 - 64,Total Population Aged 35 - 64,S1810_C01_016,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
-pwd_18_64,Total Persons with Disabilities Aged 18 - 64,Total Persons with Disabilities Aged 18 - 34,S1810_C02_015,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
-pwd_18_64,Total Persons with Disabilities Aged 18 - 64,Total Persons with Disabilities Aged 35 - 64,S1810_C02_016,demographic,"Percentage of People with a Disability, Age 18 to 64",FALSE
-pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,Percent Persons with Disabilities Aged 18 - 64,,demographic,"Percentage of People with a Disability, Age 18 to 64",TRUE
-pop_grtoeq_65,Total Population Aged 65 or Older,Total Population Aged 65 - 74,S1810_C01_017,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
-pop_grtoeq_65,Total Population Aged 65 or Older,Total Population Aged 75 or Older,S1810_C01_018,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
-pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,Total Persons with Disabilities Aged 65 - 74,S1810_C02_017,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
-pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,Total Persons with Disabilities Aged 75 or Older,S1810_C02_018,demographic,Percent Persons with Disabilities Aged 65 and Older,FALSE
-pwd_grtoeq_65_pct,Percent Persons with Disabilities Aged 65 or Older,Percent Persons with Disabilities Aged 65 or Older,,demographic,Percent Persons with Disabilities Aged 65 and Older,TRUE
-pwd_white,"Total Persons with Disabilities, White","Total Persons with Disabilities, White",S1810_C02_004,demographic,Percentage of People with a Disability who are White,FALSE
-pwd_black,"Total Persons with Disabilities, Black","Total Persons with Disabilities, Black",S1810_C02_005,demographic,Percentage of People with a Disability who are Black,FALSE
-pwd_hisp,"Total Persons with Disabilities, Hispanic","Total Persons with Disabilities, Hispanic",S1810_C02_012,demographic,Percentage of People with a Disability who are Hispanic,FALSE
-pwd_white_nonhisp,"Total Persons with Disabilities, Not Hispanic, White Alone","Total Persons with Disabilities, Not Hispanic, White Alone",S1810_C02_011,demographic,"Percentage of People with a Disability who are White, Non-Hispanic",FALSE
-pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, American Indian and Alaskan Native alone",S1810_C02_006,demographic,Percentage of People with a Disability who are of Another Race,FALSE
-pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Asian alone",S1810_C02_007,demographic,Percentage of People with a Disability who are of Another Race,FALSE
-pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Native Hawaiian or Other Pacific Islander alone",S1810_C02_008,demographic,Percentage of People with a Disability who are of Another Race,FALSE
-pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Some other race alone",S1810_C02_009,demographic,Percentage of People with a Disability who are of Another Race,FALSE
-pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Two or more races",S1810_C02_010,demographic,Percentage of People with a Disability who are of Another Race,FALSE
-pwd_white_pct,"Percent Persons with Disabilities, White","Percent Persons with Disabilities, White",,demographic,Percentage of People with a Disability who are White,TRUE
-pwd_black_pct,"Percent Persons with Disabilities, Black","Percent Persons with Disabilities, Black",,demographic,Percentage of People with a Disability who are Black,TRUE
-pwd_hisp_pct,"Percent Persons with Disabilities, Hispanic","Percent Persons with Disabilities, Hispanic",,demographic,Percentage of People with a Disability who are Hispanic,TRUE
-pwd_white_nonhisp_pct,"Percent Persons with Disabilities, Nonhispanic","Percent Persons with Disabilities, Nonhispanic",,demographic,"Percentage of People with a Disability who are White, Non-Hispanic",TRUE
-pwd_other_pct,"Percent Persons with Disabilities, Other Race","Percent Persons with Disabilities, Other Race",,demographic,Percentage of People with a Disability who are of Another Race,TRUE
-pop_female,"Total Population, Female","Total Population, Female",S1810_C01_003,demographic,,FALSE
-pwd_female,"Total Persons with Disabilities, Female","Total Persons with Disabilities, Female",S1810_C02_003,demographic,,FALSE
-female_pwd_pct,"Percent Persons with Disabilities, Female","Percent Persons with Disabilities, Female",,demographic,,FALSE
-pwd_female_pct,Percent of Total Female Population with Disabilities,Percent of Total Female Population with Disabilities,,demographic,,FALSE
-pop_male,"Total Population, Male","Total Population, Male",S1810_C01_002,demographic,,FALSE
-pwd_male,"Total Persons with Disabilities, Male","Total Persons with Disabilities, Male",S1810_C02_002,demographic,,FALSE
-male_pwd_pct,"Percent Persons with Disabilities, Male","Percent Persons with Disabilities, Male",,demographic,,FALSE
-pwd_male_pct,Percent of Total Male Population with Disabilities,Percent of Total Male Population with Disabilities,,demographic,,FALSE
-pwd_hearing,Total Persons with Disabilities with Hearing Difficulty,Total Persons with Disabilities with Hearing Difficulty,S1810_C02_019,demographic,Percentage of People with a Hearing Disability,FALSE
-pwd_hearing_pct,Percent Persons with Disabilities with Hearing Difficulty,Percent Persons with Disabilities with Hearing Difficulty,,demographic,Percentage of People with a Hearing Disability,TRUE
-pwd_vision,Total Persons with Disabilities with Vision Difficulty,Total Persons with Disabilities with Vision Difficulty,S1810_C02_029,demographic,Percentage of People with a Vision Disability,FALSE
-pwd_vision_pct,Percent Persons with Disabilities with Vision Difficulty,Percent Persons with Disabilities with Vision Difficulty,,demographic,Percentage of People with a Vision Disability,TRUE
-pwd_cognitive,Total Persons with Disabilities with Cognitive Difficulty,Total Persons with Disabilities with Cognitive Difficulty,S1810_C02_039,demographic,Percentage of People with a Cognitive Disability,FALSE
-pwd_cognitive_pct,Percent Persons with Disabilities with Cognitive Difficulty,Percent Persons with Disabilities with Cognitive Difficulty,,demographic,Percentage of People with a Cognitive Disability,TRUE
-pwd_ambulatory,Total Persons with Disabilities with Ambulatory Difficulty,Total Persons with Disabilities with Ambulatory Difficulty,S1810_C02_047,demographic,Percentage of People with an Ambulatory Disability,FALSE
-pwd_ambulatory_pct,Percent Persons with Disabilities with Ambulatory Difficulty,Percent Persons with Disabilities with Ambulatory Difficulty,,demographic,Percentage of People with an Ambulatory Disability,TRUE
-pwd_selfcare,Total Persons with Disabilities with Self-Care Difficulty,Total Persons with Disabilities with Self-Care Difficulty,S1810_C02_055,demographic,Percentage of People with a Self Care Disability,FALSE
-pwd_selfcare_pct,Percent Persons with Disabilities with Self-Care Difficulty,Percent Persons with Disabilities with Self-Care Difficulty,,demographic,Percentage of People with a Self Care Disability,TRUE
-pwd_indliving,Total Persons with Disabilities with Independent Living Difficulty,Total Persons with Disabilities with Independent Living Difficulty,S1810_C02_063,demographic,Percentage of people with an Independent Living Disability,FALSE
-pwd_indliving_pct,Percent Persons with Disabilities with Independent Living Difficulty,Percent Persons with Disabilities with Independent Living Difficulty,,demographic,Percentage of people with an Independent Living Disability,TRUE
-pop_total,Total Population,,S2601A_C01_001,community living,,
-pwd_pct,Percent Persons with Disabilities,,S2601A_C01_047,community living,,
-pwd_total,Total Persons with Disabilities,,,community living,,
-pop_grpquarters,Total Population Living in Group Quarters,,S2601A_C02_001,community living,,
-pwd_grpquarters_pct,Total Persons with Disabilities Living in Group Quarters,,S2601A_C02_047,community living,,
-grpquarters_pct,Percent of Total Population Living in Group Quarters,,,community living,,
-pop_grpquarters_institution,"Total Population Living in Group Quarters, Institutionalized",,S2601A_C03_001,community living,,
-pop_grpquarters_noninstitution,"Total Population Living in Group Quarters, Not Institutionalized",,S2601A_C04_001,community living,,
-pwd_grpquarters_institution_pct,"Percent Persons with Disabilities Living in Group Quarters, Institutionalized",,S2601A_C03_047,community living,,
-pwd_grpquarters_institution,"Total Persons with Disabilities Living in Group Quarters, Institutionalized",,,community living,,
-pwd_grpquarters_noninstitution_pct,"Percent Persons with Disabilities Living in Group Quarters, Not Institutionalized",,S2601A_C04_047,community living,,
-pwd_grpquarters_noninstitution,"Total Persons with Disablities Living in Group Quarters, Not Institutionalized",,,community living,,
-pop_nursing,Total Population Living in Nursing Homes,,S2602_C04_001,community living,,
-pop_18_64,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C01_047,community living,,
-pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,,S2602_C01_048,community living,,
-pwd_18_64,Total Persons with Disabilities Aged 18 - 64,,,community living,,
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_006,community living,,
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_007,community living,,
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_008,community living,,
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_009,community living,,
-pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_010,community living,,
-pwd_nursing_18_64_pct,Percent Persons with Disabilities Living in Nursing Homes Aged 18 - 64,,S2602_C04_048,community living,,
-pwd_nursing_18_64,Total Persons with Disabilities Living in Nursing Homes Aged 18 - 64,,,community living,,
-pop_19_64,Total Population Aged 19 - 64,,B18135_013,community participation,,
-pwd_19_64,Total Persons with Disabilities Aged 19 - 64,,B18135_014,community participation,,
-pwd_19_64_insured,Total Persons with Disabilities Aged 19 - 64 with Health Insurance,,B18135_015,community participation,,
-pwd_19_64_insured_private,Total Persons with Disabilities Aged 19 - 64 with Private Health Insurance,,B18135_016,community participation,,
-pwd_19_64_insured_public,Total Persons with Disabilities Aged 19 - 64 with Public Health Insurance,,B18135_017,community participation,,
-pwd_19_64_uninsured,Total Persons with Disabilities Aged 19 - 64 without Health Insurance,,B18135_018,community participation,,
-pwod_19_64,Total Persons without Disabilities Aged 19 - 64,,B18135_019,community participation,,
-pwod_19_64_insured,Total Persons without Disabilities Aged 19 - 64 with Health Insurance,,B18135_020,community participation,,
-pwod_19_64_insured_private,Total Persons without Disabilities Aged 19 - 64 with Private Health Insurance,,B18135_021,community participation,,
-pwod_19_64_insured_public,Total Persons without Disabilities Aged 19 - 64 with Public Health Insurance,,B18135_022,community participation,,
-pwod_19_64_uninsured,Total Persons without Disabilities Aged 19 - 64 without Health Insurance,,B18135_023,community participation,,
-pop_grtoeq_65,Total Population Aged 65 or Older,,B18135_024,community participation,,
-pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,,B18135_025,community participation,,
-pwd_grtoeq_65_insured,Total Persons with Disabilities Aged 65 or Older with Health Insurance,,B18135_026,community participation,,
-pwd_grtoeq_65_insured_private,Total Persons with Disabilities Aged 65 or Older with Private Health Insurance,,B18135_027,community participation,,
-pwd_grtoeq_65_insured_public,Total Persons with Disabilities Aged 65 or Older with Public Health Insurance,,B18135_028,community participation,,
-pwd_grtoeq_65_uninsured,Total Persons with Disabilities Aged 65 or Older without Health Insurance,,B18135_029,community participation,,
-pwod_grtoeq_65,Total Persons without Disabilities Aged 65 or Older,,B18135_030,community participation,,
-pwod_grtoeq_65_insured,Total Persons without Disabilities Aged 65 or Older with Health Insurance,,B18135_031,community participation,,
-pwod_grtoeq_65_insured_private,Total Persons without Disabilities Aged 65 or Older with Private Health Insurance,,B18135_032,community participation,,
-pwod_grtoeq_65_insured_public,Total Persons without Disabilities Aged 65 or Older with Public Health Insurance,,B18135_033,community participation,,
-pwod_grtoeq_65_uninsured,Total Persons without Disabilities Aged 65 or Older without Health Insurance,,B18135_034,community participation,,
-pwd_19_64_uninsured_pct,Percent Persons with Disabilities Aged 19 - 64 without Health Insurance,,,community participation,,
-pwod_19_64_uninsured_pct,Percent Persons without Disabilities Aged 19 - 64 without Health Insurance,,,community participation,,
-pwd_grtoeq_65_uninsured_pct,Percent Persons with Disabilities Aged 65 or Older without Health Insurance,,,community participation,,
-pwod_groeq_65_uninsured_pct,Percent Persons without Disabilities Aged 65 or Older without Health Insurance,,,community participation,,
-pwd_19_64_insured_private_pct,Percent Persons with Disabilities Aged 19 - 64 with Private Health Insurance,,,community participation,,
-pwod_19_64_insured_private_pct,Percent Persons without Disabilities Aged 19 - 64 with Private Health Insurance,,,community participation,,
-pwd_grtoeq_65_insured_private_pct,Percent Persons with Disabilities Aged 65 or Older with Private Health Insurance,,,community participation,,
-pwod_grtoeq_65_insured_private_pct,Percent Persons witout Disabilities Aged 65 or Older with Private Health Insurance,,,community participation,,
-pop_total,Total Population,,S1810_C01_001,community participation,,
-pwd_total,Total Persons with Disabilities,,S1810_C02_001,community participation,,
-pwod_total,Total Persons without Disabilities,,,community participation,,
-pwd_commute_public_pct,Percent Persons with Disabilities Who Commute by Public Transit,,S1811_C02_035,community participation,,
-pwod_commute_public_pct,Percent Persons without Disabilities Who Commute by Public Transit,,S1811_C03_035,community participation,,
-pwd_commute_car_alone_pct,Percent Persons with Disabilities Who Commute by Car Alone,,S1811_C02_033,community participation,,
-pwod_commute_car_alone_pct,Percent Persons without Disabilities Who Commute by Car Alone,,S1811_C03_033,community participation,,
-pwd_lessthan_highschool_pct,Percent Persons with Disabilities with No High School Diploma,,S1811_C02_040,community participation,,
-pwod_lessthan_highschool_pct,Percent Persons without Disabilities with No High School Diploma,,S1811_C03_040,community participation,,
-pwd_highschoolequiv_pct,Percent Persons with Disabilities with High School Diploma or Equivalent,,S1811_C02_041,community participation,,
-pwod_highschoolequiv_pct,Percent Persons without Disabilities with High School Diploma or Equivalent,,S1811_C03_041,community participation,,
-pwd_degree_aa_pct,Percent Persons with Disabilities with Associate's Degree,,S1811_C02_042,community participation,,
-pwod_degree_aa_pct,Percent Persons without Disabilities with Associate's Degree,,S1811_C03_042,community participation,,
-pwd_degree_grtoeq_ba_pct,Percent Persons with Disabilities with Bachelor's Degree or Higher,,S1811_C02_043,community participation,,
-pwod_degree_grtoeq_ba_pct,Percent Persons without Disabilities with Bachelor's Degree or Higher,,S1811_C03_043,community participation,,
-pop_total,Total Population,,C18120_001,economic,,
-pop_19_64,Total Population Aged 19 - 64,,B18135_013,economic,,
-pwd_19_64,Total Persons with Disabilities Aged 19 - 64,,B18135_014,economic,,
-pwod_19_64,Total Persons without Disabilities Aged 19 - 64,,,economic,,
-pwd_employed,"Total Persons with Disabilities, Employed",,C18120_004,economic,,
-pwod_employed,"Total Persons without Disabilities, Employed",,C18120_005,economic,,
-pwd_unemployed,"Total Persons with Disabilities, Unemployed",,C18120_007,economic,,
-pwod_unemployed,"Total Persons without Disabilities, Unemployed",,C18120_008,economic,,
-pwd_notlabor,"Total Persons with Disabilities, Not in Labor Force",,C18120_010,economic,,
-pwod_notlabor,"Total Persons without Disabilities, Not in Labor Force",,C18120_011,economic,,
-pop_18_64,Total Population Aged 18 - 64,,C18130_009,economic,,
-pwd_18_64,Total Persons with Disabilities Aged 18 - 64,,C18130_010,economic,,
-pwod_18_64,Total Persons without Disabilities Aged 18 - 64,,C18130_013,economic,,
-pwd_below_poverty,Total Persons with Disabilities Living Below Poverty Level,,C18130_011,economic,,
-pwd_atorbelow_poverty,Total Persons with Disabilities Living at or Below Poverty Level,,C18130_012,economic,,
-pwod_below_poverty,Total Persons without Disabilities Living Below Poverty Level,,C18130_014,economic,,
-pwod_atorbelow_poverty,Total Persons without Disabilities Living at or Below Poverty Level,,C18130_015,economic,,
-mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_008,economic,,
-mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_009,economic,,
-mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_010,economic,,
-mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_011,economic,,
-rent_burdened,Total Population Considered Rent Burdened,,B25070_007,economic,,
-rent_burdened,Total Population Considered Rent Burdened,,B25070_008,economic,,
-rent_burdened,Total Population Considered Rent Burdened,,B25070_009,economic,,
-rent_burdened,Total Population Considered Rent Burdened,,B25070_010,economic,,
-pop_fulltime,Total Population Working Full-Time,,C18121_002,economic,,
-pwd_fulltime,Total Persons with Disabilities Working Full-Time,,C18121_003,economic,,
-pwod_fulltime,Total Persons without Disabilities Working Full-Time,,C18121_004,economic,,
-pop_not_fulltime,Total Population Working Less Than Full-Time,,C18121_005,economic,,
-pwd_not_fulltime,Total Persons with Disabilities Working Less Than Full-Time,,C18121_006,economic,,
-pwod_not_fulltime,Total Persons without Disabilities Working Less Than Full-Time,,C18121_007,economic,,
-pop_didnotwork,Total Population Who Did Not Work,,C18121_008,economic,,
-pwd_didnotwork,Total Persons with Disabilities Who Did Not Work,,C18121_009,economic,,
-pwod_didnotwork,Total Persons without Disabilities Who Did Not Work,,C18121_010,economic,,
-pwd_grtoeq_16_med_individual_income,Median Individual Income of Persons with Disabilities Aged 16 or Older,,B18140_002,economic,,
-pwod_grtoeq_16_med_individual_income,Median Individual Income of Persons without Disabilities Aged 16 or Older,,B18140_005,economic,,
-pwd_grtoeq_16_wfh_pct,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home,,S1811_C02_038,economic,,
-pwod_grtoeq_16_wfh_pct,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home,,S1811_C03_038,economic,,
+var_readable,var_group,var_pretty,var_database,var_desc,national_dropdown_label
+pop_total,Total Population,Total Population,S1810_C01_001,demographics,Percentage of Total Population with Disabilities
+pwd_total,Total Persons with Disabilities,Total Persons with Disabilities,S1810_C02_001,demographics,Percentage of Total Population with Disabilities
+pwd_pct,Percent Persons with Disabilities,Percent Persons with Disabilities,,demographics,Percentage of Total Population with Disabilities
+pop_18_64,Total Population Aged 18 - 64,Total Population Aged 18 - 34,S1810_C01_015,demographics,"Percentage of People with a Disability, Age 18 to 64"
+pop_18_64,Total Population Aged 18 - 64,Total Population Aged 35 - 64,S1810_C01_016,demographics,"Percentage of People with a Disability, Age 18 to 64"
+pwd_18_64,Total Persons with Disabilities Aged 18 - 64,Total Persons with Disabilities Aged 18 - 34,S1810_C02_015,demographics,"Percentage of People with a Disability, Age 18 to 64"
+pwd_18_64,Total Persons with Disabilities Aged 18 - 64,Total Persons with Disabilities Aged 35 - 64,S1810_C02_016,demographics,"Percentage of People with a Disability, Age 18 to 64"
+pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,Percent Persons with Disabilities Aged 18 - 64,,demographics,"Percentage of People with a Disability, Age 18 to 64"
+pop_grtoeq_65,Total Population Aged 65 or Older,Total Population Aged 65 - 74,S1810_C01_017,demographics,Percent Persons with Disabilities Aged 65 and Older
+pop_grtoeq_65,Total Population Aged 65 or Older,Total Population Aged 75 or Older,S1810_C01_018,demographics,Percent Persons with Disabilities Aged 65 and Older
+pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,Total Persons with Disabilities Aged 65 - 74,S1810_C02_017,demographics,Percent Persons with Disabilities Aged 65 and Older
+pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,Total Persons with Disabilities Aged 75 or Older,S1810_C02_018,demographics,Percent Persons with Disabilities Aged 65 and Older
+pwd_grtoeq_65_pct,Percent Persons with Disabilities Aged 65 or Older,Percent Persons with Disabilities Aged 65 or Older,,demographics,Percent Persons with Disabilities Aged 65 and Older
+pwd_white,"Total Persons with Disabilities, White","Total Persons with Disabilities, White",S1810_C02_004,demographics,Percentage of People with a Disability who are White
+pwd_black,"Total Persons with Disabilities, Black","Total Persons with Disabilities, Black",S1810_C02_005,demographics,Percentage of People with a Disability who are Black
+pwd_hisp,"Total Persons with Disabilities, Hispanic","Total Persons with Disabilities, Hispanic",S1810_C02_012,demographics,Percentage of People with a Disability who are Hispanic
+pwd_white_nonhisp,"Total Persons with Disabilities, Not Hispanic, White Alone","Total Persons with Disabilities, Not Hispanic, White Alone",S1810_C02_011,demographics,"Percentage of People with a Disability who are White, Non-Hispanic"
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, American Indian and Alaskan Native alone",S1810_C02_006,demographics,Percentage of People with a Disability who are of Another Race
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Asian alone",S1810_C02_007,demographics,Percentage of People with a Disability who are of Another Race
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Native Hawaiian or Other Pacific Islander alone",S1810_C02_008,demographics,Percentage of People with a Disability who are of Another Race
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Some other race alone",S1810_C02_009,demographics,Percentage of People with a Disability who are of Another Race
+pwd_other,"Total Persons with Disabilities, Other Race","Total Persons with Disabilities, Two or more races",S1810_C02_010,demographics,Percentage of People with a Disability who are of Another Race
+pwd_white_pct,"Percent Persons with Disabilities, White","Percent Persons with Disabilities, White",,demographics,Percentage of People with a Disability who are White
+pwd_black_pct,"Percent Persons with Disabilities, Black","Percent Persons with Disabilities, Black",,demographics,Percentage of People with a Disability who are Black
+pwd_hisp_pct,"Percent Persons with Disabilities, Hispanic","Percent Persons with Disabilities, Hispanic",,demographics,Percentage of People with a Disability who are Hispanic
+pwd_white_nonhisp_pct,"Percent Persons with Disabilities, Nonhispanic","Percent Persons with Disabilities, Nonhispanic",,demographics,"Percentage of People with a Disability who are White, Non-Hispanic"
+pwd_other_pct,"Percent Persons with Disabilities, Other Race","Percent Persons with Disabilities, Other Race",,demographics,Percentage of People with a Disability who are of Another Race
+pop_female,"Total Population, Female","Total Population, Female",S1810_C01_003,demographics,
+pwd_female,"Total Persons with Disabilities, Female","Total Persons with Disabilities, Female",S1810_C02_003,demographics,
+female_pwd_pct,"Percent Persons with Disabilities, Female","Percent Persons with Disabilities, Female",,demographics,
+pwd_female_pct,Percent of Total Female Population with Disabilities,Percent of Total Female Population with Disabilities,,demographics,
+pop_male,"Total Population, Male","Total Population, Male",S1810_C01_002,demographics,
+pwd_male,"Total Persons with Disabilities, Male","Total Persons with Disabilities, Male",S1810_C02_002,demographics,
+male_pwd_pct,"Percent Persons with Disabilities, Male","Percent Persons with Disabilities, Male",,demographics,
+pwd_male_pct,Percent of Total Male Population with Disabilities,Percent of Total Male Population with Disabilities,,demographics,
+pwd_hearing,Total Persons with Disabilities with Hearing Difficulty,Total Persons with Disabilities with Hearing Difficulty,S1810_C02_019,demographics,Percentage of People with a Hearing Disability
+pwd_hearing_pct,Percent Persons with Disabilities with Hearing Difficulty,Percent Persons with Disabilities with Hearing Difficulty,,demographics,Percentage of People with a Hearing Disability
+pwd_vision,Total Persons with Disabilities with Vision Difficulty,Total Persons with Disabilities with Vision Difficulty,S1810_C02_029,demographics,Percentage of People with a Vision Disability
+pwd_vision_pct,Percent Persons with Disabilities with Vision Difficulty,Percent Persons with Disabilities with Vision Difficulty,,demographics,Percentage of People with a Vision Disability
+pwd_cognitive,Total Persons with Disabilities with Cognitive Difficulty,Total Persons with Disabilities with Cognitive Difficulty,S1810_C02_039,demographics,Percentage of People with a Cognitive Disability
+pwd_cognitive_pct,Percent Persons with Disabilities with Cognitive Difficulty,Percent Persons with Disabilities with Cognitive Difficulty,,demographics,Percentage of People with a Cognitive Disability
+pwd_ambulatory,Total Persons with Disabilities with Ambulatory Difficulty,Total Persons with Disabilities with Ambulatory Difficulty,S1810_C02_047,demographics,Percentage of People with an Ambulatory Disability
+pwd_ambulatory_pct,Percent Persons with Disabilities with Ambulatory Difficulty,Percent Persons with Disabilities with Ambulatory Difficulty,,demographics,Percentage of People with an Ambulatory Disability
+pwd_selfcare,Total Persons with Disabilities with Self-Care Difficulty,Total Persons with Disabilities with Self-Care Difficulty,S1810_C02_055,demographics,Percentage of People with a Self Care Disability
+pwd_selfcare_pct,Percent Persons with Disabilities with Self-Care Difficulty,Percent Persons with Disabilities with Self-Care Difficulty,,demographics,Percentage of People with a Self Care Disability
+pwd_indliving,Total Persons with Disabilities with Independent Living Difficulty,Total Persons with Disabilities with Independent Living Difficulty,S1810_C02_063,demographics,Percentage of people with an Independent Living Disability
+pwd_indliving_pct,Percent Persons with Disabilities with Independent Living Difficulty,Percent Persons with Disabilities with Independent Living Difficulty,,demographics,Percentage of people with an Independent Living Disability
+pop_total,Total Population,,S2601A_C01_001,community_living,
+pwd_pct,Percent Persons with Disabilities,,S2601A_C01_047,community_living,
+pwd_total,Total Persons with Disabilities,,,community_living,
+pop_grpquarters,Total Population Living in Group Quarters,,S2601A_C02_001,community_living,
+pwd_grpquarters_pct,Total Persons with Disabilities Living in Group Quarters,,S2601A_C02_047,community_living,
+grpquarters_pct,Percent of Total Population Living in Group Quarters,,,community_living,
+pop_grpquarters_institution,"Total Population Living in Group Quarters, Institutionalized",,S2601A_C03_001,community_living,
+pop_grpquarters_noninstitution,"Total Population Living in Group Quarters, Not Institutionalized",,S2601A_C04_001,community_living,
+pwd_grpquarters_institution_pct,"Percent Persons with Disabilities Living in Group Quarters, Institutionalized",,S2601A_C03_047,community_living,
+pwd_grpquarters_institution,"Total Persons with Disabilities Living in Group Quarters, Institutionalized",,,community_living,
+pwd_grpquarters_noninstitution_pct,"Percent Persons with Disabilities Living in Group Quarters, Not Institutionalized",,S2601A_C04_047,community_living,
+pwd_grpquarters_noninstitution,"Total Persons with Disablities Living in Group Quarters, Not Institutionalized",,,community_living,
+pop_nursing,Total Population Living in Nursing Homes,,S2602_C04_001,community_living,
+pop_18_64,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C01_047,community_living,
+pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,,S2602_C01_048,community_living,
+pwd_18_64,Total Persons with Disabilities Aged 18 - 64,,,community_living,
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_006,community_living,
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_007,community_living,
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_008,community_living,
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_009,community_living,
+pop_nursing_18_64_pct,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C04_010,community_living,
+pwd_nursing_18_64_pct,Percent Persons with Disabilities Living in Nursing Homes Aged 18 - 64,,S2602_C04_048,community_living,
+pwd_nursing_18_64,Total Persons with Disabilities Living in Nursing Homes Aged 18 - 64,,,community_living,
+pop_19_64,Total Population Aged 19 - 64,,B18135_013,community_participation,
+pwd_19_64,Total Persons with Disabilities Aged 19 - 64,,B18135_014,community_participation,
+pwd_19_64_insured,Total Persons with Disabilities Aged 19 - 64 with Health Insurance,,B18135_015,community_participation,
+pwd_19_64_insured_private,Total Persons with Disabilities Aged 19 - 64 with Private Health Insurance,,B18135_016,community_participation,
+pwd_19_64_insured_public,Total Persons with Disabilities Aged 19 - 64 with Public Health Insurance,,B18135_017,community_participation,
+pwd_19_64_uninsured,Total Persons with Disabilities Aged 19 - 64 without Health Insurance,,B18135_018,community_participation,
+pwod_19_64,Total Persons without Disabilities Aged 19 - 64,,B18135_019,community_participation,
+pwod_19_64_insured,Total Persons without Disabilities Aged 19 - 64 with Health Insurance,,B18135_020,community_participation,
+pwod_19_64_insured_private,Total Persons without Disabilities Aged 19 - 64 with Private Health Insurance,,B18135_021,community_participation,
+pwod_19_64_insured_public,Total Persons without Disabilities Aged 19 - 64 with Public Health Insurance,,B18135_022,community_participation,
+pwod_19_64_uninsured,Total Persons without Disabilities Aged 19 - 64 without Health Insurance,,B18135_023,community_participation,
+pop_grtoeq_65,Total Population Aged 65 or Older,,B18135_024,community_participation,
+pwd_grtoeq_65,Total Persons with Disabilities Aged 65 or Older,,B18135_025,community_participation,
+pwd_grtoeq_65_insured,Total Persons with Disabilities Aged 65 or Older with Health Insurance,,B18135_026,community_participation,
+pwd_grtoeq_65_insured_private,Total Persons with Disabilities Aged 65 or Older with Private Health Insurance,,B18135_027,community_participation,
+pwd_grtoeq_65_insured_public,Total Persons with Disabilities Aged 65 or Older with Public Health Insurance,,B18135_028,community_participation,
+pwd_grtoeq_65_uninsured,Total Persons with Disabilities Aged 65 or Older without Health Insurance,,B18135_029,community_participation,
+pwod_grtoeq_65,Total Persons without Disabilities Aged 65 or Older,,B18135_030,community_participation,
+pwod_grtoeq_65_insured,Total Persons without Disabilities Aged 65 or Older with Health Insurance,,B18135_031,community_participation,
+pwod_grtoeq_65_insured_private,Total Persons without Disabilities Aged 65 or Older with Private Health Insurance,,B18135_032,community_participation,
+pwod_grtoeq_65_insured_public,Total Persons without Disabilities Aged 65 or Older with Public Health Insurance,,B18135_033,community_participation,
+pwod_grtoeq_65_uninsured,Total Persons without Disabilities Aged 65 or Older without Health Insurance,,B18135_034,community_participation,
+pwd_19_64_uninsured_pct,Percent Persons with Disabilities Aged 19 - 64 without Health Insurance,,,community_participation,
+pwod_19_64_uninsured_pct,Percent Persons without Disabilities Aged 19 - 64 without Health Insurance,,,community_participation,
+pwd_grtoeq_65_uninsured_pct,Percent Persons with Disabilities Aged 65 or Older without Health Insurance,,,community_participation,
+pwod_groeq_65_uninsured_pct,Percent Persons without Disabilities Aged 65 or Older without Health Insurance,,,community_participation,
+pwd_19_64_insured_private_pct,Percent Persons with Disabilities Aged 19 - 64 with Private Health Insurance,,,community_participation,
+pwod_19_64_insured_private_pct,Percent Persons without Disabilities Aged 19 - 64 with Private Health Insurance,,,community_participation,
+pwd_grtoeq_65_insured_private_pct,Percent Persons with Disabilities Aged 65 or Older with Private Health Insurance,,,community_participation,
+pwod_grtoeq_65_insured_private_pct,Percent Persons witout Disabilities Aged 65 or Older with Private Health Insurance,,,community_participation,
+pop_total,Total Population,,S1810_C01_001,community_participation,
+pwd_total,Total Persons with Disabilities,,S1810_C02_001,community_participation,
+pwod_total,Total Persons without Disabilities,,,community_participation,
+pwd_commute_public_pct,Percent Persons with Disabilities Who Commute by Public Transit,,S1811_C02_035,community_participation,
+pwod_commute_public_pct,Percent Persons without Disabilities Who Commute by Public Transit,,S1811_C03_035,community_participation,
+pwd_commute_car_alone_pct,Percent Persons with Disabilities Who Commute by Car Alone,,S1811_C02_033,community_participation,
+pwod_commute_car_alone_pct,Percent Persons without Disabilities Who Commute by Car Alone,,S1811_C03_033,community_participation,
+pwd_lessthan_highschool_pct,Percent Persons with Disabilities with No High School Diploma,,S1811_C02_040,community_participation,
+pwod_lessthan_highschool_pct,Percent Persons without Disabilities with No High School Diploma,,S1811_C03_040,community_participation,
+pwd_highschoolequiv_pct,Percent Persons with Disabilities with High School Diploma or Equivalent,,S1811_C02_041,community_participation,
+pwod_highschoolequiv_pct,Percent Persons without Disabilities with High School Diploma or Equivalent,,S1811_C03_041,community_participation,
+pwd_degree_aa_pct,Percent Persons with Disabilities with Associate's Degree,,S1811_C02_042,community_participation,
+pwod_degree_aa_pct,Percent Persons without Disabilities with Associate's Degree,,S1811_C03_042,community_participation,
+pwd_degree_grtoeq_ba_pct,Percent Persons with Disabilities with Bachelor's Degree or Higher,,S1811_C02_043,community_participation,
+pwod_degree_grtoeq_ba_pct,Percent Persons without Disabilities with Bachelor's Degree or Higher,,S1811_C03_043,community_participation,
+pop_total,Total Population,,C18120_001,work_economic,
+pop_19_64,Total Population Aged 19 - 64,,B18135_013,work_economic,
+pwd_19_64,Total Persons with Disabilities Aged 19 - 64,,B18135_014,work_economic,
+pwod_19_64,Total Persons without Disabilities Aged 19 - 64,,,work_economic,
+pwd_employed,"Total Persons with Disabilities, Employed",,C18120_004,work_economic,
+pwod_employed,"Total Persons without Disabilities, Employed",,C18120_005,work_economic,
+pwd_unemployed,"Total Persons with Disabilities, Unemployed",,C18120_007,work_economic,
+pwod_unemployed,"Total Persons without Disabilities, Unemployed",,C18120_008,work_economic,
+pwd_notlabor,"Total Persons with Disabilities, Not in Labor Force",,C18120_010,work_economic,
+pwod_notlabor,"Total Persons without Disabilities, Not in Labor Force",,C18120_011,work_economic,
+pop_18_64,Total Population Aged 18 - 64,,C18130_009,work_economic,
+pwd_18_64,Total Persons with Disabilities Aged 18 - 64,,C18130_010,work_economic,
+pwod_18_64,Total Persons without Disabilities Aged 18 - 64,,C18130_013,work_economic,
+pwd_below_poverty,Total Persons with Disabilities Living Below Poverty Level,,C18130_011,work_economic,
+pwd_atorbelow_poverty,Total Persons with Disabilities Living at or Below Poverty Level,,C18130_012,work_economic,
+pwod_below_poverty,Total Persons without Disabilities Living Below Poverty Level,,C18130_014,work_economic,
+pwod_atorbelow_poverty,Total Persons without Disabilities Living at or Below Poverty Level,,C18130_015,work_economic,
+mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_008,work_economic,
+mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_009,work_economic,
+mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_010,work_economic,
+mortgage_burdened,Total Population Considered Mortage Burdened,,B25091_011,work_economic,
+rent_burdened,Total Population Considered Rent Burdened,,B25070_007,work_economic,
+rent_burdened,Total Population Considered Rent Burdened,,B25070_008,work_economic,
+rent_burdened,Total Population Considered Rent Burdened,,B25070_009,work_economic,
+rent_burdened,Total Population Considered Rent Burdened,,B25070_010,work_economic,
+pop_fulltime,Total Population Working Full-Time,,C18121_002,work_economic,
+pwd_fulltime,Total Persons with Disabilities Working Full-Time,,C18121_003,work_economic,
+pwod_fulltime,Total Persons without Disabilities Working Full-Time,,C18121_004,work_economic,
+pop_not_fulltime,Total Population Working Less Than Full-Time,,C18121_005,work_economic,
+pwd_not_fulltime,Total Persons with Disabilities Working Less Than Full-Time,,C18121_006,work_economic,
+pwod_not_fulltime,Total Persons without Disabilities Working Less Than Full-Time,,C18121_007,work_economic,
+pop_didnotwork,Total Population Who Did Not Work,,C18121_008,work_economic,
+pwd_didnotwork,Total Persons with Disabilities Who Did Not Work,,C18121_009,work_economic,
+pwod_didnotwork,Total Persons without Disabilities Who Did Not Work,,C18121_010,work_economic,
+pwd_grtoeq_16_med_individual_income,Median Individual Income of Persons with Disabilities Aged 16 or Older,,B18140_002,work_economic,
+pwod_grtoeq_16_med_individual_income,Median Individual Income of Persons without Disabilities Aged 16 or Older,,B18140_005,work_economic,
+pwd_grtoeq_16_wfh_pct,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home,,S1811_C02_038,work_economic,
+pwod_grtoeq_16_wfh_pct,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home,,S1811_C03_038,work_economic,
