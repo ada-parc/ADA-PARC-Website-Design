@@ -23,8 +23,6 @@ rm(tables)
 ### Clean data
 ###
 
-# NOTE: Move pct to end of each var name 1/25
-
 ### Human readable tables for use in dashboard
 demographics <- national_demographic %>%
   transmute(

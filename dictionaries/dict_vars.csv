@@ -46,7 +46,7 @@ pwd_selfcare,Total Persons with Disabilities with Self-Care Difficulty,Total Per
 pwd_selfcare_pct,Percent Persons with Disabilities with Self-Care Difficulty,Percent Persons with Disabilities with Self-Care Difficulty,,demographics,Percentage of People with a Self Care Disability
 pwd_indliving,Total Persons with Disabilities with Independent Living Difficulty,Total Persons with Disabilities with Independent Living Difficulty,S1810_C02_063,demographics,Percentage of people with an Independent Living Disability
 pwd_indliving_pct,Percent Persons with Disabilities with Independent Living Difficulty,Percent Persons with Disabilities with Independent Living Difficulty,,demographics,Percentage of people with an Independent Living Disability
-pop_total,Total Population,,S2601A_C01_001,community_living,
+pop_total,Total Population,Total Population,S2601A_C01_001,community_living,
 pwd_pct,Percent Persons with Disabilities,,S2601A_C01_047,community_living,
 pwd_total,Total Persons with Disabilities,,,community_living,
 pop_grpquarters,Total Population Living in Group Quarters,,S2601A_C02_001,community_living,
@@ -54,10 +54,11 @@ pwd_grpquarters_pct,Total Persons with Disabilities Living in Group Quarters,,S2
 grpquarters_pct,Percent of Total Population Living in Group Quarters,,,community_living,
 pop_grpquarters_institution,"Total Population Living in Group Quarters, Institutionalized",,S2601A_C03_001,community_living,
 pop_grpquarters_noninstitution,"Total Population Living in Group Quarters, Not Institutionalized",,S2601A_C04_001,community_living,
-pwd_grpquarters_institution_pct,"Percent Persons with Disabilities Living in Group Quarters, Institutionalized",,S2601A_C03_047,community_living,
+pwd_grpquarters_institution_pct,"Percent Persons with Disabilities Living in Group Quarters, Institutionalized",,S2601A_C03_047,community_living,Percentage of People with Disabilities Living in an Institution
 pwd_grpquarters_institution,"Total Persons with Disabilities Living in Group Quarters, Institutionalized",,,community_living,
-pwd_grpquarters_noninstitution_pct,"Percent Persons with Disabilities Living in Group Quarters, Not Institutionalized",,S2601A_C04_047,community_living,
+pwd_grpquarters_noninstitution_pct,"Percent Persons with Disabilities Living in Group Quarters, Not Institutionalized",,S2601A_C04_047,community_living,Percentage of People with Disabilities Living in Other Group Quarters
 pwd_grpquarters_noninstitution,"Total Persons with Disablities Living in Group Quarters, Not Institutionalized",,,community_living,
+pwd_home_pct,Percentage of Persons with Disabilities Living at Home,Percentage of Persons with Disabilities Living at Home,,community_living,Percentage of People with Disabilities Living at Home
 pop_nursing,Total Population Living in Nursing Homes,,S2602_C04_001,community_living,
 pop_18_64,Total Population Living in Nursing Homes Aged 18 - 64,,S2602_C01_047,community_living,
 pwd_18_64_pct,Percent Persons with Disabilities Aged 18 - 64,,S2602_C01_048,community_living,
