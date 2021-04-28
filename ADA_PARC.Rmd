@@ -208,6 +208,7 @@ renderUI({
 # textOutput("check")
 
 national_variable <- reactive({ input$national_variable_selector })
+
 ```
 
 Row {data-height=500}
@@ -229,8 +230,11 @@ renderPlot({
 
 # Data table
 DT::renderDataTable({
-  national_data <- national_data()
   
+  # Reorganize dataframe
+  national_data <- national_data()
+
+  # Table
   DT::datatable(national_data,
                 rownames = FALSE,
                 fillContainer = TRUE,
@@ -246,6 +250,7 @@ DT::renderDataTable({
 })
 
 DT::dataTableOutput("national_data")
+
 ```
 
 Snapshot {data-navmenu="By Metro"}
@@ -316,14 +321,17 @@ metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" 
 # Define inputs
 selectInput(inputId = "metro_snapshot", 
             label = "Select a City or Town", 
-            choices = tibble::deframe(metro_snapshot_input %>% select(label, GEOID)))
+            choices = tibble::deframe(metro_snapshot_input %>% 
+                                        select(label, GEOID)))
 
 # ===============
 # Pull Census place data
 # ===============
-tables <- c("S1810", "S1811")
-metro_snapshot_place_full <- fun_pull_mongo_data(tables, host_name, "place")
-rm(tables)
+
+# Full data for cities in databse
+metro_snapshot_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
+                                                 host_name, 
+                                                 "place")
 
 # Place for selected metro
 metro_snapshot_place <- reactive({
@@ -337,18 +345,24 @@ metro_snapshot_place <- reactive({
 # Pull Census tract data for selected metro
 # ===============
 
+# Pull location crosswalk dictionary from GitHub repo
+dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt") 
+
 # Spatial
 metro_snapshot_tract_sf <- reactive({
   
-  # Input for odd Census place names
-  temp_metro <-  list(temp_metro = input$metro_snapshot)
+  # Restrict tract call to selected cities
+  temp_metro <- dict_location_crosswalk %>% 
+    filter(place_GEOID %in% c(input$metro_snapshot)) %>% 
+    pull(tract_GEOID)
   
   # Connect and pull
   temp_mongo_conn <- fun_mongo_connect(host_name,
                                        collection_name = "geo_tract",
                                        database_name = "ADA-PARC")
-  temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.place_fips" : "%s" }',
-                                                      temp_metro))
+  temp_geo <- temp_mongo_conn$iterate(
+    query = sprintf('{ "properties.GEOID" : { "$in" : [  "%s" ] } }' ,
+                    str_c(temp_metro, collapse = '", "')))
   temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
   return(temp_sf)
   
@@ -368,15 +382,9 @@ metro_snapshot_tract <- reactive ({
   
 })
 
-# Variable Lookup
-mongo_conn_lu <- fun_mongo_connect(host_name,
-                                   collection_name = "acs_variable_lu",
-                                   database_name = "ADA-PARC")
-metro_snapshot_lu <-mongo_conn_lu$find()
-
 ```
 
-Row {data-height=310}
+Row
 -----------------------------------------------------------------------
 
 ### Overview 
@@ -480,12 +488,12 @@ leafletOutput("snapshotmap")
 
 ```
 
-Row {data-height=310}
+Row
 -----------------------------------------------------------------------
 
 ### City in Context
 
-```{r metro snapshot plots, out.height="310px", out.width="600px"}
+```{r metro snapshot plots}
 
 # ===============
 # Demographics
@@ -517,7 +525,7 @@ output$metro_snapshot_demo_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text") %>% layout(width = 600, height = 310)
+  plotly::ggplotly(gg, tooltip = "text")
   
 })
 
@@ -567,24 +575,24 @@ output$metro_snapshot_we_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text")%>% layout(width = 600, height = 310)
+  plotly::ggplotly(gg, tooltip = "text")
   
 })
 
 # Tab panel output
 tabsetPanel(type = "tabs",
             tabPanel("Demographics",
-                     plotlyOutput("metro_snapshot_demo_plot", height = "330px")),
+                     plotlyOutput("metro_snapshot_demo_plot")),
             tabPanel("Community Participation",
-                     renderText("temporarily blank")),
+                     plotlyOutput("metro_snapshot_cp_plot")),
             tabPanel("Work/Economic",
-                     plotlyOutput("metro_snapshot_we_plot", height = "310px")))
+                     plotlyOutput("metro_snapshot_we_plot")))
 
 ```
 
 ### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
 
-```{r, metro snapshot tract table, out.height="310px", out.width="600px"}
+```{r, metro snapshot tract table}
 
 # Reconfigure tract data for table
 metro_snapshot_table_data <- reactive ({
@@ -596,14 +604,15 @@ metro_snapshot_table_data <- reactive ({
   temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
     pivot_longer(cols = -c(GEOID:NAME),
-                 names_to = c(".value", "variable"),
-                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)")
+                 names_to = c("variable", ".value"),
+                 names_pattern = "(.*)_(.*)")
+  
   # Percent
   temp_pct <- temp %>% 
     select(GEOID:NAME, matches("_C03_")) %>%
     pivot_longer(cols = -c(GEOID:NAME),
-                 names_to = c(".value", "variable"),
-                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>% 
+                 names_to = c("variable", ".value"),
+                 names_pattern = "(.*)_(.*)") %>% 
     mutate("variable" = str_replace_all(variable,
                                         pattern = "_C03_",
                                         replacement =  "_C02_"),
@@ -612,17 +621,20 @@ metro_snapshot_table_data <- reactive ({
   # Output
   temp_values %>%
     left_join(.,
-              temp_pct %>% select(GEOID, NAME, variable, "pct" = estimate),
+              temp_pct %>% 
+                select(GEOID, NAME, variable, "pct" = estimate),
               by = c("GEOID", "NAME", "variable")) %>% 
     left_join(.,
-              metro_snapshot_lu %>% select(variable, label),
+              dict_vars %>% 
+                select("variable" = var_database, 
+                       "label" = var_pretty),
               by = "variable") %>%
-    mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
-    mutate(label = case_when(variable == "S1810_C02_001" ~
-                               "Overall; People with Disabilities",
-                             TRUE ~ label)) %>% 
+    # mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
+    # mutate(label = case_when(variable == "S1810_C02_001" ~
+    #                            "Overall; People with Disabilities",
+    #                          TRUE ~ label)) %>% 
     separate(label, into = c("category", "label"), 
-             sep = "; ", extra = "merge") %>%
+             sep = ", ", extra = "merge") %>%
     mutate(category = str_to_title(category)) %>% 
     select(GEOID, NAME, category, variable, label,
            estimate, moe, pct)
@@ -644,8 +656,8 @@ renderUI({ HTML(
       table.attr = "style='width:100%;'") %>% 
     pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
     kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                  full_width = TRUE) %>% 
-    scroll_box(width = "600px", height = "310px")
+                  full_width = TRUE) 
+    # scroll_box(width = "600px", height = "310px")
   
 ) })
 
