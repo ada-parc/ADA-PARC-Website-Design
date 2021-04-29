@@ -4,7 +4,7 @@
 
 ### Demographics
 tables <- c("S1810")
-national_demographic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
+national_demographics <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Community Living
 tables <- c("S2601A", "S2602", "S1810")
@@ -24,7 +24,7 @@ rm(tables)
 ###
 
 ### Human readable tables for use in dashboard
-demographics <- national_demographic %>%
+national_demographics <- national_demographics %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -82,7 +82,7 @@ demographics <- national_demographic %>%
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-community_living <- national_living %>%
+national_living <- national_living %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -118,7 +118,7 @@ community_living <- national_living %>%
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-community_participation <- national_participation %>%
+national_participation <- national_participation %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -186,7 +186,7 @@ community_participation <- national_participation %>%
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-work_economic <- national_economic %>%
+national_economic <- national_economic %>%
   transmute(
     ### ID
     GEOID = GEOID,
