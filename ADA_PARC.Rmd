@@ -160,28 +160,16 @@ selectInput(inputId = "national_category_selector",
                         "Community Participation" = "community_participation", 
                         "Community Living" = "community_living", 
                         "Work/Economic" = "work_economic"),
-            selected = "demographics")
+            selected = "Demographics")
 
-# Set national df by input$national_category_selector
-# Could eval as symbol if the same name (e.g. df name and input `demographics`),
-# returning the object itself, but we want to preserve df names by section
-# and the input value is needed to limit dict_vars matches
+# Set national df by input$national_category_selector, which returns a string
+# eval() evaluates a symbol created by sym(input)
+# returns a df with the same name as the string 
 national_data <- reactive({
-  
-  if (input$national_category_selector == "demographics"){
-    national_demographics
-  } else if (input$national_category_selector == "community_participation"){
-    national_participation
-  } else if (input$national_category_selector == "community_living"){
-    national_living
-  } else {
-    national_economic
-  }
-  
+  eval(sym(input$national_category_selector))
 })
 
-# Create reactive named list of choices based on selection of
-# national category selected
+# Create reactive named list of choices based on national_category_selector
 national_variable_choices <- reactive({
   
   tibble::deframe(
@@ -192,20 +180,20 @@ national_variable_choices <- reactive({
                  select(-c(GEOID, NAME, ABBR)) %>%
                  names()
              ),
-             !is.na(var_pretty)) %>% 
-      select(var_pretty, var_readable))
+             !is.na(national_dropdown_label)) %>% 
+      select(national_dropdown_label, var_readable))
     
     # Static check
     # tibble::deframe(
     # dict_vars %>%
-    #   filter(var_desc == "demographics",
+    #   filter(var_desc == "work_economic",
     #          var_readable %in% (
-    #            national_demographics %>%
+    #            work_economic %>%
     #              select(-c(GEOID, NAME, ABBR)) %>%
     #              names()
     #          ),
-    #          !is.na(var_pretty)) %>%
-    #   select(var_pretty, var_readable))
+    #          !is.na(national_dropdown_label)) %>%
+    #   select(national_dropdown_label, var_readable))
     
 })
 
@@ -279,7 +267,7 @@ DT::dataTableOutput("national_data")
 
 ```
 
-Snapshot {data-navmenu="By Metro"}
+Metropolitan Data
 ======================================================================
 
 Sidebar {.sidebar}

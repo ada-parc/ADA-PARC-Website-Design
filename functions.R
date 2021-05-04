@@ -66,7 +66,7 @@ render_tile_map <- function(data, selected) {
     selected_label <- ""
   }
   
-  title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
+  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
   
   data %>%
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state

@@ -24,7 +24,7 @@ rm(tables)
 ###
 
 ### Human readable tables for use in dashboard
-national_demographics <- national_demographics %>%
+demographics <- national_demographics %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -82,7 +82,7 @@ national_demographics <- national_demographics %>%
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-national_living <- national_living %>%
+community_living <- national_living %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -118,7 +118,7 @@ national_living <- national_living %>%
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-national_participation <- national_participation %>%
+community_participation <- national_participation %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -186,7 +186,7 @@ national_participation <- national_participation %>%
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
-national_economic <- national_economic %>%
+work_economic <- national_economic %>%
   transmute(
     ### ID
     GEOID = GEOID,
@@ -204,6 +204,12 @@ national_economic <- national_economic %>%
     pwod_unemployed = C18120_008_estimate,
     pwd_notlabor = C18120_010_estimate,
     pwod_notlabor = C18120_011_estimate,
+    pwd_employed_pct = pwd_employed / pwd_19_64,
+    pwod_employed_pct = pwod_employed / pwod_19_64,
+    pwd_unemployed_pct = pwd_unemployed / pwd_19_64,
+    pwod_unemployed_pct = pwod_unemployed / pwod_19_64,
+    pwd_notlabor_pct = pwd_notlabor / pwd_19_64,
+    pwod_notlabor_pct = pwod_notlabor / pwod_19_64,
     
     ### Poverty Status
     pop_18_64 = C18130_009_estimate,
@@ -213,6 +219,8 @@ national_economic <- national_economic %>%
     pwd_atorbelow_poverty = C18130_012_estimate,
     pwod_below_poverty = C18130_014_estimate,
     pwod_atorbelow_poverty = C18130_015_estimate,
+    pwd_below_poverty_pct = pwd_below_poverty / pwd_18_64,
+    pwod_below_poverty_pct = pwod_below_poverty / pwod_18_64,
     
     ### Affordability
     mortgage_burdened = B25091_008_estimate + B25091_009_estimate + B25091_010_estimate + B25091_011_estimate,
@@ -228,6 +236,10 @@ national_economic <- national_economic %>%
     pop_didnotwork = C18121_008_estimate,
     pwd_didnotwork = C18121_009_estimate,
     pwod_didnotwork = C18121_010_estimate,
+    pwd_fulltime_pct = pwd_fulltime / pwd_19_64,
+    pwod_fulltime_pct = pwod_fulltime / pwod_19_64,
+    pwd_not_fulltime_pct = pwd_not_fulltime / pwd_19_64,
+    pwod_not_fulltime_pct = pwod_not_fulltime / pwod_19_64,
     
     ### Income
     pwd_grtoeq_16_med_individual_income = B18140_002_estimate,
