@@ -156,17 +156,17 @@ Sidebar {.sidebar}
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
             label = "Select a category", 
-            choices = c("Demographics" = "demographics", 
-                        "Community Participation" = "community_participation", 
-                        "Community Living" = "community_living", 
-                        "Work/Economic" = "work_economic"),
+            choices = c("Demographics" = "is_demographics", 
+                        "Community Participation" = "is_community_participation", 
+                        "Community Living" = "is_community_living", 
+                        "Work/Economic" = "is_work_economic"),
             selected = "Demographics")
 
 # Set national df by input$national_category_selector, which returns a string
 # eval() evaluates a symbol created by sym(input)
 # returns a df with the same name as the string 
 national_data <- reactive({
-  eval(sym(input$national_category_selector))
+  eval(sym(str_remove(input$national_category_selector, "^is_")))
 })
 
 # Create reactive named list of choices based on national_category_selector
@@ -174,7 +174,7 @@ national_variable_choices <- reactive({
   
   tibble::deframe(
     dict_vars %>% 
-      filter(var_desc == input$national_category_selector, # var_desc looks like "demographics"
+      filter((!!sym(input$national_category_selector)) == TRUE, # var_desc looks like "demographics"
              var_readable %in% ( # var_readable looks like "pwd_pct"
                national_data() %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
@@ -242,11 +242,26 @@ renderPlot({
 
 ```{r, national table}
 
+  
+# Get variable group based on selected variable
+national_vars_in_topic <- reactive({
+  
+  dict_vars %>% 
+    filter(var_topic ==
+             (dict_vars %>% 
+                filter(var_readable == input$national_variable_selector) %>% 
+                pull(var_topic))) %>% 
+    pull(var_readable)
+  
+})
+
+# renderPrint({  national_vars_in_topic() })
 # Data table
 DT::renderDataTable({
-  
+
   # Reorganize dataframe
-  national_data <- national_data()
+  national_data <- national_data() %>%
+    select(GEOID:ABBR, national_vars_in_topic())
 
   # Table
   DT::datatable(national_data,
