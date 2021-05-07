@@ -203,7 +203,7 @@ renderUI({
   selectInput(inputId = "national_variable_selector",
               label = "Select a variable",
               choices = national_variable_choices(),
-              selected = "pwd_total")
+              selected = NULL)
   
 })
 
@@ -905,22 +905,16 @@ Sidebar {.sidebar}
 # Define inputs
 radioButtons(inputId = "data_download_national",
              label = "Select an Area of Interest",
-             choices = c("Demographics", "Community Living", 
-                         "Community Participation", "Work/Economic"),
-             selected = "Demographics")
+             choices = c("Demographics" = "demographics",
+                         "Community Living" = "community_living", 
+                         "Community Participation" = "community_participation", 
+                         "Work/Economic" = "work_economic"),
+             selected = NULL)
 
 # Restrict statistic breakdown based on type
 data_download_national_selected <- reactive({
   
-  if (input$data_download_national == "Demographics"){
-    national_demographics
-  } else if (input$data_download_national == "Community Living"){
-    national_living
-  } else if (input$data_download_national == "Community Participation"){
-    national_participation
-  } else {
-    national_economic
-  }
+  eval(sym(input$data_download_national))
   
 })
 
