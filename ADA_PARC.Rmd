@@ -174,13 +174,13 @@ national_variable_choices <- reactive({
   
   tibble::deframe(
     dict_vars %>% 
-      filter(var_desc == input$national_category_selector,
-             var_readable %in% (
+      filter(var_desc == input$national_category_selector, # var_desc looks like "demographics"
+             var_readable %in% ( # var_readable looks like "pwd_pct"
                national_data() %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
                  names()
              ),
-             !is.na(national_dropdown_label)) %>% 
+             !is.na(national_dropdown_label)) %>% # national_dropdown_label looks like "Percentage of People With Disabilities"
       select(national_dropdown_label, var_readable))
     
     # Static check
