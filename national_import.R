@@ -246,7 +246,7 @@ work_economic <- national_economic %>%
     pwod_grtoeq_16_med_individual_income = B18140_005_estimate,
     
     ### Working from Home
-    pwd_grtoeq_16_wfh_pct = S1811_C02_038_estimate,
-    pwod_grtoeq_16_wfh_pct = S1811_C03_038_estimate
+    pwd_grtoeq_16_wfh_pct = S1811_C02_038_estimate / 100, # Percentages supplied by ACS are whole numbers
+    pwod_grtoeq_16_wfh_pct = S1811_C03_038_estimate / 100
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
