@@ -101,18 +101,18 @@ pwod_19_64_insured_private_pct,Health Insurance,Percent Persons without Disabili
 pwd_grtoeq_65_insured_private_pct,Health Insurance,Percent Persons with Disabilities Aged 65 or Older with Private Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 65 and Above With Private Health Insurance
 pwod_grtoeq_65_insured_private_pct,Health Insurance,Percent Persons witout Disabilities Aged 65 or Older with Private Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 65 and Above With Private Health Insurance
 pwod_total,Overview,Total Persons without Disabilities,,FALSE,FALSE,TRUE,FALSE,
-pwd_commute_public_pct,Commuting,Percent Persons with Disabilities Who Commute by Public Transit,S1811_C02_035,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Who Commute by Public Transit
-pwod_commute_public_pct,Commuting,Percent Persons without Disabilities Who Commute by Public Transit,S1811_C03_035,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Who Commute by Public Transit
-pwd_commute_car_alone_pct,Commuting,Percent Persons with Disabilities Who Commute by Car Alone,S1811_C02_033,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Who Commute by Car Alone
-pwod_commute_car_alone_pct,Commuting,Percent Persons without Disabilities Who Commute by Car Alone,S1811_C03_033,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Who Commute by Car Alone
-pwd_lessthan_highschool_pct,Education,Percent Persons with Disabilities with No High School Diploma,S1811_C02_040,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with Less than a High School Diploma
-pwod_lessthan_highschool_pct,Education,Percent Persons without Disabilities with No High School Diploma,S1811_C03_040,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with Less than a High School Diploma
-pwd_highschoolequiv_pct,Education,Percent Persons with Disabilities with High School Diploma or Equivalent,S1811_C02_041,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with a High School Diploma or GED
-pwod_highschoolequiv_pct,Education,Percent Persons without Disabilities with High School Diploma or Equivalent,S1811_C03_041,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with a High School Diploma or GED
-pwd_degree_aa_pct,Education,Percent Persons with Disabilities with Associate's Degree,S1811_C02_042,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with Some College or an Associate's Degree
-pwod_degree_aa_pct,Education,Percent Persons without Disabilities with Associate's Degree,S1811_C03_042,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with Some College or an Associate's Degree
-pwd_degree_grtoeq_ba_pct,Education,Percent Persons with Disabilities with Bachelor's Degree or Higher,S1811_C02_043,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with a Bachelor's Degree or Higher
-pwod_degree_grtoeq_ba_pct,Education,Percent Persons without Disabilities with Bachelor's Degree or Higher,S1811_C03_043,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with a Bachelor's Degree or Higher
+pwd_commute_public_pct,Transit Usage,Percent Persons with Disabilities Who Commute by Public Transit,S1811_C02_035,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Who Commute by Public Transit
+pwod_commute_public_pct,Transit Usage,Percent Persons without Disabilities Who Commute by Public Transit,S1811_C03_035,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Who Commute by Public Transit
+pwd_commute_car_alone_pct,Transit Usage,Percent Persons with Disabilities Who Commute by Car Alone,S1811_C02_033,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Who Commute by Car Alone
+pwod_commute_car_alone_pct,Transit Usage,Percent Persons without Disabilities Who Commute by Car Alone,S1811_C03_033,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Who Commute by Car Alone
+pwd_lessthan_highschool_pct,Educational Attainment,Percent Persons with Disabilities with No High School Diploma,S1811_C02_040,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with Less than a High School Diploma
+pwod_lessthan_highschool_pct,Educational Attainment,Percent Persons without Disabilities with No High School Diploma,S1811_C03_040,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with Less than a High School Diploma
+pwd_highschoolequiv_pct,Educational Attainment,Percent Persons with Disabilities with High School Diploma or Equivalent,S1811_C02_041,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with a High School Diploma or GED
+pwod_highschoolequiv_pct,Educational Attainment,Percent Persons without Disabilities with High School Diploma or Equivalent,S1811_C03_041,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with a High School Diploma or GED
+pwd_degree_aa_pct,Educational Attainment,Percent Persons with Disabilities with Associate's Degree,S1811_C02_042,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with Some College or an Associate's Degree
+pwod_degree_aa_pct,Educational Attainment,Percent Persons without Disabilities with Associate's Degree,S1811_C03_042,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with Some College or an Associate's Degree
+pwd_degree_grtoeq_ba_pct,Educational Attainment,Percent Persons with Disabilities with Bachelor's Degree or Higher,S1811_C02_043,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with a Bachelor's Degree or Higher
+pwod_degree_grtoeq_ba_pct,Educational Attainment,Percent Persons without Disabilities with Bachelor's Degree or Higher,S1811_C03_043,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with a Bachelor's Degree or Higher
 pop_total,Overview,Total Population,C18120_001,FALSE,FALSE,FALSE,TRUE,
 pwod_19_64,Overview,Total Persons without Disabilities Aged 19 - 64,,FALSE,FALSE,FALSE,TRUE,
 pwd_employed,Employment Status,"Total Persons with Disabilities, Employed",C18120_004,FALSE,FALSE,FALSE,TRUE,
@@ -136,28 +136,28 @@ pwd_atorbelow_poverty,Poverty Status,Total Persons with Disabilities Living at o
 pwod_below_poverty,Poverty Status,Total Persons without Disabilities Living Below Poverty Level,C18130_014,FALSE,FALSE,FALSE,TRUE,
 pwod_below_poverty_pct,Poverty Status,Percentage of People Without Disabilities Below the Poverty Level,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Below the Poverty Level
 pwod_atorbelow_poverty,Poverty Status,Total Persons without Disabilities Living at or Below Poverty Level,C18130_015,FALSE,FALSE,FALSE,TRUE,
-mortgage_burdened,Housing Cost Burden,Total Population Considered Mortage Burdened,B25091_008,FALSE,FALSE,FALSE,TRUE,
-mortgage_burdened,Housing Cost Burden,Total Population Considered Mortage Burdened,B25091_009,FALSE,FALSE,FALSE,TRUE,
-mortgage_burdened,Housing Cost Burden,Total Population Considered Mortage Burdened,B25091_010,FALSE,FALSE,FALSE,TRUE,
-mortgage_burdened,Housing Cost Burden,Total Population Considered Mortage Burdened,B25091_011,FALSE,FALSE,FALSE,TRUE,
-rent_burdened,Housing Cost Burden,Total Population Considered Rent Burdened,B25070_007,FALSE,FALSE,FALSE,TRUE,
-rent_burdened,Housing Cost Burden,Total Population Considered Rent Burdened,B25070_008,FALSE,FALSE,FALSE,TRUE,
-rent_burdened,Housing Cost Burden,Total Population Considered Rent Burdened,B25070_009,FALSE,FALSE,FALSE,TRUE,
-rent_burdened,Housing Cost Burden,Total Population Considered Rent Burdened,B25070_010,FALSE,FALSE,FALSE,TRUE,
-pop_fulltime,Employment Status,Total Population Working Full-Time,C18121_002,FALSE,FALSE,FALSE,TRUE,
-pwd_fulltime,Employment Status,Total Persons with Disabilities Working Full-Time,C18121_003,FALSE,FALSE,FALSE,TRUE,
-pwod_fulltime,Employment Status,Total Persons without Disabilities Working Full-Time,C18121_004,FALSE,FALSE,FALSE,TRUE,
-pwd_fulltime_pct,Employment Status,Percentage of People With Disabilities Who Work Full Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Who Work Full Time
-pwod_fulltime_pct,Employment Status,Percentage of People Without Disabilities Who Work Full Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Who Work Full Time
-pop_not_fulltime,Employment Status,Total Population Working Less Than Full-Time,C18121_005,FALSE,FALSE,FALSE,TRUE,
-pwd_not_fulltime,Employment Status,Total Persons with Disabilities Working Less Than Full-Time,C18121_006,FALSE,FALSE,FALSE,TRUE,
-pwod_not_fulltime,Employment Status,Total Persons without Disabilities Working Less Than Full-Time,C18121_007,FALSE,FALSE,FALSE,TRUE,
-pwd_not_fulltime_pct,Employment Status,Percentage of People With Disabilities Who Work Part Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Who Work Part Time
-pwod_not_fulltime_pct,Employment Status,Percentage of People Without Disabilities Who Work Part Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Who Work Part Time
-pop_didnotwork,Employment Status,Total Population Who Did Not Work,C18121_008,FALSE,FALSE,FALSE,TRUE,
-pwd_didnotwork,Employment Status,Total Persons with Disabilities Who Did Not Work,C18121_009,FALSE,FALSE,FALSE,TRUE,
-pwod_didnotwork,Employment Status,Total Persons without Disabilities Who Did Not Work,C18121_010,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_008,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_009,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_010,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_011,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_007,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_008,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_009,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_010,FALSE,FALSE,FALSE,TRUE,
+pop_fulltime,Full and Part Time Workers,Total Population Working Full-Time,C18121_002,FALSE,FALSE,FALSE,TRUE,
+pwd_fulltime,Full and Part Time Workers,Total Persons with Disabilities Working Full-Time,C18121_003,FALSE,FALSE,FALSE,TRUE,
+pwod_fulltime,Full and Part Time Workers,Total Persons without Disabilities Working Full-Time,C18121_004,FALSE,FALSE,FALSE,TRUE,
+pwd_fulltime_pct,Full and Part Time Workers,Percentage of People With Disabilities Who Work Full Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Who Work Full Time
+pwod_fulltime_pct,Full and Part Time Workers,Percentage of People Without Disabilities Who Work Full Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Who Work Full Time
+pop_not_fulltime,Full and Part Time Workers,Total Population Working Less Than Full-Time,C18121_005,FALSE,FALSE,FALSE,TRUE,
+pwd_not_fulltime,Full and Part Time Workers,Total Persons with Disabilities Working Less Than Full-Time,C18121_006,FALSE,FALSE,FALSE,TRUE,
+pwod_not_fulltime,Full and Part Time Workers,Total Persons without Disabilities Working Less Than Full-Time,C18121_007,FALSE,FALSE,FALSE,TRUE,
+pwd_not_fulltime_pct,Full and Part Time Workers,Percentage of People With Disabilities Who Work Part Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Who Work Part Time
+pwod_not_fulltime_pct,Full and Part Time Workers,Percentage of People Without Disabilities Who Work Part Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Who Work Part Time
+pop_didnotwork,Full and Part Time Workers,Total Population Who Did Not Work,C18121_008,FALSE,FALSE,FALSE,TRUE,
+pwd_didnotwork,Full and Part Time Workers,Total Persons with Disabilities Who Did Not Work,C18121_009,FALSE,FALSE,FALSE,TRUE,
+pwod_didnotwork,Full and Part Time Workers,Total Persons without Disabilities Who Did Not Work,C18121_010,FALSE,FALSE,FALSE,TRUE,
 pwd_grtoeq_16_med_individual_income,Income,Median Individual Income of Persons with Disabilities Aged 16 or Older,B18140_002,FALSE,FALSE,FALSE,TRUE,Median Individual Income of Persons with Disabilities Aged 16 or Older
 pwod_grtoeq_16_med_individual_income,Income,Median Individual Income of Persons without Disabilities Aged 16 or Older,B18140_005,FALSE,FALSE,FALSE,TRUE,Median Individual Income of Persons without Disabilities Aged 16 or Older
-pwd_grtoeq_16_wfh_pct,Employment Status,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home,S1811_C02_038,FALSE,FALSE,FALSE,TRUE,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home
-pwod_grtoeq_16_wfh_pct,Employment Status,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home,S1811_C03_038,FALSE,FALSE,FALSE,TRUE,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home
+pwd_grtoeq_16_wfh_pct,Working from Home,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home,S1811_C02_038,FALSE,FALSE,FALSE,TRUE,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home
+pwod_grtoeq_16_wfh_pct,Working from Home,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home,S1811_C03_038,FALSE,FALSE,FALSE,TRUE,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home
