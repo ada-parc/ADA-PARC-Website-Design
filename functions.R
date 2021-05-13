@@ -13,7 +13,8 @@ fun_mongo_connect <- function(host_name, collection_name, database_name){
                  database_name)
   
   mongolite::mongo(collection = collection_name,
-                   url = url)
+                   url = url,
+                   options = ssl_options(weak_cert_validation = TRUE))
   
 }
 

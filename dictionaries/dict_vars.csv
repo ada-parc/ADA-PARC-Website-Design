@@ -4,16 +4,18 @@ pwd_total,Overview,Total Persons with Disabilities,S1810_C02_001,TRUE,FALSE,TRUE
 pwd_pct,Overview,Percent Persons with Disabilities,,TRUE,FALSE,FALSE,FALSE,Percentage of Total Population with Disabilities
 pop_18_64,Age,Total Population Aged 18 - 34,S1810_C01_015,TRUE,FALSE,FALSE,FALSE,
 pop_18_64,Age,Total Population Aged 35 - 64,S1810_C01_016,TRUE,FALSE,FALSE,FALSE,
-pwd_18_64,Age,Total Persons with Disabilities Aged 18 - 34,S1810_C02_015,TRUE,FALSE,FALSE,FALSE,
-pwd_18_64,Age,Total Persons with Disabilities Aged 35 - 64,S1810_C02_016,TRUE,FALSE,FALSE,FALSE,
+pwd_0_5,Age,"Total Persons with Disabilities, Aged 0 - 5",S1810_C02_013,TRUE,FALSE,FALSE,FALSE,
+pwd_5_17,Age,"Total Persons with Disabilities, Aged 5 - 17",S1810_C02_014,TRUE,FALSE,FALSE,FALSE,
+pwd_18_64,Age,"Total Persons with Disabilities, Aged 18 - 34",S1810_C02_015,TRUE,FALSE,FALSE,FALSE,
+pwd_18_64,Age,"Total Persons with Disabilities, Aged 35 - 64",S1810_C02_016,TRUE,FALSE,FALSE,FALSE,
 pwd_18_64_pct,Age,Percent Persons with Disabilities Aged 18 - 64,,TRUE,FALSE,FALSE,FALSE,"Percentage of People with a Disability, Age 18 to 64"
 pop_grtoeq_65,Age,Total Population Aged 65 - 74,S1810_C01_017,TRUE,FALSE,FALSE,FALSE,
 pop_grtoeq_65,Age,Total Population Aged 75 or Older,S1810_C01_018,TRUE,FALSE,FALSE,FALSE,
-pwd_grtoeq_65,Age,Total Persons with Disabilities Aged 65 - 74,S1810_C02_017,TRUE,FALSE,FALSE,FALSE,
-pwd_grtoeq_65,Age,Total Persons with Disabilities Aged 75 or Older,S1810_C02_018,TRUE,FALSE,FALSE,FALSE,
+pwd_grtoeq_65,Age,"Total Persons with Disabilities, Aged 65 - 74",S1810_C02_017,TRUE,FALSE,FALSE,FALSE,
+pwd_grtoeq_65,Age,"Total Persons with Disabilities, Aged 75 or Older",S1810_C02_018,TRUE,FALSE,FALSE,FALSE,
 pwd_grtoeq_65_pct,Age,Percent Persons with Disabilities Aged 65 or Older,,TRUE,FALSE,FALSE,FALSE,Percent Persons with Disabilities Aged 65 and Older
 pwd_white,Race,"Total Persons with Disabilities, White",S1810_C02_004,TRUE,FALSE,FALSE,FALSE,
-pwd_black,Race,"Total Persons with Disabilities, Black",S1810_C02_005,TRUE,FALSE,FALSE,FALSE,
+pwd_black,Race,"Total Persons with Disabilities, Black or African American alone",S1810_C02_005,TRUE,FALSE,FALSE,FALSE,
 pwd_hisp,Race,"Total Persons with Disabilities, Hispanic",S1810_C02_012,TRUE,FALSE,FALSE,FALSE,
 pwd_white_nonhisp,Race,"Total Persons with Disabilities, Not Hispanic, White Alone",S1810_C02_011,TRUE,FALSE,FALSE,FALSE,
 pwd_other,Race,"Total Persons with Disabilities, American Indian and Alaskan Native alone",S1810_C02_006,TRUE,FALSE,FALSE,FALSE,
@@ -24,7 +26,7 @@ pwd_other,Race,"Total Persons with Disabilities, Two or more races",S1810_C02_01
 pwd_white_pct,Race,"Percent Persons with Disabilities, White",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are White
 pwd_black_pct,Race,"Percent Persons with Disabilities, Black",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are Black
 pwd_hisp_pct,Race,"Percent Persons with Disabilities, Hispanic",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are Hispanic
-pwd_white_nonhisp_pct,Race,"Percent Persons with Disabilities, Nonhispanic",,TRUE,FALSE,FALSE,FALSE,"Percentage of People with a Disability who are White, Non-Hispanic"
+pwd_white_nonhisp_pct,Race,"Percent Persons with Disabilities, Non-Hispanic",,TRUE,FALSE,FALSE,FALSE,"Percentage of People with a Disability who are White, Non-Hispanic"
 pwd_other_pct,Race,"Percent Persons with Disabilities, Other Race",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are of Another Race
 pop_female,Gender,"Total Population, Female",S1810_C01_003,TRUE,FALSE,FALSE,FALSE,
 pwd_female,Gender,"Total Persons with Disabilities, Female",S1810_C02_003,TRUE,FALSE,FALSE,FALSE,
