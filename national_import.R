@@ -96,13 +96,13 @@ community_living <- national_living %>%
     
     ### Group quarters
     pop_grpquarters = S2601A_C02_001_estimate,
-    pwd_grpquarters_pct = S2601A_C02_047_estimate,
+    pwd_grpquarters_pct = S2601A_C02_047_estimate / 100,  # Percentages supplied by ACS are whole numbers
     grpquarters_pct = pop_grpquarters / pop_total,
     pop_grpquarters_institution = S2601A_C03_001_estimate,
     pop_grpquarters_noninstitution = S2601A_C04_001_estimate,
-    pwd_grpquarters_institution_pct = S2601A_C03_047_estimate,
+    pwd_grpquarters_institution_pct = S2601A_C03_047_estimate / 100,
     pwd_grpquarters_institution = round(pop_grpquarters * (pwd_grpquarters_institution_pct/100), 0),
-    pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate,
+    pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate / 100,
     pwd_grpquarters_noninstitution = round(pop_grpquarters * (pwd_grpquarters_noninstitution_pct/100), 0),
     pwd_home_pct = round((pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution) / pwd_total, 2),
     pwd_grpquarters_other_pct = round((pwd_grpquarters_noninstitution / pwd_total) * 100, 2),
@@ -110,10 +110,10 @@ community_living <- national_living %>%
     ### Nursing homes
     pop_nursing = S2602_C04_001_estimate,
     pop_18_64 = S2602_C01_047_estimate,
-    pwd_18_64_pct = S2602_C01_048_estimate, 
+    pwd_18_64_pct = S2602_C01_048_estimate / 100, 
     pwd_18_64 = round(pop_total * (pwd_18_64_pct / 100), 0),
-    pop_nursing_18_64_pct = S2602_C04_006_estimate + S2602_C04_007_estimate + S2602_C04_008_estimate + S2602_C04_009_estimate + S2602_C04_010_estimate,
-    pwd_nursing_18_64_pct = S2602_C04_048_estimate,
+    pop_nursing_18_64_pct = (S2602_C04_006_estimate + S2602_C04_007_estimate + S2602_C04_008_estimate + S2602_C04_009_estimate + S2602_C04_010_estimate) / 100,
+    pwd_nursing_18_64_pct = S2602_C04_048_estimate / 100,
     pwd_nursing_18_64 = round(pwd_total * (pwd_nursing_18_64_pct/100), 0) 
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
@@ -169,20 +169,20 @@ community_participation <- national_participation %>%
     pwod_total = pop_total - pwd_total,
     
     ### Transit Usage
-    pwd_commute_public_pct = S1811_C02_035_estimate,
-    pwod_commute_public_pct = S1811_C03_035_estimate,
-    pwd_commute_car_alone_pct = S1811_C02_033_estimate,
-    pwod_commute_car_alone_pct = S1811_C03_033_estimate,
+    pwd_commute_public_pct = S1811_C02_035_estimate / 100,
+    pwod_commute_public_pct = S1811_C03_035_estimate / 100,
+    pwd_commute_car_alone_pct = S1811_C02_033_estimate / 100,
+    pwod_commute_car_alone_pct = S1811_C03_033_estimate / 100,
     
     ### Educational Attainment
-    pwd_lessthan_highschool_pct = S1811_C02_040_estimate,
-    pwod_lessthan_highschool_pct = S1811_C03_040_estimate,
-    pwd_highschoolequiv_pct = S1811_C02_041_estimate,
-    pwod_highschoolequiv_pct = S1811_C03_041_estimate,
-    pwd_degree_aa_pct = S1811_C02_042_estimate,
-    pwod_degree_aa_pct = S1811_C03_042_estimate, 
-    pwd_degree_grtoeq_ba_pct = S1811_C02_043_estimate,
-    pwod_degree_grtoeq_ba_pct = S1811_C03_043_estimate
+    pwd_lessthan_highschool_pct = S1811_C02_040_estimate / 100,
+    pwod_lessthan_highschool_pct = S1811_C03_040_estimate / 100,
+    pwd_highschoolequiv_pct = S1811_C02_041_estimate / 100,
+    pwod_highschoolequiv_pct = S1811_C03_041_estimate / 100,
+    pwd_degree_aa_pct = S1811_C02_042_estimate / 100,
+    pwod_degree_aa_pct = S1811_C03_042_estimate / 100, 
+    pwd_degree_grtoeq_ba_pct = S1811_C02_043_estimate / 100,
+    pwod_degree_grtoeq_ba_pct = S1811_C03_043_estimate / 100
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
