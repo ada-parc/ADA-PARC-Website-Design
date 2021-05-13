@@ -654,19 +654,30 @@ tabsetPanel(type = "tabs",
 # Reconfigure tract data for table
 metro_snapshot_table_data <- reactive({
   
-  # Req
-  req(click_snapshotmap())
-  
   # Select tract
   temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ] 
   
-  # Values
+  # Static check
+  # Census Tract 59.01, Montgomery County, Alabama
+  # temp_mongo_conn <- fun_mongo_connect(host_name = "host_dev",
+  #                                      collection_name = "acs_tract_S1810",
+  #                                      database_name = "ADA-PARC")
+  # temp <- temp_mongo_conn$find(
+  #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }'))
+
+  # Values (Remove White/Hispanic, reorder Race topic)
   temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
     pivot_longer(cols = -c(GEOID:NAME),
                  names_to = c("variable", ".value"),
-                 names_pattern = "(.*)_(.*)")
-  
+                 names_pattern = "(.*)_(.*)") %>% 
+    filter(!variable %in% c("S1810_C02_004")) %>% 
+    mutate("variable" = fct_relevel(variable,
+                                    c("S1810_C02_011",
+                                      "S1810_C02_012"),
+                                    after = 4)) %>% 
+    arrange(variable)
+ 
   # Percent
   temp_pct <- temp %>% 
     select(GEOID:NAME, matches("_C03_")) %>%
@@ -676,7 +687,7 @@ metro_snapshot_table_data <- reactive({
     mutate("variable" = str_replace_all(variable,
                                         pattern = "_C03_",
                                         replacement =  "_C02_"),
-           estimate = replace_na(estimate, 0))
+           "estimate" = replace_na(estimate, 0))
   
   # Output
   temp_values %>%
@@ -684,41 +695,53 @@ metro_snapshot_table_data <- reactive({
               temp_pct %>% 
                 select(GEOID, NAME, variable, "pct" = estimate),
               by = c("GEOID", "NAME", "variable")) %>% 
+    mutate("pct" = replace_na(pct, 0)) %>% 
     left_join(.,
               dict_vars %>% 
-                select("variable" = var_database, 
-                       "label" = var_pretty),
+                select("category" = var_topic,
+                       "label" = var_pretty,
+                       "variable" = var_database),
               by = "variable") %>%
-    # mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
-    # mutate(label = case_when(variable == "S1810_C02_001" ~
-    #                            "Overall; People with Disabilities",
-    #                          TRUE ~ label)) %>% 
-    separate(label, into = c("category", "label"), 
-             sep = ", ", extra = "merge") %>%
-    mutate(category = str_to_title(category)) %>% 
+    mutate("label" = str_remove_all(label, 
+                                  "Total Persons with Disabilities, ")) %>%
+    mutate("label" = case_when(variable == "S1810_C02_001" ~
+                               "People with Disabilities",
+                             TRUE ~ label)) %>%
+    mutate("category" = str_to_title(category)) %>% 
     select(GEOID, NAME, category, variable, label,
-           estimate, moe, pct)
+           estimate, moe, pct) 
   
 })
 
 # Table
-renderUI({ HTML(
+renderUI({ 
   
-  kbl(x = metro_snapshot_table_data() %>%
-        mutate(output_est = paste0(comma(estimate, accuracy = 1), 
-                                   " (", pct, "%)"),
-               output_moe = "(±", comma(moe), ")") %>% 
-        mutate(across(everything(), 
-                      ~cell_spec(., "html",
-                                 color = ifelse(moe >= estimate, 
-                                                "red", "black")))) %>%
-        select("Variable" = label, "Est" = output_est,  "MOE" = output_moe),
-      caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
-      escape = FALSE,
-      table.attr = "style='width:100%;'") %>% 
-    pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                  full_width = TRUE)
+  # Req
+  req(nrow(metro_snapshot_table_data()) > 0)
+  
+  HTML(
+  
+    kbl(x = metro_snapshot_table_data() %>%
+          mutate("output_est" = paste0(comma(estimate,
+                                             accuracy = 1), 
+                                       " (", pct, "%)"),
+                 "output_moe" = paste0("(±", 
+                                       comma(moe,
+                                             accuracy = 1),
+                                       ")")) %>% 
+          mutate(across(everything(), 
+                        ~cell_spec(., "html",
+                                   color = ifelse(moe >= estimate, 
+                                                  "red", "black")))) %>%
+          select("Variable" = label, "Est" = output_est,  "MOE" = output_moe),
+        caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
+        escape = FALSE,
+        table.attr = "style='width:100%;'") %>% 
+      pack_rows(index = table(
+        fct_inorder(metro_snapshot_table_data()$category))) %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", 
+                                          "condensed"),
+                    full_width = TRUE)
   
 ) })
 
