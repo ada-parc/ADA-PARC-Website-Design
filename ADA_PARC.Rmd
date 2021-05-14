@@ -261,7 +261,8 @@ renderPlot({
 national_vars_in_topic <- reactive({
   
   dict_vars %>% 
-    filter(var_topic ==
+    filter((!!sym(input$national_category_selector)) == TRUE,
+           var_topic ==
              (dict_vars %>% 
                 filter(var_readable == input$national_variable_selector) %>% 
                 pull(var_topic))) %>% 
@@ -284,7 +285,6 @@ DT::renderDataTable({
                 extensions = c("Buttons"),
                 options = list(pageLength = -1,
                                searching = TRUE,
-                               autoWidth = TRUE,
                                scrollY = "100vh",
                                scrollX = "100px",
                                dom = "Bfti",
