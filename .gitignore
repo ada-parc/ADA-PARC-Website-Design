@@ -11,3 +11,5 @@ tracts.geojson
 .Rproj.user
 .Rhistory
 .Rhistory
+*.dcf
+.Rhistory

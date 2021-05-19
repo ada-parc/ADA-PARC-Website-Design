@@ -340,7 +340,7 @@ renderUI({
                  label = "1.) Select one or more tables to download:",
                  choices = split(unique(cities_acs_vars_ref()$table_name),
                                  unique(cities_acs_vars_ref()$shiny_input_label)),
-                 selected = c("S1810", "S1811", "S2601A", "S2602"),
+                 selected = c("S1810", "S1811"),
                  multiple = TRUE,
                  options = list(searchField = c("label", "value")))
   
@@ -693,7 +693,7 @@ renderUI({
                  label = "1.) Select one or more tables to download:",
                  choices = split(unique(tracts_acs_vars_ref()$table_name),
                                  unique(tracts_acs_vars_ref()$shiny_input_label)),
-                 selected = c("S1810", "S1811"),
+                 selected = c("S1810"),
                  multiple = TRUE,
                  options = list(searchField = c("label", "value")))
   
