@@ -60,11 +60,13 @@ render_tile_map <- function(data, selected) {
   # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
   # # outputs: "GEOID"
   
-  # Provide appropriate variable label to national tile map labels
+  # Perform the important transformations to variables based on the type of number
   if(grepl("pct", selected)) {
-    selected_label <- "%"
+    fill_text <- geom_text(aes(label = paste0(!!sym(selected), '%')),
+              color = "white")
   } else {
-    selected_label <- ""
+    fill_text <- geom_text(aes(label = paste0(scales::comma(round(!!sym(selected), -5)))), # rounds to nearest 100k
+              color = "white")
   }
   
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
@@ -73,8 +75,7 @@ render_tile_map <- function(data, selected) {
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
                fill = !!sym(selected))) + # Selected variable
     geom_tile() + # Imports x and y values
-    geom_text(aes(label = paste0(!!sym(selected), selected_label)),
-              color = "white") + # Adds percentage to the center of the tile
+    fill_text + 
     labs(x = "", y = "", title = title) +
     facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
     theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need

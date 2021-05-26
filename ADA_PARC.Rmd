@@ -25,6 +25,8 @@ library(extrafont); library(plotly)
 library(mongolite)
 library(here)
 
+options(scipen = 999999)
+
 # Set this to host_prod or host_dev
 host_name = "host_dev"
 
