@@ -62,11 +62,11 @@ render_tile_map <- function(data, selected) {
   
   # Perform the important transformations to variables based on the type of number
   if(grepl("pct", selected)) {
-    fill_text <- geom_text(aes(label = paste0(!!sym(selected), '%')),
-              color = "white")
+    fill_text <- geom_text(aes(label = paste0(round(!!sym(selected), 1), '%')),
+              color = "white", size = 4)
   } else {
     fill_text <- geom_text(aes(label = paste0(scales::comma(round(!!sym(selected), -5)))), # rounds to nearest 100k
-              color = "white")
+              color = "white", size = 4)
   }
   
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
