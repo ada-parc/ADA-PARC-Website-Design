@@ -64,19 +64,27 @@ render_tile_map <- function(data, selected) {
   if(grepl("pct", selected)) {
     fill_text <- geom_text(aes(label = paste0(round(!!sym(selected), 1), '%')),
               color = "white", size = 4)
+    breaks <- quantile(data %>% pull(!!sym(selected)))[2:5] 
+    names(breaks) <- c(scales::percent(breaks / 100))
   } else {
     fill_text <- geom_text(aes(label = paste0(scales::comma(round(!!sym(selected), -5)))), # rounds to nearest 100k
               color = "white", size = 4)
+    breaks <- quantile(data %>% pull(!!sym(selected)))[2:5] 
+    names(breaks) <- c(scales::comma(breaks))
   }
   
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
+  legend_title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
+  
   
   data %>%
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
                fill = !!sym(selected))) + # Selected variable
     geom_tile() + # Imports x and y values
     fill_text + 
-    labs(x = "", y = "", title = title) +
+    labs(x = "", y = "", 
+         title = title,
+         fill = legend_title) +
     facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
     theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
           panel.grid = element_blank(),
@@ -85,9 +93,10 @@ render_tile_map <- function(data, selected) {
           axis.ticks = element_blank(),
           axis.line = element_blank(),
           panel.spacing = unit(0L, "pt"),
-          legend.position = "none",
+          legend.position = "bottom",
+          legend.text = element_text(angle = 90, vjust = .5),
           strip.text.x = element_text(size = 9L)) +
-    scale_fill_continuous(high = "#132B43", low = "#56B1F7") # reverses the default gradient direction so that dark blue is associated with larger values
+    scale_fill_binned(high = "#132B43", low = "#56B1F7", breaks = breaks) # reverses the default gradient direction so that dark blue is associated with larger values
 }
 
 
