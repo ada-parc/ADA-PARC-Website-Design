@@ -72,9 +72,9 @@ Use the **Accessibility** tab to set color palettes for the visualizations in th
 
 Application authors:
 
-[Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz]()
+Sean Connelly and Ethan Jantz
 <br>
-[Voorhees Center](https://voorheescenter.uic.edu/)
+[UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
 Row
 -----------------------------------------------------------------------
@@ -113,16 +113,16 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-- Region 1 New England ADA Center: Valerie Fletcher
-- Region 2 Northeast ADA Center: Wendy Strobel Gower
-- Region 3 Mid-Atlantic ADA Center: Marian Vessels
-- Region 4 Southeast ADA Center: Katie McDonald, Work & Economics data team lead
-- Region 5 Great Lakes ADA Center: Joy Hammel, Co-Project Director, Community Participation data team lead
-- Region 6 Southwest ADA Center: Lex Frieden, Co-Project Director
-- Region 7 Great Plains ADA Center: Julie Brinkhoff
-- Region 8 Rocky Mountain ADA Center: Emily Shuman
-- Region 9 Pacific ADA Center: Lewis Kraus, Community Living data team lead
-- Region 10 Great Northwest ADA Center: Kathe Matrone
+- Region 1 New England ADA Center
+- Region 2 Northeast ADA Center
+- Region 3 Mid-Atlantic ADA Center
+- Region 4 Southeast ADA Center
+- Region 5 Great Lakes ADA Center
+- Region 6 Southwest ADA Center
+- Region 7 Great Plains ADA Center
+- Region 8 Rocky Mountain ADA Center
+- Region 9 Pacific ADA Center
+- Region 10 Great Northwest ADA Center
 
 Other institutions collaborating in the ADA-PARC are:
 
@@ -471,7 +471,7 @@ renderUI({
 
 ```
 
-### Persons With Disabilities Map
+### People With Disabilities Map
 
 ```{r metro snapshot overview map, context="server"}
 
@@ -548,7 +548,7 @@ Row
 
 ### City in Context
 
-```{r metro snapshot plots, context="server"}
+```{r metro snapshot plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"}
 
 # ===============
 # Demographics
@@ -581,7 +581,8 @@ output$metro_snapshot_demo_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text")
+  plotly::ggplotly(gg, tooltip = "text") %>% 
+    plotly::layout(height = 330)
   
 })
 
@@ -612,7 +613,8 @@ output$metro_snapshot_cp_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg)
+  plotly::ggplotly(gg) %>% 
+    plotly::layout(height = 330)
   
 })
 
@@ -648,7 +650,8 @@ output$metro_snapshot_we_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text")
+  plotly::ggplotly(gg, tooltip = "text") %>% 
+    plotly::layout(height = 330)
   
 })
 
