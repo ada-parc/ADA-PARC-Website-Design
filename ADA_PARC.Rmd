@@ -391,58 +391,56 @@ renderUI({
     "<h3>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h3>", "<br>",
     "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br>")
   
-  # Conditional text based on selected tab
-  metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
+  # Summary tables side by side
+  metro_snap_tables <- knitr::kables(list(
     
     # Demographics
     kbl(x = metro_snapshot_place() %>%
           mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
                    S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
-          select("Asian" = S1810_C02_007_estimate,
+          select("White" = S1810_C02_011_estimate,
                  "Black" = S1810_C02_005_estimate,
                  "Hispanic or<br>Latino" = S1810_C02_012_estimate,
-                 "White" = S1810_C02_011_estimate,
+                 "Asian" = S1810_C02_007_estimate,
                  Other,
                  "Total" = S1810_C02_001_estimate) %>% 
           mutate(across(-Total,
                         ~ paste0(comma(., accuracy = 1), 
                                  " (",  percent(. / Total, 
                                                 accuracy = 0.1), ")"))) %>%
-          mutate(Total = comma(Total, accuracy = 1)),
-        caption = "Race and Ethnicity, People with Disabilities",
+          mutate(Total = comma(Total, accuracy = 1)) %>% 
+          pivot_longer(everything(),
+                       names_to = "Race/Ethnicity",
+                       values_to = "PWD"),
+        caption = "Race/Ethnicity, People with Disabilities",
         escape = FALSE,
         align = "c"#,
         # table.attr = "style='width:80%;'"
-        ) %>% 
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
-    
-  } else if (input$active_tab == 1) {
+    ),
     
     # Community Participation
     kbl(x = metro_snapshot_place() %>%
-          transmute("Private<br>Motor Vehicle" = 
+          transmute("Car" = 
                       paste0(comma((S1811_C02_033_estimate + S1811_C02_034_estimate), accuracy = 0.1), "%"),
                     "Transit" = 
                       paste0(comma(S1811_C02_035_estimate,
                                    accuracy = 0.1), "%"),
                     
-                    "Walk or<br>Bike" = 
+                    "Walk or Bike" = 
                       paste0(comma((S1811_C02_036_estimate + S1811_C02_037_estimate), accuracy = 0.1), "%"),
-                    "Work from<br>Home" = 
+                    "Work from Home" = 
                       paste0(comma(S1811_C02_038_estimate,
                                    accuracy = 0.1), "%"),
                     "Total" = 
-                      comma(S1811_C02_032_estimate, accuracy = 1)),
+                      comma(S1811_C02_032_estimate, accuracy = 1)) %>% 
+          pivot_longer(everything(),
+                       names_to = "Commute Type",
+                       values_to = "PWD"),
         caption = "Commuting Patterns, People with Disabilities, Workers 16 or Older",
         escape = FALSE,
         align = "c" #,
         # table.attr = "style='width:100%;'"
-        ) %>% 
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
-    
-  } else {
+    ),
     
     # Work/Economic
     kbl(x = metro_snapshot_place() %>%
@@ -453,19 +451,22 @@ renderUI({
                       paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
                              " (", S1811_C02_003_estimate, "%)"),
                     "Total" = 
-                      comma(S1811_C02_001_estimate, accuracy = 1)),
+                      comma(S1811_C02_001_estimate, accuracy = 1)) %>%
+          pivot_longer(everything(),
+                       names_to = "Employment Status",
+                       values_to = "PWD"),
         caption = "Employment Status, People with Disabilities, 16 or Older",
         escape = FALSE,
         align = "c" #,
         # table.attr = "style='width:100%;'"
-        ) %>% 
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
+    )
     
-  }
+  )) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  position = "left")
   
   # UI Output
-  HTML(paste(metro_snap_overview_text, metro_snap_cond_text, sep = "<br>"))
+  HTML(paste(metro_snap_overview_text, metro_snap_tables, sep = "<br>"))
   
 })
 
@@ -473,7 +474,7 @@ renderUI({
 
 ### People With Disabilities Map
 
-```{r metro snapshot overview map, context="server"}
+```{r metro snapshot overview map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
 # Palette
 pal_metro_snapshot <- reactive ({
@@ -570,6 +571,7 @@ output$metro_snapshot_demo_plot <- renderPlotly({
                              "<br>Total Pop.", 
                              scales::comma(total_population)))) +
     geom_point(stat = "identity",
+               alpha = 0.8, position = "jitter",
                aes(x = total_population, y = pwd_pct)) +
     gghighlight(GEOID == input$metro_snapshot) +
     labs(x = "Total Population", 
@@ -582,7 +584,24 @@ output$metro_snapshot_demo_plot <- renderPlotly({
     theme(legend.position = "top")
   
   plotly::ggplotly(gg, tooltip = "text") %>% 
-    plotly::layout(height = 330)
+    plotly::layout(
+      height = 280,
+      margin = list(l = 25, t = 25, b = 90),
+      xaxis = list(title = list(text = "Total Population",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      yaxis = list(title = list(text = "PWD (%)",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      title = list(text = "People with Disabilities (%) vs. Total Population",
+                   font = list(size = 16),
+                   yref = "paper",
+                   y = 1,
+                   yanchor = "bottom"),
+      font = list(size = 10)
+    )
   
 })
 
@@ -602,9 +621,10 @@ output$metro_snapshot_cp_plot <- renderPlotly({
                              "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%",
                              "<br>PWD 25+: ", scales::comma(pwd_25_over)))) +
     geom_point(stat = "identity",
+               alpha = 0.8, position = "jitter",
                aes(x = pwd_25_over, y = pwd_bachelors)) +
     gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "People with Disabilities, Age 25 or Older", 
+    labs(x = "PWD, 25 or Older", 
          y = "Bachelor's Degree or Higher (%)",
          title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") +
     scale_x_log10(labels = scales::comma) +
@@ -614,7 +634,24 @@ output$metro_snapshot_cp_plot <- renderPlotly({
     theme(legend.position = "top")
   
   plotly::ggplotly(gg) %>% 
-    plotly::layout(height = 330)
+        plotly::layout(
+      height = 280,
+      margin = list(l = 25, t = 25, b = 90),
+      xaxis = list(title = list(text = "PWD, 25 or Older",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      yaxis = list(title = list(text = "Bachelor's Degree or Higher (%)",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      title = list(text = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older",
+                   font = list(size = 16),
+                   yref = "paper",
+                   y = 1,
+                   yanchor = "bottom"),
+      font = list(size = 10)
+    )
   
 })
 
@@ -632,13 +669,14 @@ output$metro_snapshot_we_plot <- renderPlotly({
            "pwd_employed" = S1811_C02_002_estimate,
            "pwd" = S1811_C02_001_estimate) %>% 
     mutate("pwd_employed_pct" = round((pwd_employed /
-                                         pwd) * 100, 1)) %>% 
+                                         pwd) * 100, 2)) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD Employed: ", 
                              scales::comma(pwd_employed), 
                              " (", pwd_employed_pct, "%)",
                              "<br>PWD", scales::comma(pwd)))) +
     geom_point(stat = "identity",
+               alpha = 0.8, position = "jitter",
                aes(x = pwd, y = pwd_employed_pct)) +
     gghighlight(GEOID == input$metro_snapshot) +
     labs(x = "People with Disabilities", 
@@ -651,7 +689,24 @@ output$metro_snapshot_we_plot <- renderPlotly({
     theme(legend.position = "top")
   
   plotly::ggplotly(gg, tooltip = "text") %>% 
-    plotly::layout(height = 330)
+    plotly::layout(
+      height = 280,
+      margin = list(l = 25, t = 25, b = 90),
+      xaxis = list(title = list(text = "PWD Population",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      yaxis = list(title = list(text = "PWD Employment Rate (%)",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      title = list(text = "PWD Employment Rate (%) vs. PWD Population",
+                   font = list(size = 16),
+                   yref = "paper",
+                   y = 1,
+                   yanchor = "bottom"),
+      font = list(size = 10)
+    )
   
 })
 
