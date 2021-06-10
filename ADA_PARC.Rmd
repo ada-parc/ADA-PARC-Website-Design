@@ -388,8 +388,8 @@ renderUI({
   
   # Overview text  
   metro_snap_overview_text <- paste0(
-    "<h3>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h3>", "<br>",
-    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br>")
+    "<h4>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h4>", # "<br>",
+    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
   # Summary tables side by side
   metro_snap_tables <- knitr::kables(list(
@@ -400,68 +400,98 @@ renderUI({
                    S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
           select("White" = S1810_C02_011_estimate,
                  "Black" = S1810_C02_005_estimate,
-                 "Hispanic or<br>Latino" = S1810_C02_012_estimate,
+                 "Hispanic" = S1810_C02_012_estimate,
                  "Asian" = S1810_C02_007_estimate,
                  Other,
                  "Total" = S1810_C02_001_estimate) %>% 
           mutate(across(-Total,
                         ~ paste0(comma(., accuracy = 1), 
-                                 " (",  percent(. / Total, 
-                                                accuracy = 0.1), ")"))) %>%
-          mutate(Total = comma(Total, accuracy = 1)) %>% 
+                                 "<br>(",  percent(. / Total, 
+                                                   accuracy = 0.1), ")"))) %>%
+          mutate(Total = paste0(comma(Total, 
+                                      accuracy = 1),
+                                "</b>")) %>%
+          rename("<b>Total" = Total) %>% 
           pivot_longer(everything(),
                        names_to = "Race/Ethnicity",
-                       values_to = "PWD"),
-        caption = "Race/Ethnicity, People with Disabilities",
+                       values_to = "PWD (%)"),
+        caption = "Race/Ethnicity",
         escape = FALSE,
-        align = "c"#,
+        align = c("l", "r") #,
         # table.attr = "style='width:80%;'"
-    ),
+    ) %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left"),
     
     # Community Participation
     kbl(x = metro_snapshot_place() %>%
           transmute("Car" = 
-                      paste0(comma((S1811_C02_033_estimate + S1811_C02_034_estimate), accuracy = 0.1), "%"),
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_033_estimate +
+                                        S1811_C02_034_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma((S1811_C02_033_estimate +
+                                            S1811_C02_034_estimate),
+                                         accuracy = 0.1), "%)"),
                     "Transit" = 
-                      paste0(comma(S1811_C02_035_estimate,
-                                   accuracy = 0.1), "%"),
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_035_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma(S1811_C02_035_estimate,
+                                         accuracy = 0.1), "%)"),
                     
-                    "Walk or Bike" = 
-                      paste0(comma((S1811_C02_036_estimate + S1811_C02_037_estimate), accuracy = 0.1), "%"),
-                    "Work from Home" = 
-                      paste0(comma(S1811_C02_038_estimate,
-                                   accuracy = 0.1), "%"),
-                    "Total" = 
-                      comma(S1811_C02_032_estimate, accuracy = 1)) %>% 
+                    "Walk or<br>Bike" = 
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_036_estimate +
+                                        S1811_C02_037_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma((S1811_C02_036_estimate +
+                                            S1811_C02_037_estimate),
+                                         accuracy = 0.1), "%)"),
+                    "Work from<br>Home" = 
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_038_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma((S1811_C02_038_estimate),
+                                         accuracy = 0.1), "%)"),
+                    "<b>Total" = 
+                      paste0(comma(S1811_C02_032_estimate, 
+                                   accuracy = 1),
+                             "</b>")) %>% 
           pivot_longer(everything(),
-                       names_to = "Commute Type",
-                       values_to = "PWD"),
-        caption = "Commuting Patterns, People with Disabilities, Workers 16 or Older",
+                       names_to = "Commute",
+                       values_to = "PWD (%)"),
+        caption = "Commute, Workers 16+",
         escape = FALSE,
-        align = "c" #,
+        align = c("l", "r") #,
         # table.attr = "style='width:100%;'"
-    ),
+    ) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left"),
     
     # Work/Economic
     kbl(x = metro_snapshot_place() %>%
           transmute("Employed" = 
                       paste0(comma(S1811_C02_004_estimate, accuracy = 1),
-                             " (", S1811_C02_002_estimate, "%)"),
-                    "Not in Labor Force" = 
+                             "<br>(", S1811_C02_002_estimate, "%)"),
+                    "Not in<br>Labor Force" = 
                       paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
-                             " (", S1811_C02_003_estimate, "%)"),
-                    "Total" = 
-                      comma(S1811_C02_001_estimate, accuracy = 1)) %>%
+                             "<br>(", S1811_C02_003_estimate, "%)"),
+                    "<b>Total" = 
+                      paste0(comma(S1811_C02_001_estimate, accuracy = 1),
+                             "</b>")) %>%
           pivot_longer(everything(),
-                       names_to = "Employment Status",
-                       values_to = "PWD"),
-        caption = "Employment Status, People with Disabilities, 16 or Older",
+                       names_to = "Employment",
+                       values_to = "PWD (%)"),
+        caption = "Employment, 16+",
         escape = FALSE,
-        align = "c" #,
+        align = c("l", "r") #,
         # table.attr = "style='width:100%;'"
-    )
+    ) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left")
     
-  )) %>% 
+  )) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                   position = "left")
   
@@ -560,16 +590,22 @@ output$metro_snapshot_demo_plot <- renderPlotly({
   
   # Plot
   gg <- metro_snapshot_place_full %>%
+    mutate("NAME" = str_replace_all(
+      NAME, 
+      pattern = " (city|village|municipality|town), ",
+      replacement = ", ")) %>% 
     select(GEOID,
            NAME, 
            "pwd" = S1810_C02_001_estimate,
            "total_population" = S1810_C01_001_estimate,
            "pwd_pct" = S1810_C03_001_estimate) %>%
     ggplot(aes(text = paste0("City: ", NAME, 
-                             "<br>PWD: ", scales::comma(pwd), 
+                             "<br>PWD: ", scales::comma(pwd,
+                                                        accuracy = 1), 
                              " (", pwd_pct, "%)",
-                             "<br>Total Pop.", 
-                             scales::comma(total_population)))) +
+                             "<br>Total Pop.: ", 
+                             scales::comma(total_population,
+                                           accuracy = 1)))) +
     geom_point(stat = "identity",
                alpha = 0.8, position = "jitter",
                aes(x = total_population, y = pwd_pct)) +
@@ -583,6 +619,7 @@ output$metro_snapshot_demo_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
+  # Interactive plotly settings
   plotly::ggplotly(gg, tooltip = "text") %>% 
     plotly::layout(
       height = 280,
@@ -613,13 +650,18 @@ output$metro_snapshot_cp_plot <- renderPlotly({
   
   # Plot
   gg <- metro_snapshot_place_full %>%
+    mutate("NAME" = str_replace_all(
+      NAME, 
+      pattern = " (city|village|municipality|town), ",
+      replacement = ", ")) %>%  
     select(GEOID,
            NAME,
            "pwd_25_over" = S1811_C02_039_estimate,
            "pwd_bachelors" = S1811_C02_043_estimate) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%",
-                             "<br>PWD 25+: ", scales::comma(pwd_25_over)))) +
+                             "<br>PWD 25+: ", scales::comma(pwd_25_over,
+                                                            accuracy = 1)))) +
     geom_point(stat = "identity",
                alpha = 0.8, position = "jitter",
                aes(x = pwd_25_over, y = pwd_bachelors)) +
@@ -633,7 +675,8 @@ output$metro_snapshot_cp_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg) %>% 
+  # Interactive plotly settings
+  plotly::ggplotly(gg, tooltip = "text") %>% 
         plotly::layout(
       height = 280,
       margin = list(l = 25, t = 25, b = 90),
@@ -664,17 +707,22 @@ output$metro_snapshot_we_plot <- renderPlotly({
   
   # Plot
   gg <- metro_snapshot_place_full %>%
+    mutate("NAME" = str_replace_all(
+      NAME, 
+      pattern = " (city|village|municipality|town), ",
+      replacement = ", ")) %>% 
     select(GEOID,
            NAME,
-           "pwd_employed" = S1811_C02_002_estimate,
-           "pwd" = S1811_C02_001_estimate) %>% 
-    mutate("pwd_employed_pct" = round((pwd_employed /
-                                         pwd) * 100, 2)) %>% 
+           "pwd_employed" = S1811_C02_004_estimate,
+           "pwd" = S1811_C02_001_estimate,
+           "pwd_employed_pct" = S1811_C02_002_estimate) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD Employed: ", 
-                             scales::comma(pwd_employed), 
+                             scales::comma(pwd_employed,
+                                           accuracy = 1), 
                              " (", pwd_employed_pct, "%)",
-                             "<br>PWD", scales::comma(pwd)))) +
+                             "<br>PWD ", scales::comma(pwd,
+                                                       accuracy = 1)))) +
     geom_point(stat = "identity",
                alpha = 0.8, position = "jitter",
                aes(x = pwd, y = pwd_employed_pct)) +
@@ -688,6 +736,7 @@ output$metro_snapshot_we_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
+  # Interactive plotly settings
   plotly::ggplotly(gg, tooltip = "text") %>% 
     plotly::layout(
       height = 280,
@@ -739,48 +788,52 @@ metro_snapshot_table_data <- reactive({
   # temp <- temp_mongo_conn$find(
   #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }'))
 
-  # Values (Remove White/Hispanic, reorder Race topic)
+  # Value and percent (Remove White and Hispanic, reorder Race topic)
   temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
+    # Values
     pivot_longer(cols = -c(GEOID:NAME),
                  names_to = c("variable", ".value"),
                  names_pattern = "(.*)_(.*)") %>% 
+    # Percent
+    mutate("pct" = format(round((estimate / max(estimate)) * 100,
+                                digits = 1),
+                          nsmall = 1)) %>% 
+    mutate("pct" = replace_na(pct, 0)) %>% 
+    # Variable order
     filter(!variable %in% c("S1810_C02_004")) %>% 
-    mutate("variable" = fct_relevel(variable,
-                                    c("S1810_C02_011",
-                                      "S1810_C02_012"),
-                                    after = 4)) %>% 
+    mutate("variable" = fct_relevel(
+      variable,
+      c("S1810_C02_001", 
+        # Gender
+        "S1810_C02_002", "S1810_C02_003",
+        # Race/Ethnicity
+        "S1810_C02_011", "S1810_C02_005", "S1810_C02_012",
+        "S1810_C02_007", "S1810_C02_006", "S1810_C02_008",
+        "S1810_C02_009", "S1810_C02_010",
+        # Age
+        "S1810_C02_013", "S1810_C02_014", "S1810_C02_015",
+        "S1810_C02_016", "S1810_C02_017", "S1810_C02_018"))) %>% 
     arrange(variable)
- 
-  # Percent
-  temp_pct <- temp %>% 
-    select(GEOID:NAME, matches("_C03_")) %>%
-    pivot_longer(cols = -c(GEOID:NAME),
-                 names_to = c("variable", ".value"),
-                 names_pattern = "(.*)_(.*)") %>% 
-    mutate("variable" = str_replace_all(variable,
-                                        pattern = "_C03_",
-                                        replacement =  "_C02_"),
-           "estimate" = replace_na(estimate, 0))
-  
+
   # Output
   temp_values %>%
-    left_join(.,
-              temp_pct %>% 
-                select(GEOID, NAME, variable, "pct" = estimate),
-              by = c("GEOID", "NAME", "variable")) %>% 
-    mutate("pct" = replace_na(pct, 0)) %>% 
     left_join(.,
               dict_vars %>% 
                 select("category" = var_topic,
                        "label" = var_pretty,
                        "variable" = var_database),
               by = "variable") %>%
+    # Label
     mutate("label" = str_remove_all(label, 
-                                  "Total Persons with Disabilities, ")) %>%
+                                    "Total Persons with Disabilities, ")) %>%
     mutate("label" = case_when(variable == "S1810_C02_001" ~
-                               "People with Disabilities",
-                             TRUE ~ label)) %>%
+                                 "People with Disabilities",
+                               variable == "S1810_C02_011" ~
+                                 "White alone",
+                               variable == "S1810_C02_012" ~
+                                 "Hispanic or Latino",
+                               TRUE ~ label)) %>%
     mutate("category" = str_to_title(category)) %>% 
     select(GEOID, NAME, category, variable, label,
            estimate, moe, pct) 
