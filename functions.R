@@ -48,7 +48,7 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
 
 # Plotting functions
 
-render_tile_map <- function(data, selected) {
+render_tile_map <- function(data, selected, palette) {
   
   # ### Unnecessary if selected is being passed as a string
   # # but we may want to pass the variable itself at some point

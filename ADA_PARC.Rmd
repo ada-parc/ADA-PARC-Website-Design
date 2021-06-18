@@ -153,7 +153,7 @@ Sidebar {.sidebar}
 
 <br>
 
-```{r national input, message=FALSE, warning=FALSE}
+```{r national_sidebar, message=FALSE, warning=FALSE}
 
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
@@ -167,9 +167,9 @@ selectInput(inputId = "national_category_selector",
 # Initializes the variable selector
 # no choices until national_category_selector is selected
 selectInput(inputId = "national_variable_selector",
-            label = "Select a variable",
+            label = "Select a topic",
             choices = NULL,
-            selected = NULL)
+            selected = "Total Population")
 
 
 # Update select dropdown with named list of values created above
@@ -242,13 +242,13 @@ Row
 
 ### Map
 
-```{r, national map}
+```{r, national_map, fig.alt = "Map of the selected variables in the sidebar"}
 
 renderPlot({
   
   req(input$national_variable_selector)
   
-  render_tile_map(national_data(), input$national_variable_selector)
+  render_tile_map(national_data(), input$national_variable_selector, input$access_map_palette)
   
 })
 
@@ -256,7 +256,7 @@ renderPlot({
 
 ### Table {.table-wrapper}
 
-```{r, national table}
+```{r, national_table}
 
   
 # Get variable group based on selected variable
@@ -272,29 +272,45 @@ national_vars_in_topic <- reactive({
   
 })
 
-# renderPrint({  national_vars_in_topic() })
-# Data table
-DT::renderDataTable({
-
+renderUI({
+  
   # Reorganize dataframe
   national_data <- national_data() %>%
     select(GEOID:ABBR, national_vars_in_topic())
-
-  # Table
-  DT::datatable(national_data,
-                rownames = FALSE,
-                fillContainer = TRUE,
-                extensions = c("Buttons"),
-                options = list(pageLength = -1,
-                               searching = TRUE,
-                               scrollY = "100vh",
-                               scrollX = "100px",
-                               dom = "Bfti",
-                               # https://datatables.net/reference/option/dom
-                               buttons = c("copy", "csv", "excel")))
+  
+  # Summary table
+  national_topic_table <- knitr::kable(
+    x = national_data
+  )
+  
+  # UI Output
+  HTML(national_topic_table)
+  
 })
 
-DT::dataTableOutput("national_data")
+# renderPrint({  national_vars_in_topic() })
+# Data table
+# DT::renderDataTable({
+# 
+#   # Reorganize dataframe
+#   national_data <- national_data() %>%
+#     select(GEOID:ABBR, national_vars_in_topic())
+# 
+#   # Table
+#   DT::datatable(national_data,
+#                 rownames = FALSE,
+#                 fillContainer = TRUE,
+#                 extensions = c("Buttons"),
+#                 options = list(pageLength = -1,
+#                                searching = TRUE,
+#                                scrollY = "100vh",
+#                                scrollX = "100px",
+#                                dom = "Bfti",
+#                                # https://datatables.net/reference/option/dom
+#                                buttons = c("copy", "csv", "excel")))
+# })
+# 
+# DT::dataTableOutput("national_data")
 
 ```
 
