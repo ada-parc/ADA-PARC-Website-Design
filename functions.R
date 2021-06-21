@@ -60,6 +60,11 @@ render_tile_map <- function(data, selected, palette) {
   # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
   # # outputs: "GEOID"
   
+  # Palette
+  pal <- colorNumeric(palette = input$access_map_palette,
+                           domain = pull(data, !!sym(selected)))
+
+  
   # Perform the important transformations to variables based on the type of number
   if(grepl("pct", selected)) {
     fill_text <- geom_text(aes(label = paste0(round(!!sym(selected), 1), '%')),
@@ -96,7 +101,7 @@ render_tile_map <- function(data, selected, palette) {
           legend.position = "bottom",
           legend.text = element_text(angle = 90, vjust = .5),
           strip.text.x = element_text(size = 9L)) +
-    scale_fill_binned(high = "#132B43", low = "#56B1F7", breaks = breaks) # reverses the default gradient direction so that dark blue is associated with larger values
+    scale_fill_manual(palette = pal, breaks = breaks, labels = names(breaks))
 }
 
 
