@@ -227,10 +227,16 @@ national_variable_choices <- reactive({
 # as intended. Here the intention is to have the input return a string.
 # Uncommenting this code puts a small message beneath the selectors in 
 # the sidebar showeing the result. 
-# output$check <- renderText({ 
-#   paste0("national_variable is: ", input$national_variable_selector)
+# output$check <- renderText({
+#   cap_choices <- c("Demographics" = "is_demographics", 
+#                         "Community Participation" = "is_community_participation", 
+#                         "Community Living" = "is_community_living", 
+#                         "Work/Economic" = "is_work_economic")
+#   
+#   paste0("national_category is: ", names(cap_choices)[cap_choices == input$national_category_selector], 
+#          "\n and national_variable is: ", input$national_variable_selector)
 # })
-# 
+# # 
 # textOutput("check")
 
 # national_variable <- reactive({ input$national_variable_selector })
@@ -269,19 +275,28 @@ national_vars_in_topic <- reactive({
                 filter(var_readable == input$national_variable_selector) %>% 
                 pull(var_topic))) %>% 
     pull(var_readable)
+
   
 })
 
 renderUI({
+  
+  cap_choices <- c("Demographics" = "is_demographics", 
+                        "Community Participation" = "is_community_participation", 
+                        "Community Living" = "is_community_living", 
+                        "Work/Economic" = "is_work_economic")
+    
+  table_caption <- paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
   
   # Reorganize dataframe
   national_data <- national_data() %>%
     select(GEOID:ABBR, national_vars_in_topic())
   
   # Summary table
-  national_topic_table <- knitr::kable(
-    x = national_data
-  )
+  national_topic_table <- knitr::kable(x = national_data,
+                                       caption = table_caption) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left")
   
   # UI Output
   HTML(national_topic_table)
