@@ -254,7 +254,9 @@ renderPlot({
   
   req(input$national_variable_selector)
   
-  render_tile_map(national_data(), input$national_variable_selector, input$access_map_palette)
+  render_tile_map(national_data(), 
+                  input$national_variable_selector, 
+                  input$access_map_palette)
   
 })
 

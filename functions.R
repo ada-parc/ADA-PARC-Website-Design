@@ -48,7 +48,7 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
 
 # Plotting functions
 
-render_tile_map <- function(data, selected, palette) {
+render_tile_map <- function(data, selected, palette_selected) {
   
   # ### Unnecessary if selected is being passed as a string
   # # but we may want to pass the variable itself at some point
@@ -60,38 +60,85 @@ render_tile_map <- function(data, selected, palette) {
   # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
   # # outputs: "GEOID"
   
-  # Palette
-  pal <- colorNumeric(palette = input$access_map_palette,
-                           domain = pull(data, !!sym(selected)))
-
+  # Set quantiles
+  no_classes <- 4
+  labels <- c()
+  quantiles <- quantile(data %>% pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1))
   
-  # Perform the important transformations to variables based on the type of number
+  # Custom labels based on percent or value
+  for(idx in 1:length(quantiles)){
+    if(grepl("pct", selected)) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quantiles[idx] / 100), 
+                                 "-", 
+                                 scales::percent(quantiles[idx + 1] / 100)))
+      
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quantiles[idx]), 
+                                 "-", 
+                                 scales::comma(quantiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA
+  labels <- labels[1:length(labels)-1]
+  
+  # Set tile text fill based on contrast
+  hcl <- farver::decode_colour(RColorBrewer::brewer.pal(no_classes, 
+                                                        palette_selected), 
+                               "rgb", "hcl")
+  label_col <- ifelse(hcl[, "l"] > 50, "black", "white")
+  
+  # Tile text fill
   if(grepl("pct", selected)) {
-    fill_text <- geom_text(aes(label = paste0(round(!!sym(selected), 1), '%')),
-              color = "white", size = 4)
-    breaks <- quantile(data %>% pull(!!sym(selected)))[2:5] 
-    names(breaks) <- c(scales::percent(breaks / 100))
+    
+    # Percents, adds symbol to text
+    fill_text <- geom_text(aes(
+      label = paste0(round(!!sym(selected), 1), "%"),
+      color = quantile_fill),
+      size = 4,
+      show.legend = FALSE)
+    
   } else {
-    fill_text <- geom_text(aes(label = paste0(scales::comma(round(!!sym(selected), -5)))), # rounds to nearest 100k
-              color = "white", size = 4)
-    breaks <- quantile(data %>% pull(!!sym(selected)))[2:5] 
-    names(breaks) <- c(scales::comma(breaks))
+    
+    # Values, rounds to nearest 100k
+    fill_text <- geom_text(aes(
+      label = paste0(scales::comma(round(!!sym(selected), -5))),
+      color = quantile_fill),
+      size = 4,
+      show.legend = FALSE)
+    
   }
   
+  # Set map title and legend
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
   legend_title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
   
-  
+  # Plot tile map
   data %>%
+    mutate("quantile_fill" = cut(data %>% pull(!!sym(selected)), 
+                                 breaks = quantiles, 
+                                 labels = labels, 
+                                 include.lowest = TRUE)) %>% 
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
-               fill = !!sym(selected))) + # Selected variable
+               fill = quantile_fill)) + # Selected variable
     geom_tile() + # Imports x and y values
-    fill_text + 
+    # Fill
+    scale_fill_brewer(palette = palette_selected) +
+    # Text
+    fill_text +
+    scale_color_manual(values = label_col) +
+    # Labels
     labs(x = "", y = "", 
          title = title,
          fill = legend_title) +
+    # Facet
     facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
-    theme(plot.background = element_rect(colour = "white"), # Removes all of the grid elements that we don't need
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
           panel.grid = element_blank(),
           panel.grid.major = element_blank(),
           axis.text = element_blank(),
@@ -99,12 +146,13 @@ render_tile_map <- function(data, selected, palette) {
           axis.line = element_blank(),
           panel.spacing = unit(0L, "pt"),
           legend.position = "bottom",
-          legend.text = element_text(angle = 90, vjust = .5),
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
           strip.text.x = element_text(size = 9L)) +
-    scale_fill_manual(palette = pal, breaks = breaks, labels = names(breaks))
+    guides(fill = guide_legend(label.position = "bottom"))
+  
 }
-
-
 
 
 # census_download.Rmd functions -----------------------------------------------
