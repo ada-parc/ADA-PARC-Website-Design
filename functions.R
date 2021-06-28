@@ -46,6 +46,21 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
   }
 }
 
+abbreviate_number <- function(x)
+{
+  x <- x / 1000000
+  print(x)
+
+  if (x >= 1) {
+    return(paste0(round(x, 1), "M"))
+  } else {
+    x <- x * 1000
+    return(paste0(round(x, 0), "K"))
+  }
+}
+
+abbreviate_number <- Vectorize(abbreviate_number)
+
 # Plotting functions
 
 render_tile_map <- function(data, selected, palette_selected) {
@@ -106,7 +121,7 @@ render_tile_map <- function(data, selected, palette_selected) {
     
     # Values, rounds to nearest 100k
     fill_text <- geom_text(aes(
-      label = paste0(scales::comma(round(!!sym(selected), -5))),
+      label = abbreviate_number(!!sym(selected)),
       color = quantile_fill),
       size = 4,
       show.legend = FALSE)
