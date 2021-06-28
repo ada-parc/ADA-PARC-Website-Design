@@ -1,0 +1,165 @@
+var_readable,var_topic,var_pretty,var_database,is_demographics,is_community_living,is_community_participation,is_work_economic,national_dropdown_label
+pop_total,Overview,Total Population,S1810_C01_001,TRUE,FALSE,TRUE,FALSE,Total Population
+pwd_total,Overview,Total Persons with Disabilities,S1810_C02_001,TRUE,FALSE,TRUE,FALSE,
+pwd_pct,Overview,Percent Persons with Disabilities,,TRUE,FALSE,FALSE,FALSE,Percentage of Total Population with Disabilities
+pop_18_64,Age,Total Population Aged 18 - 34,S1810_C01_015,TRUE,FALSE,FALSE,FALSE,
+pop_18_64,Age,Total Population Aged 35 - 64,S1810_C01_016,TRUE,FALSE,FALSE,FALSE,
+pwd_0_5,Age,"Total Persons with Disabilities, Aged 0 - 5",S1810_C02_013,TRUE,FALSE,FALSE,FALSE,
+pwd_5_17,Age,"Total Persons with Disabilities, Aged 5 - 17",S1810_C02_014,TRUE,FALSE,FALSE,FALSE,
+pwd_18_64,Age,"Total Persons with Disabilities, Aged 18 - 34",S1810_C02_015,TRUE,FALSE,FALSE,FALSE,
+pwd_18_64,Age,"Total Persons with Disabilities, Aged 35 - 64",S1810_C02_016,TRUE,FALSE,FALSE,FALSE,
+pwd_18_64_pct,Age,Percent Persons with Disabilities Aged 18 - 64,,TRUE,FALSE,FALSE,FALSE,"Percentage of People with a Disability, Age 18 to 64"
+pop_grtoeq_65,Age,Total Population Aged 65 - 74,S1810_C01_017,TRUE,FALSE,FALSE,FALSE,
+pop_grtoeq_65,Age,Total Population Aged 75 or Older,S1810_C01_018,TRUE,FALSE,FALSE,FALSE,
+pwd_grtoeq_65,Age,"Total Persons with Disabilities, Aged 65 - 74",S1810_C02_017,TRUE,FALSE,FALSE,FALSE,
+pwd_grtoeq_65,Age,"Total Persons with Disabilities, Aged 75 or Older",S1810_C02_018,TRUE,FALSE,FALSE,FALSE,
+pwd_grtoeq_65_pct,Age,Percent Persons with Disabilities Aged 65 or Older,,TRUE,FALSE,FALSE,FALSE,Percent Persons with Disabilities Aged 65 and Older
+pwd_white,Race,"Total Persons with Disabilities, White",S1810_C02_004,TRUE,FALSE,FALSE,FALSE,
+pwd_black,Race,"Total Persons with Disabilities, Black or African American alone",S1810_C02_005,TRUE,FALSE,FALSE,FALSE,
+pwd_hisp,Race,"Total Persons with Disabilities, Hispanic",S1810_C02_012,TRUE,FALSE,FALSE,FALSE,
+pwd_white_nonhisp,Race,"Total Persons with Disabilities, Not Hispanic, White Alone",S1810_C02_011,TRUE,FALSE,FALSE,FALSE,
+pwd_other,Race,"Total Persons with Disabilities, American Indian and Alaskan Native alone",S1810_C02_006,TRUE,FALSE,FALSE,FALSE,
+pwd_other,Race,"Total Persons with Disabilities, Asian alone",S1810_C02_007,TRUE,FALSE,FALSE,FALSE,
+pwd_other,Race,"Total Persons with Disabilities, Native Hawaiian or Other Pacific Islander alone",S1810_C02_008,TRUE,FALSE,FALSE,FALSE,
+pwd_other,Race,"Total Persons with Disabilities, Some other race alone",S1810_C02_009,TRUE,FALSE,FALSE,FALSE,
+pwd_other,Race,"Total Persons with Disabilities, Two or more races",S1810_C02_010,TRUE,FALSE,FALSE,FALSE,
+pwd_white_pct,Race,"Percent Persons with Disabilities, White",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are White
+pwd_black_pct,Race,"Percent Persons with Disabilities, Black",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are Black
+pwd_hisp_pct,Race,"Percent Persons with Disabilities, Hispanic",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are Hispanic
+pwd_white_nonhisp_pct,Race,"Percent Persons with Disabilities, Non-Hispanic",,TRUE,FALSE,FALSE,FALSE,"Percentage of People with a Disability who are White, Non-Hispanic"
+pwd_other_pct,Race,"Percent Persons with Disabilities, Other Race",,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Disability who are of Another Race
+pop_female,Gender,"Total Population, Female",S1810_C01_003,TRUE,FALSE,FALSE,FALSE,
+pwd_female,Gender,"Total Persons with Disabilities, Female",S1810_C02_003,TRUE,FALSE,FALSE,FALSE,
+female_pwd_pct,Gender,"Percent Persons with Disabilities, Female",,TRUE,FALSE,FALSE,FALSE,
+pwd_female_pct,Gender,Percent of Total Female Population with Disabilities,,TRUE,FALSE,FALSE,FALSE,
+pop_male,Gender,"Total Population, Male",S1810_C01_002,TRUE,FALSE,FALSE,FALSE,
+pwd_male,Gender,"Total Persons with Disabilities, Male",S1810_C02_002,TRUE,FALSE,FALSE,FALSE,
+male_pwd_pct,Gender,"Percent Persons with Disabilities, Male",,TRUE,FALSE,FALSE,FALSE,
+pwd_male_pct,Gender,Percent of Total Male Population with Disabilities,,TRUE,FALSE,FALSE,FALSE,
+pwd_hearing,Type of Disability,Total Persons with Disabilities with Hearing Difficulty,S1810_C02_019,TRUE,FALSE,FALSE,FALSE,
+pwd_hearing_pct,Type of Disability,Percent Persons with Disabilities with Hearing Difficulty,,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Hearing Disability
+pwd_vision,Type of Disability,Total Persons with Disabilities with Vision Difficulty,S1810_C02_029,TRUE,FALSE,FALSE,FALSE,
+pwd_vision_pct,Type of Disability,Percent Persons with Disabilities with Vision Difficulty,,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Vision Disability
+pwd_cognitive,Type of Disability,Total Persons with Disabilities with Cognitive Difficulty,S1810_C02_039,TRUE,FALSE,FALSE,FALSE,
+pwd_cognitive_pct,Type of Disability,Percent Persons with Disabilities with Cognitive Difficulty,,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Cognitive Disability
+pwd_ambulatory,Type of Disability,Total Persons with Disabilities with Ambulatory Difficulty,S1810_C02_047,TRUE,FALSE,FALSE,FALSE,
+pwd_ambulatory_pct,Type of Disability,Percent Persons with Disabilities with Ambulatory Difficulty,,TRUE,FALSE,FALSE,FALSE,Percentage of People with an Ambulatory Disability
+pwd_selfcare,Type of Disability,Total Persons with Disabilities with Self-Care Difficulty,S1810_C02_055,TRUE,FALSE,FALSE,FALSE,
+pwd_selfcare_pct,Type of Disability,Percent Persons with Disabilities with Self-Care Difficulty,,TRUE,FALSE,FALSE,FALSE,Percentage of People with a Self Care Disability
+pwd_indliving,Type of Disability,Total Persons with Disabilities with Independent Living Difficulty,S1810_C02_063,TRUE,FALSE,FALSE,FALSE,
+pwd_indliving_pct,Type of Disability,Percent Persons with Disabilities with Independent Living Difficulty,,TRUE,FALSE,FALSE,FALSE,Percentage of people with an Independent Living Disability
+pop_total,Overview,Total Population,S2601A_C01_001,FALSE,TRUE,FALSE,FALSE,
+pwd_pct,Overview,Percent Persons with Disabilities,S2601A_C01_047,FALSE,TRUE,FALSE,FALSE,
+pwd_total,Overview,Total Persons with Disabilities,,FALSE,TRUE,FALSE,FALSE,
+pop_grpquarters,Where People Live,Total Population Living in Group Quarters,S2601A_C02_001,FALSE,TRUE,FALSE,FALSE,
+pwd_grpquarters_pct,Where People Live,Total Persons with Disabilities Living in Group Quarters,S2601A_C02_047,FALSE,TRUE,FALSE,FALSE,
+grpquarters_pct,Where People Live,Percent of Total Population Living in Group Quarters,,FALSE,TRUE,FALSE,FALSE,
+pop_grpquarters_institution,Where People Live,"Total Population Living in Group Quarters, Institutionalized",S2601A_C03_001,FALSE,TRUE,FALSE,FALSE,
+pop_grpquarters_noninstitution,Where People Live,"Total Population Living in Group Quarters, Not Institutionalized",S2601A_C04_001,FALSE,TRUE,FALSE,FALSE,
+pwd_grpquarters_institution_pct,Where People Live,"Percent Persons with Disabilities Living in Group Quarters, Institutionalized",S2601A_C03_047,FALSE,TRUE,FALSE,FALSE,Percentage of People with Disabilities Living in an Institution
+pwd_grpquarters_institution,Where People Live,"Total Persons with Disabilities Living in Group Quarters, Institutionalized",,FALSE,TRUE,FALSE,FALSE,
+pwd_grpquarters_noninstitution_pct,Where People Live,"Percent Persons with Disabilities Living in Group Quarters, Not Institutionalized",S2601A_C04_047,FALSE,TRUE,FALSE,FALSE,Percentage of People with Disabilities Living in Other Group Quarters
+pwd_grpquarters_noninstitution,Where People Live,"Total Persons with Disablities Living in Group Quarters, Not Institutionalized",,FALSE,TRUE,FALSE,FALSE,
+pwd_home_pct,Where People Live,Percentage of Persons with Disabilities Living at Home,,FALSE,TRUE,FALSE,FALSE,Percentage of People with Disabilities Living at Home
+pop_nursing,Nursing Home Residents,Total Population Living in Nursing Homes,S2602_C04_001,FALSE,TRUE,FALSE,FALSE,
+pop_18_64,Nursing Home Residents,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C01_047,FALSE,TRUE,FALSE,FALSE,
+pwd_18_64_pct,Nursing Home Residents,Percent Persons with Disabilities Aged 18 - 64,S2602_C01_048,FALSE,TRUE,FALSE,FALSE,
+pwd_18_64,Nursing Home Residents,Total Persons with Disabilities Aged 18 - 64,,FALSE,TRUE,FALSE,FALSE,
+pop_nursing_18_64_pct,Nursing Home Residents,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_006,FALSE,TRUE,FALSE,FALSE,
+pop_nursing_18_64_pct,Nursing Home Residents,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_007,FALSE,TRUE,FALSE,FALSE,
+pop_nursing_18_64_pct,Nursing Home Residents,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_008,FALSE,TRUE,FALSE,FALSE,
+pop_nursing_18_64_pct,Nursing Home Residents,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_009,FALSE,TRUE,FALSE,FALSE,
+pop_nursing_18_64_pct,Nursing Home Residents,Total Population Living in Nursing Homes Aged 18 - 64,S2602_C04_010,FALSE,TRUE,FALSE,FALSE,
+pwd_nursing_18_64_pct,Nursing Home Residents,Percent Persons with Disabilities Living in Nursing Homes Aged 18 - 64,S2602_C04_048,FALSE,TRUE,FALSE,FALSE,
+pwd_nursing_18_64,Nursing Home Residents,Total Persons with Disabilities Living in Nursing Homes Aged 18 - 64,,FALSE,TRUE,FALSE,FALSE,
+pop_19_64,Overview,Total Population Aged 19 - 64,B18135_013,FALSE,FALSE,TRUE,TRUE,
+pwd_19_64,Overview,Total Persons with Disabilities Aged 19 - 64,B18135_014,FALSE,FALSE,TRUE,TRUE,
+pwd_19_64_insured,Health Insurance,Total Persons with Disabilities Aged 19 - 64 with Health Insurance,B18135_015,FALSE,FALSE,TRUE,FALSE,
+pwd_19_64_insured_private,Health Insurance,Total Persons with Disabilities Aged 19 - 64 with Private Health Insurance,B18135_016,FALSE,FALSE,TRUE,FALSE,
+pwd_19_64_insured_public,Health Insurance,Total Persons with Disabilities Aged 19 - 64 with Public Health Insurance,B18135_017,FALSE,FALSE,TRUE,FALSE,
+pwd_19_64_uninsured,Health Insurance,Total Persons with Disabilities Aged 19 - 64 without Health Insurance,B18135_018,FALSE,FALSE,TRUE,FALSE,
+pwod_19_64,Overview,Total Persons without Disabilities Aged 19 - 64,B18135_019,FALSE,FALSE,TRUE,FALSE,
+pwod_19_64_insured,Health Insurance,Total Persons without Disabilities Aged 19 - 64 with Health Insurance,B18135_020,FALSE,FALSE,TRUE,FALSE,
+pwod_19_64_insured_private,Health Insurance,Total Persons without Disabilities Aged 19 - 64 with Private Health Insurance,B18135_021,FALSE,FALSE,TRUE,FALSE,
+pwod_19_64_insured_public,Health Insurance,Total Persons without Disabilities Aged 19 - 64 with Public Health Insurance,B18135_022,FALSE,FALSE,TRUE,FALSE,
+pwod_19_64_uninsured,Health Insurance,Total Persons without Disabilities Aged 19 - 64 without Health Insurance,B18135_023,FALSE,FALSE,TRUE,FALSE,
+pop_grtoeq_65,Overview,Total Population Aged 65 or Older,B18135_024,FALSE,FALSE,TRUE,FALSE,
+pwd_grtoeq_65,Overview,Total Persons with Disabilities Aged 65 or Older,B18135_025,FALSE,FALSE,TRUE,FALSE,
+pwd_grtoeq_65_insured,Health Insurance,Total Persons with Disabilities Aged 65 or Older with Health Insurance,B18135_026,FALSE,FALSE,TRUE,FALSE,
+pwd_grtoeq_65_insured_private,Health Insurance,Total Persons with Disabilities Aged 65 or Older with Private Health Insurance,B18135_027,FALSE,FALSE,TRUE,FALSE,
+pwd_grtoeq_65_insured_public,Health Insurance,Total Persons with Disabilities Aged 65 or Older with Public Health Insurance,B18135_028,FALSE,FALSE,TRUE,FALSE,
+pwd_grtoeq_65_uninsured,Health Insurance,Total Persons with Disabilities Aged 65 or Older without Health Insurance,B18135_029,FALSE,FALSE,TRUE,FALSE,
+pwod_grtoeq_65,Overview,Total Persons without Disabilities Aged 65 or Older,B18135_030,FALSE,FALSE,TRUE,FALSE,
+pwod_grtoeq_65_insured,Health Insurance,Total Persons without Disabilities Aged 65 or Older with Health Insurance,B18135_031,FALSE,FALSE,TRUE,FALSE,
+pwod_grtoeq_65_insured_private,Health Insurance,Total Persons without Disabilities Aged 65 or Older with Private Health Insurance,B18135_032,FALSE,FALSE,TRUE,FALSE,
+pwod_grtoeq_65_insured_public,Health Insurance,Total Persons without Disabilities Aged 65 or Older with Public Health Insurance,B18135_033,FALSE,FALSE,TRUE,FALSE,
+pwod_grtoeq_65_uninsured,Health Insurance,Total Persons without Disabilities Aged 65 or Older without Health Insurance,B18135_034,FALSE,FALSE,TRUE,FALSE,
+pwd_19_64_uninsured_pct,Health Insurance,Percent Persons with Disabilities Aged 19 - 64 without Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 19 to 64 Without Health Insurance
+pwod_19_64_uninsured_pct,Health Insurance,Percent Persons without Disabilities Aged 19 - 64 without Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 19 to 64 Without Health Insurance
+pwd_grtoeq_65_uninsured_pct,Health Insurance,Percent Persons with Disabilities Aged 65 or Older without Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 65 and Above Without Health Insruance
+pwod_groeq_65_uninsured_pct,Health Insurance,Percent Persons without Disabilities Aged 65 or Older without Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 65 and Above Without Health Insurance
+pwd_19_64_insured_private_pct,Health Insurance,Percent Persons with Disabilities Aged 19 - 64 with Private Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 19 to 64 With Private Health Insurance
+pwod_19_64_insured_private_pct,Health Insurance,Percent Persons without Disabilities Aged 19 - 64 with Private Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 19 to 64 With Private Health Insurance
+pwd_grtoeq_65_insured_private_pct,Health Insurance,Percent Persons with Disabilities Aged 65 or Older with Private Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 65 and Above With Private Health Insurance
+pwod_grtoeq_65_insured_private_pct,Health Insurance,Percent Persons witout Disabilities Aged 65 or Older with Private Health Insurance,,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 65 and Above With Private Health Insurance
+pwod_total,Overview,Total Persons without Disabilities,,FALSE,FALSE,TRUE,FALSE,
+pwd_commute_public_pct,Transit Usage,Percent Persons with Disabilities Who Commute by Public Transit,S1811_C02_035,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Who Commute by Public Transit
+pwod_commute_public_pct,Transit Usage,Percent Persons without Disabilities Who Commute by Public Transit,S1811_C03_035,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Who Commute by Public Transit
+pwd_commute_car_alone_pct,Transit Usage,Percent Persons with Disabilities Who Commute by Car Alone,S1811_C02_033,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Who Commute by Car Alone
+pwod_commute_car_alone_pct,Transit Usage,Percent Persons without Disabilities Who Commute by Car Alone,S1811_C03_033,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Who Commute by Car Alone
+pwd_lessthan_highschool_pct,Educational Attainment,Percent Persons with Disabilities with No High School Diploma,S1811_C02_040,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with Less than a High School Diploma
+pwod_lessthan_highschool_pct,Educational Attainment,Percent Persons without Disabilities with No High School Diploma,S1811_C03_040,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with Less than a High School Diploma
+pwd_highschoolequiv_pct,Educational Attainment,Percent Persons with Disabilities with High School Diploma or Equivalent,S1811_C02_041,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with a High School Diploma or GED
+pwod_highschoolequiv_pct,Educational Attainment,Percent Persons without Disabilities with High School Diploma or Equivalent,S1811_C03_041,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with a High School Diploma or GED
+pwd_degree_aa_pct,Educational Attainment,Percent Persons with Disabilities with Associate's Degree,S1811_C02_042,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with Some College or an Associate's Degree
+pwod_degree_aa_pct,Educational Attainment,Percent Persons without Disabilities with Associate's Degree,S1811_C03_042,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with Some College or an Associate's Degree
+pwd_degree_grtoeq_ba_pct,Educational Attainment,Percent Persons with Disabilities with Bachelor's Degree or Higher,S1811_C02_043,FALSE,FALSE,TRUE,FALSE,Percentage of People With Disabilities Age 25 and Above with a Bachelor's Degree or Higher
+pwod_degree_grtoeq_ba_pct,Educational Attainment,Percent Persons without Disabilities with Bachelor's Degree or Higher,S1811_C03_043,FALSE,FALSE,TRUE,FALSE,Percentage of People Without Disabilities Age 25 and Above with a Bachelor's Degree or Higher
+pop_total,Overview,Total Population,C18120_001,FALSE,FALSE,FALSE,TRUE,
+pwod_19_64,Overview,Total Persons without Disabilities Aged 19 - 64,,FALSE,FALSE,FALSE,TRUE,
+pwd_employed,Employment Status,"Total Persons with Disabilities, Employed",C18120_004,FALSE,FALSE,FALSE,TRUE,
+pwod_employed,Employment Status,"Total Persons without Disabilities, Employed",C18120_005,FALSE,FALSE,FALSE,TRUE,
+pwd_employed_pct,Employment Status,"Percentage of Persons with Disabilities, Employed",,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities That Are Employed
+pwod_employed_pct,Employment Status,Percentage of People Without Disabilities That Are Employed,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities That Are Employed
+pwd_unemployed,Employment Status,"Total Persons with Disabilities, Unemployed",C18120_007,FALSE,FALSE,FALSE,TRUE,
+pwod_unemployed,Employment Status,"Total Persons without Disabilities, Unemployed",C18120_008,FALSE,FALSE,FALSE,TRUE,
+pwd_unemployed_pct,Employment Status,Percentage of People With Disabilities That Are Unemployed,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities That Are Unemployed
+pwod_unemployed_pct,Employment Status,Percentage of People Without Disabilities That Are Unemployed,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities That Are Unemployed
+pwd_notlabor,Employment Status,"Total Persons with Disabilities, Not in Labor Force",C18120_010,FALSE,FALSE,FALSE,TRUE,
+pwod_notlabor,Employment Status,"Total Persons without Disabilities, Not in Labor Force",C18120_011,FALSE,FALSE,FALSE,TRUE,
+pwd_notlabor_pct,Employment Status,Percentage of People With Disabilities Not in Labor Force,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Not in Labor Force
+pwod_notlabor_pct,Employment Status,Percentage of People Without Disabilities Not in Labor Force,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Not in Labor Force
+pop_18_64,Overview,Total Population Aged 18 - 64,C18130_009,FALSE,FALSE,FALSE,TRUE,
+pwd_18_64,Overview,Total Persons with Disabilities Aged 18 - 64,C18130_010,FALSE,FALSE,FALSE,TRUE,
+pwod_18_64,Overview,Total Persons without Disabilities Aged 18 - 64,C18130_013,FALSE,FALSE,FALSE,TRUE,
+pwd_below_poverty,Poverty Status,Total Persons with Disabilities Living Below Poverty Level,C18130_011,FALSE,FALSE,FALSE,TRUE,
+pwd_below_poverty_pct,Poverty Status,Percentage of People With Disabilities Below the Poverty Level,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Below the Poverty Level
+pwd_atorbelow_poverty,Poverty Status,Total Persons with Disabilities Living at or Below Poverty Level,C18130_012,FALSE,FALSE,FALSE,TRUE,
+pwod_below_poverty,Poverty Status,Total Persons without Disabilities Living Below Poverty Level,C18130_014,FALSE,FALSE,FALSE,TRUE,
+pwod_below_poverty_pct,Poverty Status,Percentage of People Without Disabilities Below the Poverty Level,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Below the Poverty Level
+pwod_atorbelow_poverty,Poverty Status,Total Persons without Disabilities Living at or Below Poverty Level,C18130_015,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_008,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_009,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_010,FALSE,FALSE,FALSE,TRUE,
+mortgage_burdened,Affordability,Total Population Considered Mortage Burdened,B25091_011,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_007,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_008,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_009,FALSE,FALSE,FALSE,TRUE,
+rent_burdened,Affordability,Total Population Considered Rent Burdened,B25070_010,FALSE,FALSE,FALSE,TRUE,
+pop_fulltime,Full and Part Time Workers,Total Population Working Full-Time,C18121_002,FALSE,FALSE,FALSE,TRUE,
+pwd_fulltime,Full and Part Time Workers,Total Persons with Disabilities Working Full-Time,C18121_003,FALSE,FALSE,FALSE,TRUE,
+pwod_fulltime,Full and Part Time Workers,Total Persons without Disabilities Working Full-Time,C18121_004,FALSE,FALSE,FALSE,TRUE,
+pwd_fulltime_pct,Full and Part Time Workers,Percentage of People With Disabilities Who Work Full Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Who Work Full Time
+pwod_fulltime_pct,Full and Part Time Workers,Percentage of People Without Disabilities Who Work Full Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Who Work Full Time
+pop_not_fulltime,Full and Part Time Workers,Total Population Working Less Than Full-Time,C18121_005,FALSE,FALSE,FALSE,TRUE,
+pwd_not_fulltime,Full and Part Time Workers,Total Persons with Disabilities Working Less Than Full-Time,C18121_006,FALSE,FALSE,FALSE,TRUE,
+pwod_not_fulltime,Full and Part Time Workers,Total Persons without Disabilities Working Less Than Full-Time,C18121_007,FALSE,FALSE,FALSE,TRUE,
+pwd_not_fulltime_pct,Full and Part Time Workers,Percentage of People With Disabilities Who Work Part Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People With Disabilities Who Work Part Time
+pwod_not_fulltime_pct,Full and Part Time Workers,Percentage of People Without Disabilities Who Work Part Time,,FALSE,FALSE,FALSE,TRUE,Percentage of People Without Disabilities Who Work Part Time
+pop_didnotwork,Full and Part Time Workers,Total Population Who Did Not Work,C18121_008,FALSE,FALSE,FALSE,TRUE,
+pwd_didnotwork,Full and Part Time Workers,Total Persons with Disabilities Who Did Not Work,C18121_009,FALSE,FALSE,FALSE,TRUE,
+pwod_didnotwork,Full and Part Time Workers,Total Persons without Disabilities Who Did Not Work,C18121_010,FALSE,FALSE,FALSE,TRUE,
+pwd_grtoeq_16_med_individual_income,Income,Median Individual Income of Persons with Disabilities Aged 16 or Older,B18140_002,FALSE,FALSE,FALSE,TRUE,Median Individual Income of Persons with Disabilities Aged 16 or Older
+pwod_grtoeq_16_med_individual_income,Income,Median Individual Income of Persons without Disabilities Aged 16 or Older,B18140_005,FALSE,FALSE,FALSE,TRUE,Median Individual Income of Persons without Disabilities Aged 16 or Older
+pwd_grtoeq_16_wfh_pct,Working from Home,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home,S1811_C02_038,FALSE,FALSE,FALSE,TRUE,Percent of Persons with Disabilities Aged 16 or Older Who Work From Home
+pwod_grtoeq_16_wfh_pct,Working from Home,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home,S1811_C03_038,FALSE,FALSE,FALSE,TRUE,Percent of Persons without Disabilities Aged 16 or Older Who Work From Home

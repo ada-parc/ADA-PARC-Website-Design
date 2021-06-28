@@ -1,10 +1,10 @@
 ---
 title: "ADA-PARC"
-runtime: shiny_prerendered
+runtime: shiny
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_layout: scroll
+    vertical_layout: fill
     theme: cosmo
 ---
 
@@ -16,62 +16,37 @@ output:
 
 # Packages
 library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor) 
-library(sf); library(urbnmapr); library(leaflet); library(leaflet.extras);
+library(sf); library(geofacet); library(leaflet); library(leaflet.extras);
 library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard)
 library(colourpicker); library(DT); library(gghighlight)
 library(knitr); library(kableExtra)
 library(scales); library(hrbrthemes); library(ggthemes)
 library(extrafont); library(plotly)
 library(mongolite)
+library(here)
 
-# Must install urbnmapr via GitHUb if is not already installed
-# install.packages("devtools")
-# devtools::install_github("UrbanInstitute/urbnmapr")
+options(scipen = 999999)
 
-# Load API keys, database information functions
-source("secret.R", local = TRUE)
+# Set this to host_prod or host_dev
+host_name = "host_dev"
 
-```
+# Load API keys and database connection information
+source(here("functions.R"), local = TRUE)
 
-```{r front-end-functions, context="server"}
+# Load variable dictionary for relating tables, variable codes, and readable values
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", host_name = host_name)
 
-# Functions
-create_palette <- function(data, selected) {
-  
-  colorQuantile(palette = input$access_map_palette, 
-                domain = pull(data, !!sym(selected)),
-                n = 4)
-}
 
-render_map <- function(data, selected, palette) {
-  
-  title <- selected
-  
-  map <- data %>%
-    mutate(map_focus = !!sym(selected)) %>% 
-    leaflet() %>%
-    clearShapes() %>%
-    addResetMapButton() %>% 
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0, 
-                fillColor = ~palette(map_focus),
-                fillOpacity = 1,
-                popup = ~paste(state_name, " (", state_abbv, ")", "<br>",
-                               percent(map_focus,
-                                       scale = 1, accuracy = 0.1)),
-                layerId = ~state_name) %>% 
-    addLegend(position = "topright", pal = palette,
-              values = ~map_focus,
-              labFormat =  function(type, cuts, p) {
-                n = length(cuts)
-                paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
-              },
-              title = title)
-  
-  map
-  
-}
+### ------------------------
+### National data import and clean
+###
+# This script takes the national_* objects and transforms them
+# into the final datasets for mapping
+source(here("national_import.R"), local = TRUE)
 
 ```
+
+
 
 Home
 ============================================================================
@@ -85,19 +60,19 @@ Sidebar {.sidebar}
 
 <br>
 
-Use the **National** tab to examine people with disabilities statistics at the national and state level.  
+Use the **National** tab to examine the status of people with disabilities at the national and state level.  
 
 Use the **By Metro** tab to investigate people with disabilities statistics at the municipal level.
 
-Use the **Download** tab to access the raw data powering this dashboard and pre-formatted fact sheets for a specific area of interest.
+Use the **Download** tab to get the raw data powering this dashboard and as well as pre-formatted fact sheets a specific area of interest.
 
-Use the **Accessibility** tab to set the color palettes for data visualizations in this dashboard.  
+Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.  
 
 <br>
 
 Application authors:
 
-[Sean Connelly](https://sean-connelly.github.io/) and [Ethan Jantz](https://github.com/EthanJantz)
+Sean Connelly and Ethan Jantz
 <br>
 [UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
@@ -108,7 +83,7 @@ Row
 
 <br>
 
-Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of 10 Americans with Disabilities Act (ADA) Regional Centers.
+Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of ten Americans with Disabilities Act (ADA) Regional Centers.
 
 <br>
 
@@ -116,21 +91,21 @@ Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research projec
 
 The ADA-PARC research has four purposes:
 
-  1. **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
-  2. **To identify & examine key environmental factors** contributing to these disparities
-  3. **To benchmark participation disparities and highlight promising practices** at state & city levels
-  4. **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
+1. **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
+2. **To identify & examine key environmental factors** contributing to these disparities
+3. **To benchmark participation disparities and highlight promising practices** at state & city levels
+4. **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
 
 <br>
 
 #### The Work of the ADA-PARC
 
-The ADA-PARC has research teams focused on Community Living, Community Participation & Work/Economic Participation measures and uses Regional Steering Committees in each of the seven participating regions to gather, review, and choose appropriate data to achieve the project's purposes. The data are mainly from national data sources that have enough statistical power to be relevant on the local level.
+The ADA-PARC has research teams focused on Community Living, Community Participation & Work/Economic Participation measures and uses Regional Steering Committees in each of the ten participating regions to gather, review, and choose appropriate data to achieve the project's purposes. The data are mainly from national data sources that have enough statistical power to be relevant on the local level.
 
 The intent of this effort is to use this information to inform:
 
-  1. ADA Center technical assistance and resource dissemination, and
-  2. Community level stakeholders to increase participation opportunities in their communities.
+1. ADA Center technical assistance and resource dissemination, and
+2. Community level stakeholders to increase participation opportunities in their communities.
 
 <br>
 
@@ -138,29 +113,29 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-  - [Region 1 New England ADA Center](http://www.newenglandada.org/): Valerie Fletcher
-  - [Region 2 Northeast ADA Center](http://www.northeastada.org/): Wendy Strobel Gower
-  - [Region 3 Mid-Atlantic ADA Center](http://www.adainfo.org/): Marian Vessels
-  - [Region 4 Southeast ADA Center](http://www.adasoutheast.org/): Katie McDonald, Work & Economics data team lead
-  - [Region 5 Great Lakes ADA Center](http://www.adagreatlakes.org/): Joy Hammel, Co-Project Director, Community Participation data team lead
-  - [Region 6 Southwest ADA Center](http://www.southwestada.org/): Lex Frieden, Co-Project Director
-  - [Region 7 Great Plains ADA Center](http://www.gpadacenter.org/): Julie Brinkhoff
-  - [Region 8 Rocky Mountain ADA Center](http://www.rockymountainada.org/): Bob Gattis
-  - [Region 9 Pacific ADA Center](http://www.adapacific.org/): Lewis Kraus, Community Living data team lead
-  - [Region 10 Great Northwest ADA Center](http://www.nwadacenter.org/): Kathe Matrone
+- Region 1 New England ADA Center
+- Region 2 Northeast ADA Center
+- Region 3 Mid-Atlantic ADA Center
+- Region 4 Southeast ADA Center
+- Region 5 Great Lakes ADA Center
+- Region 6 Southwest ADA Center
+- Region 7 Great Plains ADA Center
+- Region 8 Rocky Mountain ADA Center
+- Region 9 Pacific ADA Center
+- Region 10 Great Northwest ADA Center
 
 Other institutions collaborating in the ADA-PARC are:
 
-  - [The ADA Knowledge Translation Center](https://adata.org/ADAKTC)
-  - [The Center on Disability at the Public Health Institute](https://www.centerondisability.org/)
-  - [TIRR Memorial Hermann](http://tirr.memorialhermann.org/)
-  - [Syracuse University](https://www.syracuse.edu/)
-  - [The University of Illinois at Chicago](https://www.uic.edu/)
-  - [The University of Northern Colorado](https://www.unco.edu/)
+- The ADA Knowledge Translation Center
+- The Center on Disability at the Public Health Institute
+- TIRR Memorial Hermann
+- Syracuse University
+- The University of Illinois at Chicago
+- The University of Northern Colorado
 
 <br>
 
-![ADA-PARC Participants](www/participant_logos.png){width=75%}
+![ADA-PARC Participants](./participant_logos.png){width=75%}
 
 <br>
 
@@ -170,2809 +145,231 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 
 
-Demographics {data-navmenu="National" data-icon="fa-user"}
+National Data
 ======================================================================
-
-```{r national-import, context="data"}
-
-# ====================
-# Import data
-# ====================
-
-# Set database path
-db_path <- "February 2020 update 2018 ACS/2.20.20DatabaseACS2018.final.xlsx"
-
-# Demographics
-demographics <- read_excel(path = db_path,
-                           sheet = "Demographics", 
-                           .name_repair = make_clean_names,
-                           skip = 2) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  rename("abbrev" = state_abbreviation) %>% 
-  mutate(across(-c(state:city), as.numeric))
-
-# Community Living
-community_living <- read_excel(path = db_path,
-                               sheet = "Community Living",
-                               .name_repair = make_clean_names,
-                               skip = 2) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  mutate(across(-c(state:abbrev), as.numeric))
-
-# Community Participation
-community_participation <- read_excel(path = db_path,
-                           sheet = "CommunityParticipation",
-                           .name_repair = make_clean_names,
-                           skip = 3) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  mutate(across(-c(state:city), as.numeric))
-
-# Work and Economic
-work_economic <- read_excel(path = db_path,
-                           sheet = "WorkEconomic",
-                           .name_repair = make_clean_names,
-                           skip = 3) %>% 
-  remove_empty(c("rows", "cols")) %>% 
-  mutate(across(-c(state:city), as.numeric))
-
-# Metro Data
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE) %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, everything()) %>%  # This is cleaner than listing out every variable
-  mutate_if(is.numeric, round, 1)
-
-
-# Read in spatial data
-states_sf <- get_urbn_map(map = "states", sf = TRUE)
-
-# Function for joining individual elements to states
-map_data <- function(data) {
-  
-  data %>% 
-    left_join(states_sf, ., by = c("state_name", "state_abbv")) %>% 
-    st_transform(4326)
-}
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Overall
-
-##### Percent of Total Population with Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map
-
-```{r demographics-general-data, context="data"}
-
-# Data for this section
-demo_gen_data <- demographics %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         percent_of_total_population_with_a_disability, pwd, total_population) %>% 
-  mutate(percent_of_total_population_with_a_disability =
-           round(percent_of_total_population_with_a_disability, 1))
-
-# SF data and palette
-demo_gen_map_data <- map_data(demo_gen_data)
-
-```
-
-```{r demographics-general-map, context="server"}
-
-demo_gen_selected <- reactive({ "percent_of_total_population_with_a_disability" })
-
-pal_demo1 <- reactive ({ 
-  
-  create_palette(demo_gen_map_data, demo_gen_selected())
-  
-})
-  
-# State map
-output$demo1map <- renderLeaflet({
-  render_map(demo_gen_map_data, demo_gen_selected(), pal_demo1())
-})
-
-# Click event for the map
-click_demo1map <- eventReactive(input$demo1map_shape_click, {
-  
-  x <- input$demo1map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_demo1map())
-  
-  demo1map <- leafletProxy("demo1map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = demo_gen_map_data[demo_gen_map_data$state_name == click_demo1map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-demo_gen_data_selected <- reactive({
-  
-  if(is.null(input$demo1map_shape_click)){
-    demo_gen_data
-  } else {
-    demo_gen_data %>% 
-      filter(state_name == click_demo1map())
-  }
-  
-})
-
-```
-
-```{r demographics-general-map-output}
-
-leafletOutput("demo1map")  
-
-```
-
-### Table {.table-wrapper}
-
-```{r demographics-general-table, context="server"}
-
-# Data table
-output$demo1table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    demo_gen_data_selected() %>% 
-      rename("percent_pwd" = percent_of_total_population_with_a_disability,
-             "total_pop" = total_population) %>% 
-      mutate(percent_pwd = percent(percent_pwd, scale = 1, accuracy = 0.1),
-             pwd = comma(pwd),
-             total_pop = comma(total_pop)),
-  options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r demographics-general-table-output}
-
-DT::dataTableOutput("demo1table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Age
-
-##### Percent of Persons 18-64, 65+ with Disability
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map
-
-```{r demographics-age-data, context="data"}
-
-# Data for this section
-demo_age_data <- demographics %>%
-  filter(is.na(city)) %>%
-  select("state_name" = state, "state_abbv" = abbrev,
-         percent_people_18_64_with_a_disability, pwd_18_64_years, total_population18_64,
-         percent_people_65_with_a_disability, pwd_65_years, total_population65) %>%
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-demo_age_map_data <- map_data(demo_age_data)
-
-```
-
-```{r demographics-age-map, context="server"}
-
-# Input for column to map
-demo_age_selected <- reactive({
-
-  if (input$demo_age_type == "18-64"){
-    "percent_people_18_64_with_a_disability"
-  } else {
-    "percent_people_65_with_a_disability"
-  }
-
-})
-
-pal_demo2 <- reactive ({ 
-  
-  create_palette(demo_age_data, demo_age_selected())
-  
-})
-    
-# State map
-output$demo2map <- renderLeaflet({
-  
-  # Map
-  render_map(demo_age_map_data, demo_age_selected(), pal_demo2())
-
-})
-
-# Click event for the map
-click_demo2map <- eventReactive(input$demo2map_shape_click, {
-  
-  x <- input$demo2map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_demo2map())
-  
-  demo2map <- leafletProxy("demo2map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = demo_age_map_data[demo_age_map_data$state_name == click_demo2map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-demo_age_data_selected <- reactive({
-  
-  if(is.null(input$demo2map_shape_click)){
-    demo_age_data
-  } else {
-    demo_age_data %>% 
-      filter(state_name == click_demo2map())
-  }
-  
-})
-
-```
-
-```{r demographics-age-map-output}
-
-selectInput("demo_age_type",
-            label = "Select a category",
-            choices = c("18-64", "65+"),
-            selected = "18-64")
-
-leafletOutput("demo2map") 
-
-```
-
-### Table {.table-wrapper}
-
-```{r demographics-age-table, context="server"}
-
-# Columns to show
-demo_age_cols_selected <- reactive({
-
-if (input$demo_age_type == "18-64"){
-  "18_64"
-} else {
-  "65"
-}
-
-})
-
-# Data table
-output$demo2table <- DT::renderDataTable({
-
-  # Table
-  DT::datatable(
-    demo_age_data_selected() %>%
-      rename("percent_pwd_18_64" = percent_people_18_64_with_a_disability,
-             "pwd_18_64" = pwd_18_64_years,
-             "total_pop_18_64" = total_population18_64,
-             "percent_pwd_65+" =percent_people_65_with_a_disability,
-             "pwd_65+" = pwd_65_years,
-             "total_pop_65+" = total_population65) %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>%
-      select(starts_with("state"), matches(demo_age_cols_selected())),
-  options(scrollX = "200px"))
-
-})
-
-```
-
-```{r demographics-age-table-output}
-
-DT::dataTableOutput("demo2table") 
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Race
-
-##### Percent of Persons with Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map
-
-```{r demographics-race-data, context="data"}
-
-# Data for this section
-demo_race_data <- demographics %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         pwd_caucasian:percent_of_pwd_who_are_white_non_hispanic, pwd) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-demo_race_map_data <- map_data(demo_race_data)
-
-```
-
-```{r demographics-race-map, context="server"}
-
-# Input for column to map
-demo_race_selected <- reactive({
-  
-  if (input$demo_race_type == "Caucasian"){
-    "percent_of_pwd_who_are_caucasian"
-  } else if (input$demo_race_type == "African American"){
-    "percent_of_pwd_who_are_black_african_american"
-  } else if (input$demo_race_type == "Another Race"){
-    "pwd_of_another_race_sum_of_five_columns_to_right"
-  } else if (input$demo_race_type == "White, Non-Hispanic"){
-    "percent_of_pwd_who_are_white_non_hispanic"
-  } else {
-    "percent_of_pwd_who_are_hispanic"
-  }
-  
-})
-
-pal_demo3 <- reactive ({ 
-    
-    create_palette(demo_race_data, demo_race_selected())
-                 
-  })
-    
-# State map
-output$demo3map <- renderLeaflet({
-  
-  # Map
-  render_map(demo_race_map_data, demo_race_selected(), pal_demo3())
-
-})
-
-# Click event for the map
-click_demo3map <- eventReactive(input$demo3map_shape_click, {
-  
-  x <- input$demo3map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_demo3map())
-  
-  demo3map <- leafletProxy("demo3map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = demo_race_map_data[demo_race_map_data$state_name == click_demo3map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-demo_race_data_selected <- reactive({
-  
-  if(is.null(input$demo3map_shape_click)){
-    demo_race_data
-  } else {
-    demo_race_data %>% 
-      filter(state_name == click_demo3map())
-  }
-  
-})
-
-```
-
-```{r demographics-race-map-output} 
-
-selectInput("demo_race_type", 
-            label = "Select a category", 
-            choices = c("Caucasian", "African American", "Another Race",
-                        "Hispanic", "White, Non-Hispanic"),
-            selected = "Caucasian")
-
-leafletOutput("demo3map")  
-
-```
-
-### Table {.table-wrapper}
-
-```{r demographics-race-table, context="server"}
-
-# Columns to show
-demo_race_cols_selected <- reactive({
-  
-  if (input$demo_race_type == "Caucasian"){
-    "caucasian"
-  } else if (input$demo_race_type == "African American"){
-    "black"
-  } else if (input$demo_race_type == "Another Race"){
-    "other_race"
-  } else if (input$demo_race_type == "White, Non-Hispanic"){
-    "non_hispanic"
-  } else {
-    "(?<!non_)hispanic"
-  }
-  
-})
-
-# Data table
-output$demo3table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    demo_race_data_selected() %>%
-      rename("percent_pwd_caucasian" = percent_of_pwd_who_are_caucasian, 
-             "percent_pwd_black" = percent_of_pwd_who_are_black_african_american,
-             "pwd_black" = pwd_black_or_african_american,
-             "percent_pwd_other_race" = percent_of_pwd_who_are_of_another_race, 
-             "pwd_other_race" = pwd_of_another_race_sum_of_five_columns_to_right,
-             "percent_pwd_hispanic" = percent_of_pwd_who_are_hispanic,
-             "percent_pwd_white_non_hispanic" = percent_of_pwd_who_are_white_non_hispanic,
-             "total_pwd" = pwd) %>% 
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(demo_race_cols_selected(), perl = TRUE)),
-  options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r demographics-race-table-output}
-
-DT::dataTableOutput("demo3table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Gender
-
-##### Percent of Persons with Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r demographics-gender-data, context="data"}
-
-# Data for this section
-demo_gender_data <- demographics %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         total_male_population:percent_pwd_female, pwd) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-demo_gender_map_data <- map_data(demo_gender_data)
-
-```
-
-```{r demographics-gender-map, context="server"}
-
-# Input for column to map
-demo_gender_selected <- reactive({
-  
-  if (input$demo_gender_type == "Female"){
-    "percent_of_female_population_with_a_disability"
-  } else {
-    "percent_of_male_population_with_a_disability"
-  }
-  
-})
-
-pal_demo4 <- reactive ({ 
-    
-    create_palette(demo_gender_data, demo_gender_selected())
-                 
-  })
-    
-# State map
-output$demo4map <- renderLeaflet({
-  
-  # Map
-  render_map(demo_gender_map_data, demo_gender_selected(), pal_demo4())
-
-})
-
-# Click event for the map
-click_demo4map <- eventReactive(input$demo4map_shape_click, {
-  
-  x <- input$demo4map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_demo4map())
-  
-  demo4map <- leafletProxy("demo4map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = demo_gender_map_data[demo_gender_map_data$state_name == click_demo4map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-demo_gender_data_selected <- reactive({
-  
-  if(is.null(input$demo4map_shape_click)){
-    demo_gender_data
-  } else {
-    demo_gender_data %>% 
-      filter(state_name == click_demo4map())
-  }
-  
-})
-
-```
-
-```{r demographics-gender-map-output}
-
-selectInput("demo_gender_type", 
-            label = "Select a category", 
-            choices = c("Female", "Male"),
-            selected = "Female")
-
-leafletOutput("demo4map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r demographics-gender-table, context="server"}
-
-# Columns to show
-demo_gender_cols_selected <- reactive({
-  
-  if (input$demo_gender_type == "Female"){
-    "female"
-  } else {
-    "(?<!fe)male"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$demo4table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    demo_gender_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(demo_gender_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r demographics-gender-table-output}
-
-DT::dataTableOutput("demo4table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Type of Disability
-
-##### Percent of Persons with Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r demographics-disability-type-data, context="data"}
-
-# Data for this section
-demo_distype_data <- demographics %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         total_population_2:percent_of_total_population_independent_living_disability, pwd) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-demo_distype_map_data <- map_data(demo_distype_data)
-
-```
-
-```{r demographics-disability-type-map, context="server"}
-
-# Input for column to map
-demo_distype_selected <- reactive({
-  
-  if (input$demo_distype_type == "Hearing"){
-    "percent_of_total_population_hearing_disability"
-  } else if (input$demo_distype_type == "Vision"){
-    "percent_of_total_population_vision_disability"
-  } else if (input$demo_distype_type == "Cognitive"){
-    "percent_of_total_population_cognitive_disability"
-  } else if (input$demo_distype_type == "Ambulatory"){
-    "percent_of_total_population_ambulatory_disability"
-  } else if (input$demo_distype_type == "Self Care"){
-    "percent_of_total_population_self_care_disability"
-  } else {
-    "percent_of_total_population_independent_living_disability"
-  }
-  
-})
-
-pal_demo5 <- reactive ({ 
-    
-    create_palette(demo_distype_data, demo_distype_selected())
-                 
-  })
-    
-# State map
-output$demo5map <- renderLeaflet({
-  
-  # Map
-  render_map(demo_distype_map_data, demo_distype_selected(), pal_demo5())
-
-})
-
-# Click event for the map
-click_demo5map <- eventReactive(input$demo5map_shape_click, {
-  
-  x <- input$demo5map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_demo5map())
-  
-  demo5map <- leafletProxy("demo5map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = demo_distype_map_data[demo_distype_map_data$state_name == click_demo5map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-demo_distype_data_selected <- reactive({
-  
-  if(is.null(input$demo5map_shape_click)){
-    demo_distype_data
-  } else {
-    demo_distype_data %>% 
-      filter(state_name == click_demo5map())
-  }
-  
-})
-
-```
-
-```{r demographics-disability-type-map-output}
-
-selectInput("demo_distype_type", 
-            label = "Select a category", 
-            choices = c("Hearing", "Vision", "Cognitive", 
-                        "Ambulatory", "Self Care", "Independent Living"),
-            selected = "Hearing")
-
-leafletOutput("demo5map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r demographics-disability-type-table, context="server"}
-
-# Columns to show
-demo_distype_cols_selected <- reactive({
-  
-    if (input$demo_distype_type == "Hearing"){
-    "hearing"
-  } else if (input$demo_distype_type == "Vision"){
-    "vision"
-  } else if (input$demo_distype_type == "Cognitive"){
-    "cognitive"
-  } else if (input$demo_distype_type == "Ambulatory"){
-    "ambulatory"
-  } else if (input$demo_distype_type == "Self Care"){
-    "self_care"
-  } else {
-    "independent_living"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$demo5table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    demo_distype_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(demo_distype_cols_selected())),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r demographics-disability-type-table-output}
-
-DT::dataTableOutput("demo5table")
-
-```
-
-
-Community Living {data-navmenu="National" data-icon="fa-home"}
-======================================================================
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Where People with Disabilities Live in the Community
-
-##### Percent of Persons with Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-living-where-people-live-data, context="data"}
-
-# Data for this section
-cl_live_data <- community_living %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         total_population:percent_pwd_other_group_quarters) %>% 
-  mutate(across(starts_with("percent"), round, 1)) %>% 
-  mutate(pwd_in_home = total_population_pwd - 
-           pwd_in_institutionalized_group_quarters -
-           pwd_in_non_institutional_group_quarters)
-
-# SF data and palette
-cl_live_map_data <- map_data(cl_live_data)
-
-```
-
-```{r community-living-where-people-live-map, context="server"}
-
-# Input for column to map  
-cl_live_selected <- reactive({
-  
-  if (input$cl_live_type == "Home"){
-    "percent_pwd_home"
-  } else if (input$cl_live_type == "Group Quarters - Institution"){
-    "percent_pwd_institution"
-  } else {
-    "percent_pwd_other_group_quarters"
-  }
-  
-})
-
-pal_cl1 <- reactive ({ 
-    
-    create_palette(cl_live_data, cl_live_selected())
-                 
-  })
-  
-# State map
-output$cl1map <- renderLeaflet({
-  
-  render_map(cl_live_map_data, cl_live_selected(), pal_cl1())
-  
-})
-
-# Click event for the map
-click_cl1map <- eventReactive(input$cl1map_shape_click, {
-  
-  x <- input$cl1map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cl1map())
-  
-  cl1map <- leafletProxy("cl1map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cl_live_map_data[cl_live_map_data$state_name == click_cl1map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cl_live_data_selected <- reactive({
-  
-  if(is.null(input$cl1map_shape_click)){
-    cl_live_data
-  } else {
-    cl_live_data %>% 
-      filter(state_name == click_cl1map())
-  }
-  
-})
-
-```
-
-```{r community-living-where-people-live-map-output} 
-
-selectInput("cl_live_type", 
-            label = "Select a category", 
-            choices = c("Home", "Group Quarters - Institution", "Group Quarters - Other"),
-            selected = "Home")
-
-leafletOutput("cl1map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-living-where-people-live-table, context="server"}
-
-# Columns to show
-cl_live_cols_selected <- reactive({
-  
-  if (input$cl_live_type == "Home"){
-    "home"
-  } else if (input$cl_live_type == "Group Quarters - Institution"){
-    "(?<!non_)institution"
-  } else {
-    "(non_institution|other_group_quarters)"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cl1table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cl_live_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cl_live_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-living-where-people-live-table-output}
-
-DT::dataTableOutput("cl1table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Nursing Home Residents
-
-##### Percent of State Residents
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-living-nursing-home-data, context="data"}
-
-# Data for this section
-cl_nursing_data <- community_living %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         total_number_pwd_in_certified_nursing_facilities_2014:institutionalization_rate_per_10_000_people_2014) %>% 
-  select(-matches("_2011")) %>% 
-  mutate(across(starts_with("percent"), round, 3))
-
-# SF data and palette
-cl_nursing_map_data <- map_data(cl_nursing_data)
-
-```
-
-```{r community-living-nursing-home-map, context="server"}
-
-# # Input for column to map
-# selectInput("cl_nursing_type", 
-#             label = "Select a category", 
-#             choices = c("Home", "Group Quarters - Institution", "Group Quarters - Other"),
-#             selected = "Home")
-# 
-cl_nursing_selected <- reactive({ 
-  
-  "percentage_of_state_residents_in_a_nursing_home_2014_calculated"
-
-#   if (input$cl_nursing_type == "Home"){
-#     "percent_pwd_home"
-#   } else if (input$cl_nursing_type == "Group Quarters - Institution"){
-#     "percent_pwd_institution"
-#   } else {
-#     "percent_pwd_other_group_quarters"
-#   }
-
-})
-
-pal_cl2 <- reactive ({ 
-    
-    create_palette(cl_nursing_data, cl_nursing_selected())
-                 
-  })
-  
-# State map
-output$cl2map <- renderLeaflet({
-  
-  render_map(cl_nursing_map_data, cl_nursing_selected(), pal_cl2())
-  
-})
-
-# Click event for the map
-click_cl2map <- eventReactive(input$cl2map_shape_click, {
-  
-  x <- input$cl2map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cl2map())
-  
-  cl2map <- leafletProxy("cl2map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cl_nursing_map_data[cl_nursing_map_data$state_name == click_cl2map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cl_nursing_data_selected <- reactive({
-  
-  if(is.null(input$cl2map_shape_click)){
-    cl_nursing_data
-  } else {
-    cl_nursing_data %>% 
-      filter(state_name == click_cl2map())
-  }
-  
-})
-
-```
-
-```{r community-living-nursing-home-map-output}
-
-leafletOutput("cl2map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-living-nursing-home-table, context="server"}
-
-# Columns to show
-# cl_nursing_cols_selected <- reactive({
-#   
-#   if (input$cl_nursing_type == "Home"){
-#     "home"
-#   } else if (input$cl_nursing_type == "Group Quarters - Institution"){
-#     "(?<!non_)institution"
-#   } else {
-#     "(non_institution|other_group_quarters)"
-#   }
-#   
-# })
-
-# Data table (scroll function for wide data)
-output$cl2table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cl_nursing_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)),
-      # select(starts_with("state"), matches(cl_nursing_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-living-nursing-home-table-output}
-
-DT::dataTableOutput("cl2table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Programs and Spending for Community Living
-
-##### Per State Residents
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-living-programs-spending-data, context="data"}
-
-# Data for this section
-cl_ps_data <- community_living %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         ratio_hcbs_participants_to_total_ltss:mfp_transitions_since_inception_per_10_000_people) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cl_ps_map_data <- map_data(cl_ps_data)
-
-```
-
-```{r community-living-programs-spending-map, context="server"}
-
-# Input for column to map
-cl_ps_selected <- reactive({
-  
-  if (input$cl_ps_type == "HCBS"){
-    "hcbs_waiver_waitlist_per_10_000_people"
-  } else {
-    "mfp_transitions_since_inception_per_10_000_people"
-  }
-  
-})
-
-pal_cl3 <- reactive ({ 
-    
-    create_palette(cl_ps_data, cl_ps_selected())
-                 
-  })
-  
-# State map
-output$cl3map <- renderLeaflet({
-  
-  render_map(cl_ps_map_data, cl_ps_selected(), pal_cl3())
-  
-})
-
-# Click event for the map
-click_cl3map <- eventReactive(input$cl3map_shape_click, {
-  
-  x <- input$cl3map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cl3map())
-  
-  cl3map <- leafletProxy("cl3map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cl_ps_map_data[cl_ps_map_data$state_name == click_cl3map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cl_ps_data_selected <- reactive({
-  
-  if(is.null(input$cl3map_shape_click)){
-    cl_ps_data
-  } else {
-    cl_ps_data %>% 
-      filter(state_name == click_cl3map())
-  }
-  
-})
-
-```
-
-```{r community-living-programs-spending-map-output}
-
-selectInput("cl_ps_type", 
-            label = "Select a category", 
-            choices = c("HCBS", "MFP"),
-            selected = "HCBS")
-
-leafletOutput("cl3map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-living-programs-spending-table, context="server"}
-
-# Columns to show
-cl_ps_cols_selected <- reactive({
-  
-  if (input$cl_ps_type == "HCBS"){
-    "hcbs"
-  } else {
-    "mfp"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cl3table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cl_ps_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(matches("_per_"), round, 2),
-             across(where(is.numeric) & !matches("_per_"), comma)) %>% 
-      select(starts_with("state"), matches(cl_ps_cols_selected())),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-living-programs-spending-table-output}
-
-DT::dataTableOutput("cl3table")
-
-```
-
-
-
-Community Participation {data-navmenu="National" data-icon="fa-group"}
-======================================================================
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Health Coverage
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-participation-health-insurance-data, context="data"}
-
-# Data for this section
-cp_insurance_data <- community_participation %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         tot_pop_19_64:percent_people_enrolled_in_medicaid_pwod_kff_acs) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cp_insurance_map_data <- map_data(cp_insurance_data)
-
-```
-
-```{r community-participation-health-insurance-map, context="server"}
-
-# Input for column to map
-cp_insurance_selected <- reactive({
-  
-  if (input$cp_insurance_type == "PWD // 19-64 // Private Health Insurance"){
-    "percent_pwd_19_64_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // 19-64 // No Health Insurance"){
-    "percent_pwd_19_64_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // 65+ // Private Health Insurance"){
-    "percent_pwd_65_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // 65+ // No Health Insurance"){
-    "percent_pwd_65_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicare Part A and/or B"){
-    "percent_people_enrolled_in_medicare_part_a_and_or_b_pwd_2017_cms_acs"
-  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicaid"){
-    "percent_people_enrolled_in_medicaid_pwd_kff_acs"
-  } else if (input$cp_insurance_type == "PWOD // 19-64 // Private Health Insurance"){
-    "percent_pwod_19_64_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // 19-64 // No Health Insurance"){
-    "percent_pwod_19_64_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // 65+ // Private Health Insurance"){
-    "percent_pwod_65_private_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // 65+ // No Health Insurance"){
-    "percent_pwod_65_no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // Enrolled in Medicare Part A and/or B"){
-    "percent_people_enrolled_in_medicare_part_a_and_or_b_pwod_2017_cms_acs"
-  } else {
-    "percent_people_enrolled_in_medicaid_pwod_kff_acs"
-  }
-  
-})
-
-pal_cp1 <- reactive ({ 
-    
-    create_palette(cp_insurance_data, cp_insurance_selected())
-                 
-  })
-  
-# State map
-output$cp1map <- renderLeaflet({
-  
-  # Map
-  render_map(cp_insurance_map_data, cp_insurance_selected(), pal_cp1())
-  
-})
-
-# Click event for the map
-click_cp1map <- eventReactive(input$cp1map_shape_click, {
-  
-  x <- input$cp1map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cp1map())
-  
-  cp1map <- leafletProxy("cp1map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cp_insurance_map_data[cp_insurance_map_data$state_name == click_cp1map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cp_insurance_data_selected <- reactive({
-  
-  if(is.null(input$cp1map_shape_click)){
-    cp_insurance_data
-  } else {
-    cp_insurance_data %>% 
-      filter(state_name == click_cp1map())
-  }
-  
-})
-
-```
-
-```{r community-participation-health-insurance-map-output}
-selectInput("cp_insurance_type", 
-            label = "Select a category", 
-            choices = c("PWD // 19-64 // Private Health Insurance",
-                        "PWD // 19-64 // No Health Insurance",
-                        "PWD // 65+ // Private Health Insurance",
-                        "PWD // 65+ // No Health Insurance",
-                        "PWD // Enrolled in Medicare Part A and/or B",
-                        "PWD // Enrolled in Medicaid",
-                        "PWOD // 19-64 // Private Health Insurance",
-                        "PWOD // 19-64 // No Health Insurance",
-                        "PWOD // 65+ // Private Health Insurance",
-                        "PWOD // 65+ // No Health Insurance",
-                        "PWOD // Enrolled in Medicare Part A and/or B",
-                        "PWOD // Enrolled in Medicaid"),
-            selected = "PWD // 19-64 // Private Health Insurance",
-            width = "400px")
-
-leafletOutput("cp1map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-participation-health-insurance-table, context="server"}
-
-# Columns to show
-cp_insurance_cols_selected <- reactive({
-             
-  if (input$cp_insurance_type == "PWD // 19-64 // Private Health Insurance"){
-    "pwd.*19_64.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // 19-64 // No Health Insurance"){
-    "pwd.*19_64.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // 65+ // Private Health Insurance"){
-    "pwd.*65.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // 65+ // No Health Insurance"){
-    "pwd.*65.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicare Part A and/or B"){
-    "pwd.*medicare"
-  } else if (input$cp_insurance_type == "PWD // Enrolled in Medicaid"){
-    "pwd.*medicaid"
-  } else if (input$cp_insurance_type == "PWOD // 19-64 // Private Health Insurance"){
-    "pwod.*19_64.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // 19-64 // No Health Insurance"){
-    "pwod.*19_64.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // 65+ // Private Health Insurance"){
-    "pwod.*65.*private_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // 65+ // No Health Insurance"){
-    "pwod.*65.*no_health_insurance"
-  } else if (input$cp_insurance_type == "PWOD // Enrolled in Medicare Part A and/or B"){
-    "pwod.*medicare"
-  } else {
-    "pwod.*medicaid"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cp1table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cp_insurance_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cp_insurance_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-participation-health-insurance-table-output}
-
-DT::dataTableOutput("cp1table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Community Based Subsidized Housing
-
-##### Percent of Residents or Households with Disability
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-participation-housing-data, context="data"}
-
-# Data for this section
-cp_housing_data <- community_participation %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         percent_of_households_in_public_housing_with_residents_that_are_disabled_hud_picture_2019:percent_of_households_with_a_tenant_based_voucher_that_have_a_disabled_resident_09_1_18_12_31_19) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cp_housing_map_data <- map_data(cp_housing_data)
-
-```
-
-```{r community-participation-housing-map, context="server"}
-
-# Input for column to map
-cp_housing_selected <- reactive({
-  
-  if (input$cp_housing_type == "Residents in Public Housing with a Disability"){
-    "percent_of_households_in_public_housing_with_residents_that_are_disabled_hud_picture_2019"
-  } else if (input$cp_housing_type == "Residents with a Housing Choice Voucher (Section 8) with a Disability"){
-    "percent_residents_with_housing_choice_vouchers_who_are_disabled_hud_picture_2018"
-  } else if (input$cp_housing_type == "Households in Public Housing with a Resident who has a Disability"){
-    "percent_households_in_public_housing_that_have_a_disabled_resident_09_1_18_12_31_19"
-  } else {
-    "percent_of_households_with_a_tenant_based_voucher_that_have_a_disabled_resident_09_1_18_12_31_19"
-  }
-  
-})
-
-pal_cp2 <- reactive ({ 
-    
-    create_palette(cp_housing_data, cp_housing_selected())
-                 
-  })
-  
-# State map
-output$cp2map <- renderLeaflet({
-  
-  render_map(cp_housing_map_data, cp_housing_selected(), pal_cp2())
-  
-})
-
-# Click event for the map
-click_cp2map <- eventReactive(input$cp2map_shape_click, {
-  
-  x <- input$cp2map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cp2map())
-  
-  cp2map <- leafletProxy("cp2map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cp_housing_map_data[cp_housing_map_data$state_name == click_cp2map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cp_housing_data_selected <- reactive({
-  
-  if(is.null(input$cp2map_shape_click)){
-    cp_housing_data
-  } else {
-    cp_housing_data %>% 
-      filter(state_name == click_cp2map())
-  }
-  
-})
-
-```
-
-```{r community-participation-housing-map-output}
-
-selectInput("cp_housing_type", 
-            label = "Select a category", 
-            choices = c("Residents in Public Housing with a Disability",
-                        "Residents with a Housing Choice Voucher (Section 8) with a Disability",
-                        "Households in Public Housing with a Resident who has a Disability",
-                        "Households with a Housing Choice Voucher with a Resident who has a Disability"),
-            selected = "Residents in Public Housing with a Disability",
-            width = "400px")
-
-leafletOutput("cp2map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-participation-housing-table, context="server"}
-
-# Columns to show
-cp_housing_cols_selected <- reactive({
-             
-  if (input$cp_housing_type == "Residents in Public Housing with a Disability"){
-    "public_housing.*residents"
-  } else if (input$cp_housing_type == "Residents with a Housing Choice Voucher (Section 8) with a Disability"){
-    "residents.*housing_choice_voucher"
-  } else if (input$cp_housing_type == "Households in Public Housing with a Resident who has a Disability"){
-    "public_housing.*disabled_resident"
-  } else {
-    "voucher.*disabled_resident"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cp2table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cp_housing_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cp_housing_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-participation-housing-table-output}
-
-DT::dataTableOutput("cp2table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Transit Usage - Commuting
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-participation-transit-data, context="data"}
-
-# Data for this section
-cp_transit_data <- community_participation %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         percent_pwd_that_commute_to_work_by_public_transit_age_16:percent_pwod_that_commute_to_work_by_car_drove_alone_age_16) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cp_transit_map_data <- map_data(cp_transit_data)
-
-```
-
-```{r community-participation-transit-map, context="server"}
-
-# Input for column to map
-cp_transit_selected <- reactive({
-  
-  if (input$cp_transit_type == "PWD // Public Transit"){
-    "percent_pwd_that_commute_to_work_by_public_transit_age_16"
-  } else if (input$cp_transit_type == "PWD // Drive Alone"){
-    "percent_pwd_that_commute_to_work_by_car_drove_alone_age_16"
-  } else if (input$cp_transit_type == "PWOD // Public Transit"){
-    "percent_pwod_that_commute_to_work_by_public_transit_age_16"
-  } else {
-    "percent_pwod_that_commute_to_work_by_car_drove_alone_age_16"
-  }
-  
-})
-
-pal_cp3 <- reactive ({ 
-    
-    create_palette(cp_transit_data, cp_transit_selected())
-                 
-  })
-  
-# State map
-output$cp3map <- renderLeaflet({
-  
-  render_map(cp_transit_map_data, cp_transit_selected(), pal_cp3())
-  
-})
-
-# Click event for the map
-click_cp3map <- eventReactive(input$cp3map_shape_click, {
-  
-  x <- input$cp3map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cp3map())
-  
-  cp3map <- leafletProxy("cp3map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cp_transit_map_data[cp_transit_map_data$state_name == click_cp3map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cp_transit_data_selected <- reactive({
-  
-  if(is.null(input$cp3map_shape_click)){
-    cp_transit_data
-  } else {
-    cp_transit_data %>% 
-      filter(state_name == click_cp3map())
-  }
-  
-})
-```
-
-```{r community-participation-transit-map-output}
-
-selectInput("cp_transit_type", 
-            label = "Select a category", 
-            choices = c("PWD // Public Transit",
-                        "PWD // Drive Alone",
-                        "PWOD // Public Transit",
-                        "PWOD // Drive Alone"),
-            selected = "PWD // Public Transit",
-            width = "400px")
-            
-leafletOutput("cp3map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-participation-transit-table, context="server"}
-
-# Columns to show
-cp_transit_cols_selected <- reactive({
-             
-  if (input$cp_transit_type == "PWD // Public Transit"){
-    "pwd.*transit"
-  } else if (input$cp_transit_type == "PWD // Drive Alone"){
-    "pwd.*drove_alone"
-  } else if (input$cp_transit_type == "PWOD // Public Transit"){
-    "pwod.*transit"
-  } else {
-    "pwod.*drove_alone"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cp3table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cp_transit_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cp_transit_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-participation-transit-table-output}
-
-DT::dataTableOutput("cp3table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Crime
-
-##### Per 10,000 People
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map 
-
-```{r community-participation-crime-data, context="data"}
-
-# Data for this section
-cp_crime_data <- community_participation %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         total_population:number_of_violent_crimes_per_10_000_people) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cp_crime_map_data <- map_data(cp_crime_data)
-  
-```
-
-```{r community-participation-crime-map, context="server"}
-
-# Input for column to map
-cp_crime_selected <- reactive({
-  
-  if (input$cp_crime_type == "Property"){
-    "number_of_property_crimes_per_10_000_people"
-  } else {
-    "number_of_violent_crimes_per_10_000_people"
-  }
-  
-})
-
-pal_cp4 <- reactive ({ 
-    
-    create_palette(cp_crime_data, cp_crime_selected())
-                 
-  })
-  
-# State map
-output$cp4map <- renderLeaflet({
-  
-  # Map
-  render_map(cp_crime_map_data, cp_crime_selected(), pal_cp4())
-  
-})
-
-# Click event for the map
-click_cp4map <- eventReactive(input$cp4map_shape_click, {
-  
-  x <- input$cp4map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cp4map())
-  
-  cp4map <- leafletProxy("cp4map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cp_crime_map_data[cp_crime_map_data$state_name == click_cp4map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cp_crime_data_selected <- reactive({
-  
-  if(is.null(input$cp4map_shape_click)){
-    cp_crime_data
-  } else {
-    cp_crime_data %>% 
-      filter(state_name == click_cp4map())
-  }
-  
-})
-
-```
-
-```{r community-participation-crime-map-output}
-
-selectInput("cp_crime_type", 
-            label = "Select a category", 
-            choices = c("Property",
-                        "Violent"),
-            selected = "Property",
-            width = "400px")
-
-leafletOutput("cp4map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-participation-crime-table, context="server"}
-
-# Columns to show
-cp_crime_cols_selected <- reactive({
-             
-  if (input$cp_crime_type == "Property"){
-    "property"
-  } else {
-    "violent"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cp4table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cp_crime_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cp_crime_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-participation-crime-table-output}
-
-DT::dataTableOutput("cp4table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Educational Attainment
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-participation-education-data, context="data"}
-
-# Data for this section
-cp_education_data <- community_participation %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         percent_pwd_less_than_high_school_age_25:percent_pwod_bachelors_degree_or_higher_age_25) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cp_education_map_data <- map_data(cp_education_data)
-
-```
-
-```{r community-participation-education-map, context="server"}
-
-# Input for column to map
-cp_education_selected <- reactive({
-  
-  if (input$cp_education_type == "PWD // Less Than High School"){
-    "percent_pwd_less_than_high_school_age_25"
-  } else if (input$cp_education_type == "PWD // HS or GED"){
-    "percent_pwd_hs_or_ged_age_25"
-  } else if (input$cp_education_type == "PWD // Associate's Degree"){
-    "percent_pwd_college_or_assoc_degree_age_25"
-  } else if (input$cp_education_type == "PWD // Bachelor's Degree or Higher"){
-    "percent_pwd_bachelors_degree_or_higher_age_25"
-  } else if (input$cp_education_type == "PWOD // Less Than High School"){
-    "percent_pwod_less_than_high_school_age_25"
-  } else if (input$cp_education_type == "PWOD // HS or GED"){
-    "percent_pwod_hs_or_ged_age_25"
-  } else if (input$cp_education_type == "PWOD // Associate's Degree"){
-    "percent_pwod_college_or_assoc_degree_age_25"
-  } else {
-    "percent_pwod_bachelors_degree_or_higher_age_25"
-  }
-  
-})
-
-pal_cp5 <- reactive ({ 
-    
-    create_palette(cp_education_data, cp_education_selected())
-                 
-  })
-  
-# State map
-output$cp5map <- renderLeaflet({
-  
-  render_map(cp_education_map_data, cp_education_selected(), pal_cp5())
-  
-})
-
-# Click event for the map
-click_cp5map <- eventReactive(input$cp5map_shape_click, {
-  
-  x <- input$cp5map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cp5map())
-  
-  cp5map <- leafletProxy("cp5map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cp_education_map_data[cp_education_map_data$state_name == click_cp5map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cp_education_data_selected <- reactive({
-  
-  if(is.null(input$cp5map_shape_click)){
-    cp_education_data
-  } else {
-    cp_education_data %>% 
-      filter(state_name == click_cp5map())
-  }
-  
-})
-
-```
-
-```{r community-participation-education-map-output}
-
-selectInput("cp_education_type", 
-            label = "Select a category", 
-            choices = c("PWD // Less Than High School",
-                        "PWD // HS or GED",
-                        "PWD // Associate's Degree",
-                        "PWD // Bachelor's Degree or Higher",
-                        "PWOD // Less Than High School",
-                        "PWOD // HS or GED",
-                        "PWOD // Associate's Degree",
-                        "PWOD // Bachelor's Degree or Higher"),
-            selected = "PWD // Less Than High School",
-            width = "400px")
-            
-leafletOutput("cp5map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-participation-education-table, context="server"}
-
-# Columns to show
-cp_education_cols_selected <- reactive({
-             
-  if (input$cp_education_type == "PWD // Less Than High School"){
-    "pwd.*less_than_high_school"
-  } else if (input$cp_education_type == "PWD // HS or GED"){
-    "pwd.*hs_or_ged"
-  } else if (input$cp_education_type == "PWD // Associate's Degree"){
-    "pwd.*college_or_assoc"
-  } else if (input$cp_education_type == "PWD // Bachelor's Degree or Higher"){
-    "pwd.*bachelors"
-  } else if (input$cp_education_type == "PWOD // Less Than High School"){
-    "pwod.*less_than_high_school"
-  } else if (input$cp_education_type == "PWOD // HS or GED"){
-    "pwod.*hs_or_ged"
-  } else if (input$cp_education_type == "PWOD // Associate's Degree"){
-    "pwod.*college_or_assoc"
-  } else {
-    "pwod.*bachelors"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cp5table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cp_education_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cp_education_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-participation-education-table-output}
-
-DT::dataTableOutput("cp5table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Voter Turnout
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r community-participation-voting-data, context="data"}
-
-# Data for this section
-cp_voting_data <- community_participation %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = abbrev, 
-         pwd_voter_turnout_2012:change_in_disability_gap) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-cp_voting_map_data <- map_data(cp_voting_data)
-  
-```
-
-```{r community-participation-voting-map, context="server"}
-
-# Input for column to map
-cp_voting_selected <- reactive({
-  
-  if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
-    "pwd_voter_turnout_2018"
-  } else if (input$cp_voting_type == "PWOD // Voter Turnout (2018)"){
-    "pwod_voter_turnout_2018"
-  } else {
-    "disability_gap_2018"
-  }
-  
-})
-
-pal_cp6 <- reactive ({ 
-    
-    create_palette(cp_voting_data, cp_voting_selected())
-                 
-  })
-  
-# State map
-output$cp6map <- renderLeaflet({
-  
-  render_map(cp_voting_map_data, cp_voting_selected(), pal_cp6())
-  
-})
-
-# Click event for the map
-click_cp6map <- eventReactive(input$cp6map_shape_click, {
-  
-  x <- input$cp6map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_cp6map())
-  
-  cp6map <- leafletProxy("cp6map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = cp_voting_map_data[cp_voting_map_data$state_name == click_cp6map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-cp_voting_data_selected <- reactive({
-  
-  if(is.null(input$cp6map_shape_click)){
-    cp_voting_data
-  } else {
-    cp_voting_data %>% 
-      filter(state_name == click_cp6map())
-  }
-  
-})
-
-```
-
-```{r community-participation-voting-map-output}
-
-selectInput("cp_voting_type", 
-            label = "Select a category", 
-            choices = c("PWD // Voter Turnout (2018)",
-                        "PWOD // Voter Turnout (2018)",
-                        "Disability Gap (2018)"),
-            selected = "PWD // Voter Turnout (2018)",
-            width = "400px")
-            
-leafletOutput("cp6map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r community-participation-voting-table, context="server"}
-
-# Columns to show
-cp_voting_cols_selected <- reactive({
-             
-  if (input$cp_voting_type == "PWD // Voter Turnout (2018)"){
-    "(pwd.*turnout_2018|change_in_pwd_voter_turnout)"
-  } else if (input$cp_voting_type == "PWOD // Voter Turnout (2018)"){
-    "(pwod.*turnout_2018|change_in_pwod_turnout)"
-  } else {
-    "(pwod.*disability_gap_2018|change_in_disability_gap)"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$cp6table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    cp_voting_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(cp_voting_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r community-participation-voting-table-output}
-
-DT::dataTableOutput("cp6table")
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-Work/Economic {data-navmenu="National" data-icon="fa-wrench"}
-======================================================================
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Employment
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r work-economic-employment-data, context="data"}
-
-# Data for this section
-we_employ_data <- work_economic %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = state_abbreviation, 
-         total_population:percent_pwod_not_in_the_labor_force,
-         population_worked_full_time_year_round:pwod_did_not_work,
-         pwd_percentage_of_people_working_from_home:pwod_percentage_of_people_working_from_home) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-we_employ_map_data <- map_data(we_employ_data)
-  
-```
-
-```{r work-economic-employment-map, context="server"}
-
-# Input for column to map
-we_employ_selected <- reactive({
-  
-  if (input$we_employ_type == "PWD // 18-64 // Employed"){
-    "percent_pwd_employed"
-  } else if (input$we_employ_type == "PWD // 18-64 // Unemployed"){
-    "percent_pwd_unemployed"
-  } else if (input$we_employ_type == "PWD // 18-64 // Not in Labor Force"){
-    "percent_pwd_not_in_the_labor_force"
-  } else if (input$we_employ_type == "PWD // 18-64 // Work Full Time"){
-    "pwd_full_time"
-  } else if (input$we_employ_type == "PWD // 18-64 // Work Part Time"){
-    "pwd_part_time"
-  } else if (input$we_employ_type == "PWD // 18-64 // Work From Home"){
-    "pwd_percentage_of_people_working_from_home"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Employed"){
-    "percent_pwod_employed"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Unemployed"){
-    "percent_pwod_unemployed"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Not in Labor Force"){
-    "percent_pwod_not_in_the_labor_force"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Work Full Time"){
-    "pwod_full_time"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Work Part Time"){
-    "pwod_part_time"
-  } else {
-    "pwod_percentage_of_people_working_from_home"
-  }
-  
-})
-
-pal_we1 <- reactive ({ 
-    
-    create_palette(we_employ_data, we_employ_selected())
-                 
-  })
-  
-# State map
-output$we1map <- renderLeaflet({
-  
-  render_map(we_employ_map_data, we_employ_selected(), pal_we1())
-  
-})
-
-# Click event for the map
-click_we1map <- eventReactive(input$we1map_shape_click, {
-  
-  x <- input$we1map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_we1map())
-  
-  we1map <- leafletProxy("we1map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = we_employ_map_data[we_employ_map_data$state_name == click_we1map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-we_employ_data_selected <- reactive({
-  
-  if(is.null(input$we1map_shape_click)){
-    we_employ_data
-  } else {
-    we_employ_data %>% 
-      filter(state_name == click_we1map())
-  }
-  
-})
-
-```
-
-```{r work-economic-employment-map-output}
-
-selectInput("we_employ_type", 
-            label = "Select a category", 
-            choices = c("PWD // 18-64 // Employed",
-                        "PWD // 18-64 // Unemployed",
-                        "PWD // 18-64 // Not in Labor Force",
-                        "PWD // 18-64 // Work Full Time",
-                        "PWD // 18-64 // Work Part Time",
-                        "PWD // 16-64 // Work From Home",
-                        "PWOD // 18-64 // Employed",
-                        "PWOD // 18-64 // Unemployed",
-                        "PWOD // 18-64 // Not in Labor Force",
-                        "PWOD // 18-64 // Work Full Time",
-                        "PWOD // 18-64 // Work Part Time",
-                        "PWOD // 16-64 // Work From Home"),
-            selected = "PWD // 18-64 // Employed",
-            width = "400px")
-            
-leafletOutput("we1map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r work-economic-employment-table, context="server"}
-
-# Columns to show
-we_employ_cols_selected <- reactive({
-             
-  if (input$we_employ_type == "PWD // 18-64 // Employed"){
-    "pwd.*(?<!un)employed"
-  } else if (input$we_employ_type == "PWD // 18-64 // Unemployed"){
-    "pwd.*unemployed"
-  } else if (input$we_employ_type == "PWD // 18-64 // Not in Labor Force"){
-    "pwd.*not_in_the_labor_force"
-  } else if (input$we_employ_type == "PWD // 18-64 // Work Full Time"){
-    "(population_worked_full_time_year_round_with_a_disability|pwd_full_time)"
-  } else if (input$we_employ_type == "PWD // 18-64 // Work Part Time"){
-    "(population_worked_less_than_full_time_year_round_with_a_disability|pwod_part_time)"
-  } else if (input$we_employ_type == "PWD // 18-64 // Work From Home"){
-    "pwd_percentage_of_people_working_from_home"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Employed"){
-    "pwod.*(?<!un)employed"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Unemployed"){
-    "pwod.*unemployed"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Not in Labor Force"){
-    "pwod.*not_in_the_labor_force"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Work Full Time"){
-    "(population_worked_full_time_year_round_without_a_disability|pwod_full_time)"
-  } else if (input$we_employ_type == "PWOD // 18-64 // Work Part Time"){
-    "(population_worked_less_than_full_time_year_round_without_a_disability|pwod_part_time)"
-  } else {
-    "pwod_percentage_of_people_working_from_home"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$we1table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    we_employ_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(we_employ_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r work-economic-employment-table-output}
-
-DT::dataTableOutput("we1table")
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Economic Status
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r work-economic-status-data, context="data"}
-
-# Data for this section
-we_status_data <- work_economic %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = state_abbreviation,
-         pwd_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars:pwod_median_household_income_include_any_working_age_people_age_21_64_us_dollars,
-         pwd_income_in_past_12_months_below_poverty_level:percent_pwod_above_poverty_level,
-         percent_of_total_population_receiving_ssi:ssi_as_percent_median_income_percentage,
-         number_of_ssi_beneficiaries_18_64:percent_pop_18_64_receiving_ssdi) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-we_status_map_data <- map_data(we_status_data)
-  
-```
-
-```{r work-economic-status-map, context="server"}
-
-# Input for column to map
-we_status_selected <- reactive({
-  
-  if (input$we_status_type == "PWD // 16+ // Median Individual Income"){
-    "pwd_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
-  } else if (input$we_status_type == "PWD // 21-64 // Median Household Income"){
-    "pwd_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
-  } else if (input$we_status_type == "PWD // 18-64 // Below the Poverty Level"){
-    "percent_pwd_below_poverty_level"
-  } else if (input$we_status_type == "PWOD // 16+ // Median Individual Income"){
-    "pwod_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
-  } else if (input$we_status_type == "PWOD // 21-64 // Median Household Income"){
-    "pwod_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
-  } else if (input$we_status_type == "PWOD // 18-64 // Below the Poverty Level"){
-    "percent_pwod_below_poverty_level"
-  } else if (input$we_status_type == "SSI // Percent of Total Population"){
-    "percent_of_total_population_receiving_ssi"
-  } else if (input$we_status_type == "SSI // Monthly Payment"){
-    "ssi_monthly_payment_us_dollars"
-  } else if (input$we_status_type == "SSI // Percent of Monthly Income"){
-    "ssi_as_percent_median_income_percentage"
-  } else {
-    "percent_pop_18_64_receiving_ssdi"
-  }
-  
-})
-
-pal_we2 <- reactive ({ 
-    
-    create_palette(we_status_data, we_status_selected())
-                 
-  })
-  
-# State map
-output$we2map <- renderLeaflet({
-  
-  render_map(we_status_map_data, we_status_selected(), pal_we2())
-  
-})
-
-# Click event for the map
-click_we2map <- eventReactive(input$we2map_shape_click, {
-  
-  x <- input$we2map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_we2map())
-  
-  we2map <- leafletProxy("we2map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = we_status_map_data[we_status_map_data$state_name == click_we2map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-we_status_data_selected <- reactive({
-  
-  if(is.null(input$we2map_shape_click)){
-    we_status_data
-  } else {
-    we_status_data %>% 
-      filter(state_name == click_we2map())
-  }
-  
-})
-
-```
-
-```{r work-economic-status-map-output}
-
-selectInput("we_status_type", 
-            label = "Select a category", 
-            choices = c("PWD // 16+ // Median Individual Income",
-                        "PWD // 21-64 // Median Household Income",
-                        "PWD // 18-64 // Below the Poverty Level",
-                        "PWOD // 16+ // Median Individual Income",
-                        "PWOD // 21-64 // Median Household Income",
-                        "PWOD // 18-64 // Below the Poverty Level",
-                        "SSI // Percent of Total Population",
-                        "SSI // Monthly Payment",
-                        "SSI // Percent of Monthly Income",
-                        "SSDI // Percent of Total Population"),
-            selected = "PWD // 16+ // Median Individual Income",
-            width = "400px")
-            
-leafletOutput("we2map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r work-economic-status-table, context="server"}
-
-# Columns to show
-we_status_cols_selected <- reactive({
-             
-    if (input$we_status_type == "PWD // 16+ // Median Individual Income"){
-    "pwd_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
-  } else if (input$we_status_type == "PWD // 21-64 // Median Household Income"){
-    "pwd_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
-  } else if (input$we_status_type == "PWD // 18-64 // Below the Poverty Level"){
-    "pwd.*below_poverty_level"
-  } else if (input$we_status_type == "PWOD // 16+ // Median Individual Income"){
-    "pwod_median_individual_income_16_yrs_and_older_with_earnings_in_past_12_months_us_dollars"
-  } else if (input$we_status_type == "PWOD // 21-64 // Median Household Income"){
-    "pwod_median_household_income_include_any_working_age_people_age_21_64_us_dollars"
-  } else if (input$we_status_type == "PWOD // 18-64 // Below the Poverty Level"){
-    "pwod.*below_poverty_level"
-  } else if (input$we_status_type %in% c("SSI // Percent of Total Population", "SSI // Monthly Payment", "SSI // Percent of Monthly Income")){
-    "ssi"
-  } else {
-    "ssdi"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$we2table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    we_status_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(we_status_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r work-economic-status-table-output}
-
-DT::dataTableOutput("we2table")
-
-```
-
-Row {data-height=100}
------------------------------------------------------------------------
-
-### {.section-divider}
-
-#### Economic Status
-
-##### Percent of Persons with or without Disabilities
-
-Row {data-height=500}
------------------------------------------------------------------------
-
-### Map {data-width=500}
-
-```{r work-economic-affordability-data, context="data"}
-
-# Data for this section
-we_afford_data <- work_economic %>% 
-  filter(is.na(city)) %>% 
-  select("state_name" = state, "state_abbv" = state_abbreviation,
-         percent_ssi_for_1_bedroom_percentage, percent_ssi_for_efficiency_apt_percentage,
-         x2_bedroom_rental_unit_housing_wage_us_dollars_from_nlihc_org_fy_2019) %>% 
-  mutate(across(starts_with("percent"), round, 1))
-
-# SF data and palette
-we_afford_map_data <- map_data(we_afford_data)
-  
-```
-
-```{r work-economic-affordability-map, context="server"}
-
-# Input for column to map
-we_afford_selected <- reactive({
-  
-  if (input$we_afford_type == "SSI // Percent Needed for Efficiency Apt at FMR"){
-    "percent_ssi_for_efficiency_apt_percentage"
-  } else if (input$we_afford_type == "SSI // Percent Needed for 1-BR Apt at FMR"){
-    "percent_ssi_for_1_bedroom_percentage"
-  } else {
-    "x2_bedroom_rental_unit_housing_wage_us_dollars_from_nlihc_org_fy_2019"
-  }
-  
-})
-
-pal_we3 <- reactive ({ 
-    
-    create_palette(we_afford_data, we_afford_selected())
-                 
-  })
-  
-# State map
-output$we3map <- renderLeaflet({
-  
-  render_map(we_afford_map_data, we_afford_selected(), pal_we3())
-  
-})
-
-# Click event for the map
-click_we3map <- eventReactive(input$we3map_shape_click, {
-  
-  x <- input$we3map_shape_click
-  y <- x$id
-  
-  return(y)
-
-})
-
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_we3map())
-  
-  we3map <- leafletProxy("we3map") %>%
-    removeShape("highlight_state") %>%
-    addPolygons(data = we_afford_map_data[we_afford_map_data$state_name == click_we3map(), ], 
-                fill = FALSE, weight = 3,
-                color = "#00FFFF", opacity = 1, layerId = "highlight_state")
-  
-})
-
-# Fetch data for the clicked state
-we_afford_data_selected <- reactive({
-  
-  if(is.null(input$we3map_shape_click)){
-    we_afford_data
-  } else {
-    we_afford_data %>% 
-      filter(state_name == click_we3map())
-  }
-  
-})
-
-```
-
-```{r work-economic-affordability-map-output}
-
-selectInput("we_afford_type", 
-            label = "Select a category", 
-            choices = c("SSI // Percent Needed for Efficiency Apt at FMR",
-                        "SSI // Percent Needed for 1-BR Apt at FMR",
-                        "Hourly Wage // Needed for 2-BR Apt at FMR"),
-            selected = "SSI // Percent Needed for Efficiency Apt at FMR",
-            width = "400px")
-
-leafletOutput("we3map")  
-
-```
-
-### Table {.table-wrapper data-width=500}
-
-```{r work-economic-affordability-table, context="server"}
-
-# Columns to show
-we_afford_cols_selected <- reactive({
-             
-    if (input$we_afford_type == "SSI // Percent Needed for Efficiency Apt at FMR"){
-    "percent_ssi_for_efficiency_apt_percentage"
-  } else if (input$we_afford_type == "SSI // Percent Needed for 1-BR Apt at FMR"){
-    "percent_ssi_for_1_bedroom_percentage"
-  } else {
-    "x2_bedroom_rental_unit_housing_wage_us_dollars_from_nlihc_org_fy_2019"
-  }
-  
-})
-
-# Data table (scroll function for wide data)
-output$we3table <- DT::renderDataTable({
-  
-  # Table
-  DT::datatable(
-    we_afford_data_selected() %>%
-      mutate(across(matches("percent"), percent, scale = 1, accuracy = 0.1),
-             across(where(is.numeric), comma)) %>% 
-      select(starts_with("state"), matches(we_afford_cols_selected(), perl = TRUE)),
-   options(scrollX = "200px"))
-  
-})
-
-```
-
-```{r work-economic-affordability-table-output}
-
-DT::dataTableOutput("we3table")
-
-```
-
-
-
-
-
-
-
-
-
-Snapshot {data-navmenu="By Metro"}
-======================================================================
-
-```{r metro-data-import, context="data"}
-
-# ===============
-# Import city level data from sheet
-# ===============
-
-# Demographics
-metro_demo_data <- demographics %>% 
-  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  select(metro_state,
-         pwd, total_population, contains("percent")) %>%
-  mutate_if(is.numeric, round, 1)
-
-# Community Participation
-metro_cp_data <- community_participation %>% 
-  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
-  mutate(metro_state = paste0(city, ", ", abbrev)) %>% 
-  mutate_if(is.numeric, round, 1)
-
-# Work/Economic
-metro_we_data <- work_economic %>% 
-  filter(is.na(city) == FALSE, city != "United States, USA") %>% 
-  mutate(metro_state = paste0(city, ", ", state_abbreviation)) %>% 
-  mutate_if(is.numeric, round, 1)
-
-# ===============
-# Link to MongoDB
-# ===============
-
-# City Lookup
-mongo_conn_input <- mongo_connect(collection_name = "acs_place_S1810",
-                               database_name = "ADA-PARC")
-metro_snapshot_input <- mongo_conn_input$find(fields = '{"GEOID" : true, "NAME" : true}') %>% 
-  mutate(label = case_when(
-    NAME == "Augusta-Richmond County consolidated government (balance), Georgia" ~
-      "Augusta, Georgia",
-    NAME == "Boise City city, Idaho" ~
-      "Boise, Idaho",
-    NAME == "Indianapolis city (balance), Indiana" ~
-      "Indianapolis, Indiana",
-    NAME == "Lexington-Fayette urban county, Kentucky" ~
-      "Lexington, Kentucky",
-    NAME == "Louisville/Jefferson County metro government (balance), Kentucky" ~
-      "Louisville, Kentucky",
-    NAME == "Macon-Bibb County, Georgia" ~
-      "Macon, Georgia",
-    NAME == "Nashville-Davidson metropolitan government (balance), Tennessee" ~
-      "Nashville, Tennessee",
-    NAME == "New York city, New York" ~
-      "New York City, New York",
-    NAME == "Urban Honolulu CDP, Hawaii" ~
-      "Honolulu, Hawaii",
-    TRUE ~ str_replace_all(NAME,
-                           pattern = " (city|village|municipality|town), ",
-                           replacement = ", "))) %>% 
-  arrange(label)
-
-# Pull Census place data
-# S1810
-temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1810",
-                                 database_name = "ADA-PARC")
-metro_snapshot_place_temp1 <- temp_mongo_conn$find()
-
-# S1811
-temp_mongo_conn <- mongo_connect(collection_name = "acs_place_S1811",
-                                 database_name = "ADA-PARC")
-metro_snapshot_place_temp2 <- temp_mongo_conn$find()
-
-# Join together
-metro_snapshot_place_full <- list(metro_snapshot_place_temp1,
-                                  metro_snapshot_place_temp2) %>% 
-  reduce(left_join, by = c("GEOID", "NAME"))
-
-# Remove temporary tables  
-rm(list = ls(pattern = "^metro_snapshot_place_temp"))
-rm(temp_mongo_conn)
-
-# Variable Lookup
-mongo_conn_lu <- mongo_connect(collection_name = "acs_variable_lu",
-                               database_name = "ADA-PARC")
-metro_snapshot_lu <-mongo_conn_lu$find()
-
-```
 
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
 <br>
 
-```{r metro-snapshot-input, context="server"}
+```{r national_sidebar, message=FALSE, warning=FALSE}
+
+# Select the dataset to use
+selectInput(inputId = "national_category_selector", 
+            label = "Select a category", 
+            choices = c("Demographics" = "is_demographics", 
+                        "Community Participation" = "is_community_participation", 
+                        "Community Living" = "is_community_living", 
+                        "Work/Economic" = "is_work_economic"),
+            selected = NULL)
+
+# Initializes the variable selector
+# no choices until national_category_selector is selected
+selectInput(inputId = "national_variable_selector",
+            label = "Select a topic",
+            choices = NULL,
+            selected = "Total Population")
+
+
+# Update select dropdown with named list of values created above
+observeEvent(input$national_category_selector,
+             
+             {
+               
+               updateSelectInput(session,
+                                 input = "national_variable_selector",
+                                 choices = national_variable_choices(),
+                                 selected = NULL)
+               
+             }
+             
+)
+
+# Set national df by input$national_category_selector, which returns a string
+# eval() evaluates a symbol created by sym(input)
+# returns a df with the same name as the string 
+# "is_[table]" refers to a column in the variable dictionary
+# that denotes which table a variable belongs to
+national_data <- reactive({
+  eval(sym(str_remove(input$national_category_selector, "^is_")))
+})
+
+# Create reactive named list of choices based on national_category_selector
+national_variable_choices <- reactive({
+  
+  tibble::deframe(
+    dict_vars %>% 
+      filter((!!sym(input$national_category_selector)) == TRUE, # "is_[table]" is TRUE/FALSE
+             var_readable %in% ( # var_readable looks like "pwd_pct"
+               national_data() %>%
+                 select(-c(GEOID, NAME, ABBR)) %>%
+                 names()
+             ),
+             !is.na(national_dropdown_label)) %>% # national_dropdown_label looks like "Percentage of People With Disabilities"
+      select(national_dropdown_label, var_readable))
+    
+    # Static check
+    # tibble::deframe(
+    # dict_vars %>%
+    #   filter(var_desc == "work_economic",
+    #          var_readable %in% (
+    #            work_economic %>%
+    #              select(-c(GEOID, NAME, ABBR)) %>%
+    #              names()
+    #          ),
+    #          !is.na(national_dropdown_label)) %>%
+    #   select(national_dropdown_label, var_readable))
+    
+})
+
+# You can use this chunk of code to test whether a selector is working
+# as intended. Here the intention is to have the input return a string.
+# Uncommenting this code puts a small message beneath the selectors in 
+# the sidebar showeing the result. 
+# output$check <- renderText({
+#   cap_choices <- c("Demographics" = "is_demographics", 
+#                         "Community Participation" = "is_community_participation", 
+#                         "Community Living" = "is_community_living", 
+#                         "Work/Economic" = "is_work_economic")
+#   
+#   paste0("national_category is: ", names(cap_choices)[cap_choices == input$national_category_selector], 
+#          "\n and national_variable is: ", input$national_variable_selector)
+# })
+# # 
+# textOutput("check")
+
+# national_variable <- reactive({ input$national_variable_selector })
+
+```
+
+Row 
+-----------------------------------------------------------------------
+
+### Map
+
+```{r, national_map, fig.alt = "Map of the selected variables in the sidebar"}
+
+renderPlot({
+  
+  req(input$national_variable_selector)
+  
+  render_tile_map(national_data(), 
+                  input$national_variable_selector, 
+                  input$access_map_palette)
+  
+})
+
+```
+
+### Table {.table-wrapper}
+
+```{r, national_table}
+
+  
+# Get variable group based on selected variable
+national_vars_in_topic <- reactive({
+  
+  dict_vars %>% 
+    filter((!!sym(input$national_category_selector)) == TRUE,
+           var_topic ==
+             (dict_vars %>% 
+                filter(var_readable == input$national_variable_selector) %>% 
+                pull(var_topic))) %>% 
+    pull(var_readable)
+
+  
+})
+
+renderUI({
+  
+  cap_choices <- c("Demographics" = "is_demographics", 
+                        "Community Participation" = "is_community_participation", 
+                        "Community Living" = "is_community_living", 
+                        "Work/Economic" = "is_work_economic")
+    
+  table_caption <- paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
+  
+  # Reorganize dataframe
+  national_data <- national_data() %>%
+    select(GEOID:ABBR, national_vars_in_topic())
+  
+  # Summary table
+  national_topic_table <- knitr::kable(x = national_data,
+                                       caption = table_caption) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                    position = "left")
+  
+  # UI Output
+  HTML(national_topic_table)
+  
+})
+
+# renderPrint({  national_vars_in_topic() })
+# Data table
+# DT::renderDataTable({
+# 
+#   # Reorganize dataframe
+#   national_data <- national_data() %>%
+#     select(GEOID:ABBR, national_vars_in_topic())
+# 
+#   # Table
+#   DT::datatable(national_data,
+#                 rownames = FALSE,
+#                 fillContainer = TRUE,
+#                 extensions = c("Buttons"),
+#                 options = list(pageLength = -1,
+#                                searching = TRUE,
+#                                scrollY = "100vh",
+#                                scrollX = "100px",
+#                                dom = "Bfti",
+#                                # https://datatables.net/reference/option/dom
+#                                buttons = c("copy", "csv", "excel")))
+# })
+# 
+# DT::dataTableOutput("national_data")
+
+```
+
+Metropolitan Data
+======================================================================
+
+Sidebar {.sidebar}
+-----------------------------------------------------------------------
+
+<br>
+
+```{r metro snapshot input}
+
+# Pull location crosswalk dictionary from GitHub repo
+dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt")
+
+# Full data for cities in database
+metro_snapshot_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
+                                                 host_name, 
+                                                 "place")
+
+# Define inputs, restrict to cities in database
+selectInput(inputId = "metro_snapshot", 
+            label = "Select a City or Town", 
+            choices = tibble::deframe(
+              dict_location_crosswalk %>% 
+                filter(place_GEOID %in% metro_snapshot_place_full$GEOID) %>% 
+                distinct("GEOID" = place_GEOID, metro_state))
+            )
+
+# ===============
+# Pull Census place data
+# ===============
 
 # Place for selected metro
 metro_snapshot_place <- reactive({
   
   metro_snapshot_place_full %>% 
     filter(GEOID == input$metro_snapshot)
-
-})
   
+})
+
 # ===============
 # Pull Census tract data for selected metro
 # ===============
@@ -2980,160 +377,182 @@ metro_snapshot_place <- reactive({
 # Spatial
 metro_snapshot_tract_sf <- reactive({
   
-  # Input for odd Census place names
-  temp_metro <-  list(temp_metro = input$metro_snapshot)
-
+  # Restrict tract call to selected cities
+  temp_metro <- dict_location_crosswalk %>% 
+    filter(place_GEOID %in% c(input$metro_snapshot)) %>% 
+    pull(tract_GEOID)
+  
   # Connect and pull
-  temp_mongo_conn <- mongo_connect(collection_name = "geo_tract",
-                                   database_name = "ADA-PARC")
-  temp_geo <- temp_mongo_conn$iterate(query = sprintf('{ "properties.place_fips" : "%s" }',
-                                                      temp_metro))
+  temp_mongo_conn <- fun_mongo_connect(host_name,
+                                       collection_name = "geo_tract",
+                                       database_name = "ADA-PARC")
+  temp_geo <- temp_mongo_conn$iterate(
+    query = sprintf('{ "properties.GEOID" : { "$in" : [  "%s" ] } }' ,
+                    str_c(temp_metro, collapse = '", "')))
   temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
   return(temp_sf)
   
 })
- 
+
 # Tabular
 metro_snapshot_tract <- reactive ({
   
   # Connect and pull
-  temp_mongo_conn <- mongo_connect(collection_name = "acs_tract_S1810",
-                                   database_name = "ADA-PARC")
+  temp_mongo_conn <- fun_mongo_connect(host_name,
+                                       collection_name = "acs_tract_S1810",
+                                       database_name = "ADA-PARC")
   temp <- temp_mongo_conn$find(
     query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
                     str_c(metro_snapshot_tract_sf()$GEOID, collapse = '", "')))
   return(temp)
   
-  })
-  
-```
-
-```{r metro-snapshot-input-output}
-
-# Define inputs
-selectInput(inputId = "metro_snapshot", 
-            label = "Select a City or Town", 
-            choices = tibble::deframe(metro_snapshot_input %>% select(label, GEOID)))
+})
 
 ```
 
-Row {data-height=300}
+Row
 -----------------------------------------------------------------------
 
-### Overview
+### Overview 
 
-```{r metro-snapshot-overview-text, context="server"}
+```{r metro snapshot overview text}
 
-output$metro_snapshot_overview <- renderUI({
+renderUI({
   
   # Overview text  
   metro_snap_overview_text <- paste0(
-    "<h3>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h3>", "<br>",
-    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(estimate_S1810_C02_001) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(estimate_S1810_C01_001) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(estimate_S1810_C03_001), "%</b>) are people with disabilities.<br>")
+    "<h4>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h4>", # "<br>",
+    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
-  # Conditional text based on selected tab
-  metro_snap_cond_text <- if (is.null(input$active_tab) || input$active_tab == 0) {
+  # Summary tables side by side
+  metro_snap_tables <- knitr::kables(list(
     
     # Demographics
     kbl(x = metro_snapshot_place() %>%
-          mutate("Other" = estimate_S1810_C02_006 + estimate_S1810_C02_008 + 
-                   estimate_S1810_C02_009 +estimate_S1810_C02_010) %>% 
-          select("Asian" = estimate_S1810_C02_007,
-                 "Black" = estimate_S1810_C02_005,
-                 "Hispanic or<br>Latino" = estimate_S1810_C02_012,
-                 "White" = estimate_S1810_C02_011,
+          mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
+                   S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
+          select("White" = S1810_C02_011_estimate,
+                 "Black" = S1810_C02_005_estimate,
+                 "Hispanic" = S1810_C02_012_estimate,
+                 "Asian" = S1810_C02_007_estimate,
                  Other,
-                 "Total" = estimate_S1810_C02_001) %>% 
+                 "Total" = S1810_C02_001_estimate) %>% 
           mutate(across(-Total,
                         ~ paste0(comma(., accuracy = 1), 
-                                 " (",  percent(. / Total, accuracy = 0.1), ")"))) %>%
-          mutate(Total = comma(Total, accuracy = 1)),
-        caption = "Race and Ethnicity, People with Disabilities",
+                                 "<br>(",  percent(. / Total, 
+                                                   accuracy = 0.1), ")"))) %>%
+          mutate(Total = paste0(comma(Total, 
+                                      accuracy = 1),
+                                "</b>")) %>%
+          rename("<b>Total" = Total) %>% 
+          pivot_longer(everything(),
+                       names_to = "Race/Ethnicity",
+                       values_to = "PWD (%)"),
+        caption = "Race/Ethnicity",
         escape = FALSE,
-        align = "c",
-        table.attr = "style='width:80%;'") %>% 
+        align = c("l", "r") #,
+        # table.attr = "style='width:80%;'"
+    ) %>% 
       kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
-
-  } else if (input$active_tab == 1) {
+                    position = "left"),
     
     # Community Participation
     kbl(x = metro_snapshot_place() %>%
-          transmute("Private<br>Motor Vehicle" = 
-                      paste0(comma((estimate_S1811_C02_033 + estimate_S1811_C02_034),
-                                   accuracy = 0.1), "%"),
+          transmute("Car" = 
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_033_estimate +
+                                        S1811_C02_034_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma((S1811_C02_033_estimate +
+                                            S1811_C02_034_estimate),
+                                         accuracy = 0.1), "%)"),
                     "Transit" = 
-                      paste0(comma(estimate_S1811_C02_035,
-                                   accuracy = 0.1), "%"),
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_035_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma(S1811_C02_035_estimate,
+                                         accuracy = 0.1), "%)"),
                     
                     "Walk or<br>Bike" = 
-                      paste0(comma((estimate_S1811_C02_036 + estimate_S1811_C02_037),
-                                   accuracy = 0.1), "%"),
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_036_estimate +
+                                        S1811_C02_037_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma((S1811_C02_036_estimate +
+                                            S1811_C02_037_estimate),
+                                         accuracy = 0.1), "%)"),
                     "Work from<br>Home" = 
-                      paste0(comma(estimate_S1811_C02_038,
-                                   accuracy = 0.1), "%"),
-                    "Total" = 
-                      comma(estimate_S1811_C02_032, accuracy = 1)),
-        caption = "Commuting Patterns, People with Disabilities, Workers 16 or Older",
+                      paste0(comma(S1811_C02_032_estimate * 
+                                     (S1811_C02_038_estimate),
+                                   accuracy = 1),
+                             "<br>(", comma((S1811_C02_038_estimate),
+                                         accuracy = 0.1), "%)"),
+                    "<b>Total" = 
+                      paste0(comma(S1811_C02_032_estimate, 
+                                   accuracy = 1),
+                             "</b>")) %>% 
+          pivot_longer(everything(),
+                       names_to = "Commute",
+                       values_to = "PWD (%)"),
+        caption = "Commute, Workers 16+",
         escape = FALSE,
-        align = "c",
-        table.attr = "style='width:100%;'") %>% 
+        align = c("l", "r") #,
+        # table.attr = "style='width:100%;'"
+    ) %>%
       kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
-    
-  } else {
+                    position = "left"),
     
     # Work/Economic
     kbl(x = metro_snapshot_place() %>%
           transmute("Employed" = 
-                      paste0(comma(estimate_S1811_C02_004, accuracy = 1),
-                             " (",  estimate_S1811_C02_002, "%)"),
-                    "Not in Labor Force" = 
-                      paste0(comma((estimate_S1811_C02_001 - estimate_S1811_C02_004), 
-                                   accuracy = 1),
-                             " (",  estimate_S1811_C02_003, "%)"),
-                    "Total" = 
-                      comma(estimate_S1811_C02_001, accuracy = 1)),
-        caption = "Employment Status, People with Disabilities, 16 or Older",
+                      paste0(comma(S1811_C02_004_estimate, accuracy = 1),
+                             "<br>(", S1811_C02_002_estimate, "%)"),
+                    "Not in<br>Labor Force" = 
+                      paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
+                             "<br>(", S1811_C02_003_estimate, "%)"),
+                    "<b>Total" = 
+                      paste0(comma(S1811_C02_001_estimate, accuracy = 1),
+                             "</b>")) %>%
+          pivot_longer(everything(),
+                       names_to = "Employment",
+                       values_to = "PWD (%)"),
+        caption = "Employment, 16+",
         escape = FALSE,
-        align = "c",
-        table.attr = "style='width:100%;'") %>% 
+        align = c("l", "r") #,
+        # table.attr = "style='width:100%;'"
+    ) %>%
       kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                     position = "left")
     
-  }
+  )) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  position = "left")
   
   # UI Output
-  HTML(paste(metro_snap_overview_text, metro_snap_cond_text, sep = "<br>"))
+  HTML(paste(metro_snap_overview_text, metro_snap_tables, sep = "<br>"))
   
 })
 
 ```
 
-```{r metro-snapshot-overview-text-output, out.width = "50%"}
+### People With Disabilities Map
 
-uiOutput("metro_snapshot_overview")
-
-```
-
-### Persons With Disabilities Map
-
-```{r metro-snapshot-overview-map, context="server"}
+```{r metro snapshot overview map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
 # Palette
 pal_metro_snapshot <- reactive ({
-
-    colorQuantile(palette = input$access_map_palette,
-                  domain = pull(metro_snapshot_tract(), estimate_S1810_C02_001),
-                  n = 4)
-
-  })
+  
+  colorQuantile(palette = input$access_map_palette,
+                domain = pull(metro_snapshot_tract(), S1810_C02_001_estimate),
+                n = 4)
+  
+})
 
 # Tract map
-output$metrosnapshotmap <- renderLeaflet({
+output$snapshotmap <- renderLeaflet({
   
   left_join(metro_snapshot_tract_sf(),
-            metro_snapshot_tract() %>% select(GEOID, estimate_S1810_C02_001),
+            metro_snapshot_tract() %>% select(GEOID, S1810_C02_001_estimate),
             by = "GEOID") %>%
     leaflet() %>%
     clearShapes() %>%
@@ -3141,11 +560,11 @@ output$metrosnapshotmap <- renderLeaflet({
     addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
-                fillColor = ~pal_metro_snapshot()(estimate_S1810_C02_001),
+                fillColor = ~pal_metro_snapshot()(S1810_C02_001_estimate),
                 fillOpacity = 0.5,
                 layerId = ~GEOID) %>%
     addLegend(position = "topright", pal = pal_metro_snapshot(),
-              values = ~estimate_S1810_C02_001,
+              values = ~S1810_C02_001_estimate,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
@@ -3153,51 +572,47 @@ output$metrosnapshotmap <- renderLeaflet({
               title = "PWD") %>% 
     addLayersControl(position = "bottomright",
                      baseGroups = c("Esri", "CartoDB"),
-                     options = layersControlOptions(collapsed = FALSE)) %>% 
+                     options = layersControlOptions(collapsed = FALSE)) %>%
     addSearchOSM(options = searchOptions(autoCollapse = FALSE, minLength = 3,
                                          position = "topleft", zoom = 15,
                                          autoResize = FALSE,
                                          hideMarkerOnCollapse = TRUE))
-
+  
 })
 
 # Click event for the map
-click_metrosnapshotmap <- eventReactive(input$metrosnapshotmap_shape_click, {
+click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
   
-  x <- input$metrosnapshotmap_shape_click
+  x <- input$snapshotmap_shape_click
   y <- x$id
   
   return(y)
-
+  
 })
 
 # Add the clicked state to the map, and remove when a new one is clicked
 observe({
   
-  req(click_metrosnapshotmap())
+  req(click_snapshotmap())
   
-  snapshotmap <- leafletProxy("metrosnapshotmap") %>%
+  snapshotmap <- leafletProxy("snapshotmap") %>%
     removeShape("highlight_tract") %>%
-    addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_metrosnapshotmap(), ], 
+    addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_snapshotmap(), ], 
                 fill = FALSE, weight = 3,
                 color = "#000000", opacity = 1, layerId = "highlight_tract")
   
 })
 
-```
-
-```{r metro-snapshot-overview-map-output,out.width = "50%"} 
-
-leafletOutput("metrosnapshotmap") 
+leafletOutput("snapshotmap") 
 
 ```
 
-Row {data-height=300}
+Row
 -----------------------------------------------------------------------
 
 ### City in Context
 
-```{r metro-snapshot-plots, fig.width = 5, context="server"}
+```{r metro snapshot plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"}
 
 # ===============
 # Demographics
@@ -3208,20 +623,28 @@ output$metro_snapshot_demo_plot <- renderPlotly({
   
   # Plot
   gg <- metro_snapshot_place_full %>%
+    mutate("NAME" = str_replace_all(
+      NAME, 
+      pattern = " (city|village|municipality|town), ",
+      replacement = ", ")) %>% 
     select(GEOID,
            NAME, 
-           "pwd" = estimate_S1810_C02_001,
-           "total_population" = estimate_S1810_C01_001,
-           "pwd_pct" = estimate_S1810_C03_001) %>%
+           "pwd" = S1810_C02_001_estimate,
+           "total_population" = S1810_C01_001_estimate,
+           "pwd_pct" = S1810_C03_001_estimate) %>%
     ggplot(aes(text = paste0("City: ", NAME, 
-                             "<br>PWD: ", scales::comma(pwd), 
+                             "<br>PWD: ", scales::comma(pwd,
+                                                        accuracy = 1), 
                              " (", pwd_pct, "%)",
-                             "<br>Total Pop.", 
-                             scales::comma(total_population)))) +
+                             "<br>Total Pop.: ", 
+                             scales::comma(total_population,
+                                           accuracy = 1)))) +
     geom_point(stat = "identity",
+               alpha = 0.8, position = "jitter",
                aes(x = total_population, y = pwd_pct)) +
     gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "Total Population", y = "PWD (%)",
+    labs(x = "Total Population", 
+         y = "PWD (%)",
          title = "People with Disabilities (%) vs. Total Population") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
@@ -3229,7 +652,26 @@ output$metro_snapshot_demo_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text", height = 240)
+  # Interactive plotly settings
+  plotly::ggplotly(gg, tooltip = "text") %>% 
+    plotly::layout(
+      height = 280,
+      margin = list(l = 25, t = 25, b = 90),
+      xaxis = list(title = list(text = "Total Population",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      yaxis = list(title = list(text = "PWD (%)",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      title = list(text = "People with Disabilities (%) vs. Total Population",
+                   font = list(size = 16),
+                   yref = "paper",
+                   y = 1,
+                   yanchor = "bottom"),
+      font = list(size = 10)
+    )
   
 })
 
@@ -3239,19 +681,26 @@ output$metro_snapshot_demo_plot <- renderPlotly({
 
 output$metro_snapshot_cp_plot <- renderPlotly({
   
-# Plot
+  # Plot
   gg <- metro_snapshot_place_full %>%
+    mutate("NAME" = str_replace_all(
+      NAME, 
+      pattern = " (city|village|municipality|town), ",
+      replacement = ", ")) %>%  
     select(GEOID,
            NAME,
-           "pwd_25_over" = estimate_S1811_C02_039,
-           "pwd_bachelors" = estimate_S1811_C02_043) %>% 
+           "pwd_25_over" = S1811_C02_039_estimate,
+           "pwd_bachelors" = S1811_C02_043_estimate) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%",
-                             "<br>PWD 25+: ", scales::comma(pwd_25_over)))) +
+                             "<br>PWD 25+: ", scales::comma(pwd_25_over,
+                                                            accuracy = 1)))) +
     geom_point(stat = "identity",
+               alpha = 0.8, position = "jitter",
                aes(x = pwd_25_over, y = pwd_bachelors)) +
     gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "People with Disabilities, Age 25 or Older", y = "Bachelor's Degree or Higher (%)",
+    labs(x = "PWD, 25 or Older", 
+         y = "Bachelor's Degree or Higher (%)",
          title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
@@ -3259,7 +708,26 @@ output$metro_snapshot_cp_plot <- renderPlotly({
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text", height = 240)
+  # Interactive plotly settings
+  plotly::ggplotly(gg, tooltip = "text") %>% 
+        plotly::layout(
+      height = 280,
+      margin = list(l = 25, t = 25, b = 90),
+      xaxis = list(title = list(text = "PWD, 25 or Older",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      yaxis = list(title = list(text = "Bachelor's Degree or Higher (%)",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      title = list(text = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older",
+                   font = list(size = 16),
+                   yref = "paper",
+                   y = 1,
+                   yanchor = "bottom"),
+      font = list(size = 10)
+    )
   
 })
 
@@ -3272,311 +740,349 @@ output$metro_snapshot_we_plot <- renderPlotly({
   
   # Plot
   gg <- metro_snapshot_place_full %>%
+    mutate("NAME" = str_replace_all(
+      NAME, 
+      pattern = " (city|village|municipality|town), ",
+      replacement = ", ")) %>% 
     select(GEOID,
            NAME,
-           "pwd" = estimate_S1811_C02_001,
-           "pwd_employed" = estimate_S1811_C02_004,
-           "pwd_employed_pct" = estimate_S1811_C02_002) %>% 
+           "pwd_employed" = S1811_C02_004_estimate,
+           "pwd" = S1811_C02_001_estimate,
+           "pwd_employed_pct" = S1811_C02_002_estimate) %>% 
     ggplot(aes(text = paste0("City: ", NAME, 
                              "<br>PWD Employed: ", 
-                             scales::comma(pwd_employed), 
+                             scales::comma(pwd_employed,
+                                           accuracy = 1), 
                              " (", pwd_employed_pct, "%)",
-                             "<br>PWD 16+: ", scales::comma(pwd)))) +
+                             "<br>PWD ", scales::comma(pwd,
+                                                       accuracy = 1)))) +
     geom_point(stat = "identity",
+               alpha = 0.8, position = "jitter",
                aes(x = pwd, y = pwd_employed_pct)) +
     gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "People with Disabilities", y = "PWD Employment Rate (%)",
-         title = "PWD Employment Rate (%) vs. PWD Population 16 or Older") +
+    labs(x = "People with Disabilities", 
+         y = "PWD Employment Rate (%)",
+         title = "PWD Employment Rate (%) vs. PWD Population") +
     scale_x_log10(labels = scales::comma) +
     scale_y_continuous(labels = function(x) paste0(x, "%")) +
     ggplot_fill_selected() +
     ggplot_theme_selected() +
     theme(legend.position = "top")
   
-  plotly::ggplotly(gg, tooltip = "text", height = 240)
+  # Interactive plotly settings
+  plotly::ggplotly(gg, tooltip = "text") %>% 
+    plotly::layout(
+      height = 280,
+      margin = list(l = 25, t = 25, b = 90),
+      xaxis = list(title = list(text = "PWD Population",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      yaxis = list(title = list(text = "PWD Employment Rate (%)",
+                                standoff = 5,
+                                font = list(size = 14)),
+                   tickfont = list(size = 12)),
+      title = list(text = "PWD Employment Rate (%) vs. PWD Population",
+                   font = list(size = 16),
+                   yref = "paper",
+                   y = 1,
+                   yanchor = "bottom"),
+      font = list(size = 10)
+    )
   
 })
-
-```
-
-```{r metro-snapshot-plots-output, fig.width = 5, out.height="300px"}
 
 # Tab panel output
 tabsetPanel(type = "tabs",
             tabPanel("Demographics",
-                     plotlyOutput("metro_snapshot_demo_plot", height = "300px")),
+                     plotlyOutput("metro_snapshot_demo_plot")),
             tabPanel("Community Participation",
-                     plotlyOutput("metro_snapshot_cp_plot", height = "300px")),
+                     plotlyOutput("metro_snapshot_cp_plot")),
             tabPanel("Work/Economic",
-                     plotlyOutput("metro_snapshot_we_plot", height = "300px")))
+                     plotlyOutput("metro_snapshot_we_plot")))
 
 ```
 
-### Characteristics of Selected Tract (Click on Map to Show Table)
+### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
 
-```{r metro-snapshot-tract-table, fig.width = 5, context="server"}
+```{r, metro snapshot tract table}
 
 # Reconfigure tract data for table
-metro_snapshot_table_data <- reactive ({
+metro_snapshot_table_data <- reactive({
   
   # Select tract
-  temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_metrosnapshotmap(), ] 
+  temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ] 
   
-  # Tidy and label
+  # Static check
+  # Census Tract 59.01, Montgomery County, Alabama
+  # temp_mongo_conn <- fun_mongo_connect(host_name = "host_dev",
+  #                                      collection_name = "acs_tract_S1810",
+  #                                      database_name = "ADA-PARC")
+  # temp <- temp_mongo_conn$find(
+  #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }'))
+
+  # Value and percent (Remove White and Hispanic, reorder Race topic)
   temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
+    # Values
     pivot_longer(cols = -c(GEOID:NAME),
-                 names_to = c(".value", "variable"),
-                 names_pattern = "(^[^_]+(?=_))[^_]*_(.*)") %>%
-    left_join(.,
-              metro_snapshot_lu %>% select(variable, label),
-              by = "variable") %>%
-    mutate(label = str_remove_all(label, "Estimate; With a disability; Subject; ")) %>%
-    mutate(label = case_when(variable == "S1810_C02_001" ~
-                                 "Overall; People with Disabilities",
-                               TRUE ~ label)) %>% 
-    separate(label, into = c("category", "label"), 
-             sep = "; ", extra = "merge") %>%
-    mutate(category = str_to_title(category))
-    
-  # Table ready
-  temp_values %>% 
-    mutate(pct = percent(estimate / 
-                           temp_values %>% 
-                           filter(variable == "S1810_C02_001") %>% 
-                           pull(estimate),
-                         accuracy = 0.1)) %>% 
-    select(GEOID, NAME, category, variable, label,
-           estimate, moe, pct)
+                 names_to = c("variable", ".value"),
+                 names_pattern = "(.*)_(.*)") %>% 
+    # Percent
+    mutate("pct" = format(round((estimate / max(estimate)) * 100,
+                                digits = 1),
+                          nsmall = 1)) %>% 
+    mutate("pct" = replace_na(pct, 0)) %>% 
+    # Variable order
+    filter(!variable %in% c("S1810_C02_004")) %>% 
+    mutate("variable" = fct_relevel(
+      variable,
+      c("S1810_C02_001", 
+        # Gender
+        "S1810_C02_002", "S1810_C02_003",
+        # Race/Ethnicity
+        "S1810_C02_011", "S1810_C02_005", "S1810_C02_012",
+        "S1810_C02_007", "S1810_C02_006", "S1810_C02_008",
+        "S1810_C02_009", "S1810_C02_010",
+        # Age
+        "S1810_C02_013", "S1810_C02_014", "S1810_C02_015",
+        "S1810_C02_016", "S1810_C02_017", "S1810_C02_018"))) %>% 
+    arrange(variable)
 
+  # Output
+  temp_values %>%
+    left_join(.,
+              dict_vars %>% 
+                select("category" = var_topic,
+                       "label" = var_pretty,
+                       "variable" = var_database),
+              by = "variable") %>%
+    # Label
+    mutate("label" = str_remove_all(label, 
+                                    "Total Persons with Disabilities, ")) %>%
+    mutate("label" = case_when(variable == "S1810_C02_001" ~
+                                 "People with Disabilities",
+                               variable == "S1810_C02_011" ~
+                                 "White alone",
+                               variable == "S1810_C02_012" ~
+                                 "Hispanic or Latino",
+                               TRUE ~ label)) %>%
+    mutate("category" = str_to_title(category)) %>% 
+    select(GEOID, NAME, category, variable, label,
+           estimate, moe, pct) 
+  
 })
 
 # Table
-output$metro_snapshot_tract_table <- renderUI({ 
+renderUI({ 
   
-  req(!is.na(metro_snapshot_table_data()))
+  # Req
+  req(nrow(metro_snapshot_table_data()) > 0)
   
   HTML(
-    
+  
     kbl(x = metro_snapshot_table_data() %>%
-          mutate(output_est = ifelse(category == "Overall",
-                                     format(estimate, digits = 0),
-                                     paste0(format(estimate, digits = 0), " (", pct, ")")),
-                 output_moe = paste0("(±", format(moe, digits = 0), ")")) %>% 
+          mutate("output_est" = paste0(comma(estimate,
+                                             accuracy = 1), 
+                                       " (", pct, "%)"),
+                 "output_moe" = paste0("(±", 
+                                       comma(moe,
+                                             accuracy = 1),
+                                       ")")) %>% 
           mutate(across(everything(), 
                         ~cell_spec(., "html",
-                                   color = ifelse(moe >= estimate, "red", "black")))) %>%
-          select("Variable" = label, "Estimate" = output_est,  "MOE" = output_moe),
+                                   color = ifelse(moe >= estimate, 
+                                                  "red", "black")))) %>%
+          select("Variable" = label, "Est" = output_est,  "MOE" = output_moe),
         caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
-        format = "html", table.attr = "style='width:100%;'",
-        escape = FALSE) %>% 
-      pack_rows(index = table(fct_inorder(metro_snapshot_table_data()$category))) %>% 
-      kable_styling(bootstrap_options = c("striped", "hover")) %>%
-      column_spec(1, width = "300px") %>% 
-      column_spec(2:3, width = "125px") %>%
-      scroll_box(height = "280px")
-
+        escape = FALSE,
+        table.attr = "style='width:100%;'") %>% 
+      pack_rows(index = table(
+        fct_inorder(metro_snapshot_table_data()$category))) %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", 
+                                          "condensed"),
+                    full_width = TRUE)
+  
 ) })
-  
-```
-
-```{r metro-snapshot-tract-table-output, fig.width = 5, out.height="300px"}
-
-uiOutput("metro_snapshot_tract_table", width = "50%")
 
 ```
 
-Comparison {data-navmenu="By Metro"}
-======================================================================
+<!-- Comparison {data-navmenu="By Metro"} -->
+<!-- ====================================================================== -->
 
-Sidebar {.sidebar}
------------------------------------------------------------------------
+<!-- Sidebar {.sidebar} -->
+<!-- ----------------------------------------------------------------------- -->
 
-<br>
+<!-- <br> -->
 
-```{r metro-compare-sidebar}
+<!-- ```{r } -->
+<!-- # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well) -->
 
-# Define inputs
-# Metro
-selectizeInput(inputId = "compare", 
-               label = "Select Metro Areas to Compare", 
-               choices = metro_demo_data %>% select(metro_state),
-               multiple = TRUE,
-               options = list(
-                 maxItems = 3,
-                 placeholder = "select up to 3 cities"
-               )
-               )
+<!-- ``` -->
 
+<!-- ```{r } -->
 
-### I want to model something similar to the AARP website
-### So these three inputs would feed into the DT and then we could do a transposed table of
-### some subset of relevant fields for the user based on a selection
-
-```
-
-Row {data-height=600}
------------------------------------------------------------------------
-
-### Table {.download-DT}
-
-```{r metro-compare-table, context="server"}
+<!-- # Define inputs -->
+<!-- # Metro -->
+<!-- selectizeInput(inputId = "compare",  -->
+<!--                label = "Select Metro Areas to Compare",  -->
+<!--                choices = metro_snapshot_tract() %>% select(metro_state), -->
+<!--                multiple = TRUE, -->
+<!--                options = list( -->
+<!--                  maxItems = 3, -->
+<!--                  placeholder = "select up to 3 cities" -->
+<!--                ) -->
+<!-- ) -->
 
 
-output$metro_compare_table <- DT::renderDataTable({
-  
-if(is.null(input$compare)){
-    DT::datatable(
-      metro_demo_data %>% 
-        rename("City" = metro_state),
-      options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))
-    )
-  }else{
-    DT::datatable(
-      metro_demo_data %>% 
-        filter(metro_state %in% input$compare) %>% 
-        select("City" = metro_state, everything()) %>%
-        pivot_longer(
-          cols = -"City",
-          names_to = "Variable"
-          ) %>%
-        pivot_wider(
-          id_cols = Variable,
-          names_from = City
-          ) %>%
-        select(" " = Variable, everything()),
-      options (pageLength = 50)
-    )
-  }
-  
-})
+<!-- ### I want to model something similar to the AARP website -->
+<!-- ### So these three inputs would feed into the DT and then we could do a transposed table of -->
+<!-- ### some subset of relevant fields for the user based on a selection -->
 
-```
+<!-- ``` -->
 
-```{r metro-compare-table-output}
+<!-- Row -->
+<!-- ----------------------------------------------------------------------- -->
 
-DT::dataTableOutput("metro_compare_table")
 
-```
+<!-- ### Table {.download-DT} -->
 
-Explore {data-navmenu="By Metro"}
-======================================================================
+<!-- ```{r } -->
 
-Sidebar {.sidebar}
------------------------------------------------------------------------
 
-<br>
+<!-- DT::renderDataTable({ -->
 
-```{r metro-explore-sidebar}
+<!--   if(is.null(input$compare)){ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         rename("City" = metro_state), -->
+<!--       options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))) -->
+<!--     ) -->
+<!--   }else{ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         filter(metro_state %in% input$compare) %>%  -->
+<!--         select("City" = metro_state, everything()) %>% -->
+<!--         pivot_longer( -->
+<!--           cols = -"City", -->
+<!--           names_to = "Variable" -->
+<!--         ) %>% -->
+<!--         pivot_wider( -->
+<!--           id_cols = Variable, -->
+<!--           names_from = City -->
+<!--         ) %>% -->
+<!--         select(" " = Variable, everything()), -->
+<!--       options (pageLength = 50) -->
+<!--     ) -->
+<!--   } -->
 
-# Define inputs
-# Metro
-selectizeInput(inputId = "metro_explore_select", 
-               label = "Select Metro Areas to explore", 
-               choices = metro_demo_data %>% select(metro_state), 
-               multiple = TRUE, 
-               options = list("plugins" = list("remove_button"), 
-                              "create" = TRUE,
-                              "persist" = FALSE))
+<!-- }) -->
 
-# Variable of interest
-selectizeInput(inputId = "var_explore_select", 
-               label = "Select a demographic variable", 
-               choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)), 
-               selected = names(metro_demo_data %>% select(pwd)),
-               multiple = TRUE, 
-               options = list("plugins" = list("remove_button"), 
-                              "create" = TRUE,
-                              "persist" = FALSE))
-
-```
-
-Row {data-height=300}
------------------------------------------------------------------------
-
-### Table {.download-DT}
-
-```{r metro-explore-table, context="server"}
-
-output$metro_explore_table <- DT::renderDataTable({
-  
-  if(is.null(input$metro_explore_select)){
-    DT::datatable(
-      metro_demo_data %>% 
-        rename("City" = metro_state),
-      options(list(scrollX = "200px",
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
-    )
-  }else{
-    DT::datatable(
-      metro_demo_data %>% 
-        filter(metro_state %in% input$metro_explore_select) %>% 
-        select("City" = metro_state, input$var_explore_select),
-      options(list(scrollX = "200px", 
-                   pageLength = 5,
-                   lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))))
-    )
-  }
-  
-})
-
-```
-
-```{r metro-explore-table-output}
-
-DT::dataTableOutput("metro_explore_table")
-
-```
-
-Row {data-height=300}
------------------------------------------------------------------------
-
-### Selected Variables by Metro
-
-```{r metro-explore-plot, context="server"}
-
-output$metro_explore_plot <- renderPlotly({
-
-  # Require input action and non-null variable before plotting chart
-  req(input$metro_explore_select)
-  req(!is.null(input$var_explore_select))
-
-  # Plot
-  plotly::ggplotly(
-    metro_demo_data %>%
-      filter(metro_state %in% input$metro_explore_select) %>%
-      select(metro_state, input$var_explore_select) %>%
-      pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>%
-      mutate(variable = str_replace_all(variable, "_", " "),
-             value = as.numeric(value)) %>%
-      ggplot(aes(x = variable, y = value, fill = metro_state)) +
-      geom_bar(stat = "identity", width = 0.8,
-               position = position_dodge2(width = 0.6, preserve = "single")) +
-      labs(x = "Variable", y = "Value") +
-      scale_y_comma() +
-      coord_flip() +
-      ggplot_fill_selected() +
-      ggplot_theme_selected() +
-      theme(legend.position = "top")
-  )
-
-})
-
-```
-
-```{r metro-explore-plot-output} 
-
-plotlyOutput("metro_explore_plot")
-
-```
+<!-- ``` -->
 
 
 
+<!-- Explore {data-navmenu="By Metro"} -->
+<!-- ====================================================================== -->
 
+<!-- Sidebar {.sidebar} -->
+<!-- ----------------------------------------------------------------------- -->
 
+<!-- <br> -->
 
+<!-- ```{r metro explore sidebar} -->
 
+<!-- # Define inputs -->
+<!-- # Metro -->
+<!-- selectizeInput(inputId = "metro_explore_select",  -->
+<!--                label = "Select Metro Areas to explore",  -->
+<!--                choices = metro_demo_data %>% select(metro_state),  -->
+<!--                multiple = TRUE,  -->
+<!--                options = list("plugins" = list("remove_button"),  -->
+<!--                               "create" = TRUE, -->
+<!--                               "persist" = FALSE)) -->
+
+<!-- # Variable of interest -->
+<!-- selectizeInput(inputId = "var_explore_select",  -->
+<!--                label = "Select a demographic variable",  -->
+<!--                choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)),  -->
+<!--                selected = names(metro_demo_data %>% select(pwd)), -->
+<!--                multiple = TRUE,  -->
+<!--                options = list("plugins" = list("remove_button"),  -->
+<!--                               "create" = TRUE, -->
+<!--                               "persist" = FALSE)) -->
+
+<!-- ``` -->
+
+<!-- Row -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- ### Table {.download-DT} -->
+
+<!-- ```{r metro explore table} -->
+
+<!-- DT::renderDataTable({ -->
+
+<!--   if(is.null(input$metro_explore_select)){ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         rename("City" = metro_state), -->
+<!--       options(list(scrollX = "200px", -->
+<!--                    pageLength = 5, -->
+<!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
+<!--     ) -->
+<!--   }else{ -->
+<!--     DT::datatable( -->
+<!--       metro_demo_data %>%  -->
+<!--         filter(metro_state %in% input$metro_explore_select) %>%  -->
+<!--         select("City" = metro_state, input$var_explore_select), -->
+<!--       options(list(scrollX = "200px",  -->
+<!--                    pageLength = 5, -->
+<!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
+<!--     ) -->
+<!--   } -->
+
+<!-- }) -->
+
+<!-- ``` -->
+
+<!-- Row -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- ### Selected Variables by Metro -->
+
+<!-- ```{r metro overview chart} -->
+
+<!-- output$metro_explore_plot <- renderPlotly({ -->
+
+<!--   # Require input action and non-null variable before plotting chart -->
+<!--   req(input$metro_explore_select) -->
+<!--   req(!is.null(input$var_explore_select)) -->
+
+<!--   # Plot -->
+<!--   plotly::ggplotly( -->
+<!--     metro_demo_data %>% -->
+<!--       filter(metro_state %in% input$metro_explore_select) %>% -->
+<!--       select(metro_state, input$var_explore_select) %>% -->
+<!--       pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% -->
+<!--       mutate(variable = str_replace_all(variable, "_", " "), -->
+<!--              value = as.numeric(value)) %>% -->
+<!--       ggplot(aes(x = variable, y = value, fill = metro_state)) + -->
+<!--       geom_bar(stat = "identity", width = 0.8, -->
+<!--                position = position_dodge2(width = 0.6, preserve = "single")) + -->
+<!--       labs(x = "Variable", y = "Value") + -->
+<!--       scale_y_comma() + -->
+<!--       coord_flip() + -->
+<!--       ggplot_fill_selected() + -->
+<!--       ggplot_theme_selected() + -->
+<!--       theme(legend.position = "top") -->
+<!--   ) -->
+
+<!-- }) -->
+
+<!-- plotlyOutput("metro_explore_plot") -->
+
+<!-- ``` -->
 
 
 
@@ -3588,7 +1094,7 @@ Sidebar {.sidebar}
 
 <br>
 
-```{r data-download-sidebar}
+```{r, data download sidebar}
 
 # ====================
 # Filters
@@ -3597,51 +1103,36 @@ Sidebar {.sidebar}
 # Define inputs
 radioButtons(inputId = "data_download_national",
              label = "Select an Area of Interest",
-             choices = c("Demographics", "Community Living", 
-                             "Community Participation", "Work/Economic"),
-             selected = "Demographics")
-
-```
-
-Row {data-height=600}
------------------------------------------------------------------------
-
-### Selected Data for Download {.download-DT}
-
-```{r data-download-table, context="server"}
+             choices = c("Demographics" = "demographics",
+                         "Community Living" = "community_living", 
+                         "Community Participation" = "community_participation", 
+                         "Work/Economic" = "work_economic"),
+             selected = NULL)
 
 # Restrict statistic breakdown based on type
 data_download_national_selected <- reactive({
   
-  if (input$data_download_national == "Demographics"){
-    demographics
-  } else if (input$data_download_national == "Community Living"){
-    community_living
-  } else if (input$data_download_national == "Community Participation"){
-    community_participation
-  } else {
-    work_economic
-  }
+  eval(sym(input$data_download_national))
   
 })
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Selected Data for Download {.download-DT}
+
+```{r, data download table}
 
 # Selected data for download
 output$data_download_table <- DT::renderDataTable({
   
   DT::datatable(data_download_national_selected(),
                 fillContainer = TRUE,
-                rownames = FALSE,
                 extensions = "Buttons",
                 options = list(dom = "Bfrtip",
-                               buttons = list("copy",
-                                              list(extend = "csv", 
-                                                   filename = "ADA-PARC_data_download"),
-                                              list(extend = "excel",
-                                                   title = NULL,
-                                                   filename = "ADA-PARC_data_download"),
-                                              list(extend = "pdf", 
-                                                   filename = "ADA-PARC_data_download"),
-                                              "print"),
+                               buttons = c("copy", "csv", "excel", "pdf", "print"),
                                bPaginate = FALSE,
                                scrollX = "200px",
                                scrollY = "800px",
@@ -3649,20 +1140,9 @@ output$data_download_table <- DT::renderDataTable({
   
 })
 
-```
-
-```{r data-download-table-output}
-
 DT::dataTableOutput("data_download_table", width = 50)
 
 ```
-
-
-
-
-
-
-
 
 
 
@@ -3672,7 +1152,126 @@ Fact Sheets {data-navmenu="Download" data-icon="fa-file-alt"}
 Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
-```{r fact-sheet-download-sidebar, context="server"}
+```{r, fact sheet download sidebar}
+
+# ====================
+# Lookups for filters
+# ====================
+
+# Demographics
+demographics_lu <- names(national_demographics) %>% 
+  as_tibble_col(column_name = "column_name") %>% 
+  mutate(column_type =
+           case_when(str_detect(string = column_name,
+                                pattern = "percent") ~
+                       "percent",
+                     TRUE ~ "value"),
+         filter_temp = 
+           case_when(column_name %in%
+                       c("pwd",
+                         "percent_of_total_population_with_a_disability") ~
+                       "general __ General",
+                     column_name %in%
+                       c("pwd_18_64_years",
+                         "pwd_65_years") ~
+                       "age __ Age",
+                     TRUE ~ NA_character_)) %>% 
+  filter(!is.na(filter_temp)) %>% 
+  separate(col = "filter_temp", 
+           into = c("filter_value", "filter_label"),
+           sep = " __ ")
+
+# Community Living
+community_living_lu <- names(national_living) %>% 
+  as_tibble_col(column_name = "column_name") %>% 
+  mutate(column_type =
+           case_when(str_detect(string = column_name,
+                                pattern = "percent") ~
+                       "percent",
+                     TRUE ~ "value"),
+         filter_temp = 
+           case_when(column_name %in%
+                       c("pwd_in_institutionalized_group_quarters",
+                         "percent_pwd_institution") ~
+                       "institution_pop __ PWD Living in Institutional Residence",
+                     column_name %in%
+                       c("pwd_in_home",
+                         "percent_pwd_home") ~
+                       "home_pop __ PWD Living in Home Residence",
+                     column_name %in%
+                       c("pwd_in_non_institutional_group_quarters",
+                         "percent_pwd_other_group_quarters") ~
+                       "othergq_pop __ PWD Living in Other Group Quarters Residence",
+                     column_name %in%
+                       c("total_population_in_nursing_18_64",
+                         "percent_of_pwd_18_64_in_nursing") ~
+                       "nursing_working_pop __ PWD of Working Age, Living in Nursing Home",
+                     TRUE ~ NA_character_)) %>% 
+  filter(!is.na(filter_temp)) %>% 
+  separate(col = "filter_temp", 
+           into = c("filter_value", "filter_label"),
+           sep = " __ ")
+
+# ====================
+# Filters
+# ====================
+
+# Define inputs
+radioButtons(inputId = "fact_sheet_national",
+             label = "Select an Area of Interest",
+             choices = c("Demographics", "Community Living", 
+                         "Community Participation", "Work/Economic"))
+
+# Restrict statistic breakdown based on type
+fact_sheet_national_selected <- reactive({
+  
+  if (input$fact_sheet_national == "Demographics"){
+    demographics_lu
+  } else if (input$fact_sheet_national == "Community Living"){
+    community_living_lu
+    # } else if (input$fact_sheet_national == "Community Living"){
+    #   community_participation_lu
+  } else {
+    NA
+  }
+  
+})
+
+# Statistics dropdown to given area
+renderUI({ 
+  
+  selectInput(inputId = "fact_sheet_stat", 
+              label = "Select a Statistic", 
+              choices = unique(fact_sheet_national_selected()$filter_label))
+  
+})
+
+# Restrict statistic breakdown based on type
+stat_base <- reactive({
+  
+  if (input$fact_sheet_national == "Demographics"){
+    national_demographics
+  } else if (input$fact_sheet_national == "Community Living"){
+    national_living
+    # } else if (input$fact_sheet_national == "Community Participation"){
+    #   national_participation
+  } else {
+    NA
+  }
+  
+})
+
+# Select columns based on input
+stat_subset <- reactive({
+  
+  stat_base() %>% 
+    select(state:abbrev,
+           all_of(fact_sheet_national_selected() %>% 
+                    filter(filter_label == input$fact_sheet_stat) %>% 
+                    pull(column_names)))
+  
+})
+
 
 ```
 
@@ -3686,16 +1285,7 @@ Row
 
 ###  {.long-row}
 
-```{r accessibility-options, context="server"}
-
-# Selected ggplot themes
-ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][1] })
-ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][2] }) 
-ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
-
-```
-
-```{r accessibility-options-output}
+```{r}
 
 # Map palette
 selectInput(inputId = "access_map_palette",
@@ -3705,26 +1295,34 @@ selectInput(inputId = "access_map_palette",
                            "Green-Blue" = "GnBu"),
             selected = "Yellow-Orange-Brown")
 
+
 # GGplot themes and colors
 access_ggplot_themes <- list(
-  "The Economist" = list(theme_minimal(), scale_fill_economist(), scale_color_economist()),
-  "Five Thirty Eight" = list(theme_minimal(), scale_fill_fivethirtyeight(), scale_color_fivethirtyeight()),
-  "Highcharts" = list(theme_minimal(), scale_fill_hc(), scale_color_hc()),
-  "Ipsum" = list(theme_light(), scale_fill_ipsum(), scale_color_ipsum()),
-  "Minimal" = list(theme_minimal(), scale_fill_colorblind(), scale_color_colorblind()),
-  "Stata" = list(theme_minimal(), scale_fill_stata(), scale_color_stata()))
+  "The Economist" = list(theme_economist(), scale_fill_economist(), scale_color_economist()),
+  "Five Thirty Eight" = list(theme_fivethirtyeight(), scale_fill_economist(), scale_color_fivethirtyeight()),
+  "Highcharts" = list(theme_hc(), scale_fill_hc(), scale_color_hc()),
+  "Ipsum" = list(theme_ipsum(), scale_fill_colorblind(), scale_color_colorblind()),
+  "Light" = list(theme_light(), scale_fill_colorblind(), scale_color_colorblind()),
+  "Minimal" = list(theme_minimal(),scale_fill_ordinal(), scale_color_ordinal()),
+  "Stata" = list(theme_stata(), scale_fill_stata(), scale_color_stata()))
 
 selectInput(inputId = "access_ggplot_theme", 
             label = h5("Select a theme for plots:"), 
             choices = names(access_ggplot_themes),
-            selected = "Minimal")
+            selected = "Ipsum")
+
+ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][1] })
+ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][2] }) 
+ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
 
 ```
+
+
 
 <!-- Custom Javascript  -->
 <script>
 $("body").on("shown.bs.tab", "a[data-toggle='tab']", function(e) {
-   Shiny.setInputValue("active_tab", $(e.target).parent().index());
+Shiny.setInputValue("active_tab", $(e.target).parent().index());
 })
 </script>
 
@@ -3739,7 +1337,7 @@ $("body").on("shown.bs.tab", "a[data-toggle='tab']", function(e) {
 
 /* Headers */
 h2,h3,h4,h5 { 
-  font-weight: bold;
+font-weight: bold;
 }
 
 /* #################### */
@@ -3748,37 +1346,37 @@ h2,h3,h4,h5 {
 
 /* Leaflet border */
 .leaflet .legend i{
-    border-left:1px solid #000000;
-    border-right:1px solid #000000;
-    border-top:1px solid #000000;
-    border-bottom:1px solid #000000;
+border-left:1px solid #000000;
+border-right:1px solid #000000;
+border-top:1px solid #000000;
+border-bottom:1px solid #000000;
 }
 
 /* Leaflet background */
 .leaflet-container {
-  background: #696969;
+background: #696969;
 }
 
 /* Section dividers */
 .section-divider { 
-  background-color: #CCCCCC;
-  color: #000000;
+background-color: #CCCCCC;
+color: #000000;
 }
 
 /* Colors for map palette dropdown */
 #access_map_palette ~ .selectize-control .option[data-value=YlOrBr]{ 
-  background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
-  background-size: auto !important;
+background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
+background-size: auto !important;
 }
 
 #access_map_palette ~ .selectize-control .option[data-value=YlOrRd]{ 
-  background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
-  background-size: auto !important;
+background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
+background-size: auto !important;
 }
 
 #access_map_palette ~ .selectize-control .option[data-value=GnBu]{ 
-  background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
-  background-size: auto !important;
+background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
+background-size: auto !important;
 }
 
 
@@ -3794,24 +1392,25 @@ padding: 10px;
 
 /* Allow dropdowns to be visible for short containers */
 #access_ggplot_theme+ div>.selectize-dropdown, #access_map_palette+ div>.selectize-dropdown {
-  position: static;
+position: static;
 }
 
 /* Have dropdowns display on top of Leaflet */
 .selectize-dropdown {
-  z-index: 10000;
-  overflow-y: auto;
+z-index: 10000;
+overflow-y: auto;
 }
 
 /* Scroll overflow for tables */
 .table-wrapper {
-  overflow-x: scroll;
+overflow-x: scroll;
+overflow-y: scroll;
 }
 
 /* Scroll overflow for Download */
 .download-DT {
-  overflow-x: scroll;
-  overflow-y: scroll;
+overflow-x: scroll;
+overflow-y: scroll;
 }
 
 </style>
