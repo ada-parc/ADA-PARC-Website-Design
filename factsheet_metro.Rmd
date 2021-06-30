@@ -1,0 +1,50 @@
+---
+title: "Metropolitan One Pager"
+output: html_document
+  css: styles_metro.css
+  theme: paper
+params:
+  metro: 
+---
+
+```{r setup, include=FALSE}
+
+# ====================
+# Setup
+# ====================
+
+# Packages
+library(tidyverse); library(readxl); library(openxlsx); library(janitor) 
+library(sf); library(geofacet); library(htmltools)
+library(colourpicker); library(gghighlight)
+library(knitr); library(kableExtra)
+library(scales); library(hrbrthemes); library(ggthemes)
+library(extrafont);library(mongolite);library(here)
+
+options(scipen = 999999)
+
+# Set this to host_prod or host_dev
+host_name = "host_prod"
+
+# Load API keys and database connection information
+source(here("functions.R"), local = TRUE)
+
+# Load variable dictionary for relating tables, variable codes, and readable values
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", host_name = host_name)
+
+```
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

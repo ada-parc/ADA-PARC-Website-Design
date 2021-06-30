@@ -342,7 +342,7 @@ Sidebar {.sidebar}
 ```{r metro snapshot input}
 
 # Pull location crosswalk dictionary from GitHub repo
-dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt")
+dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
 
 # Full data for cities in database
 metro_snapshot_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
