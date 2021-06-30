@@ -420,7 +420,7 @@ The US Census Bureau defines a "Place" as a concentration of population. This in
 ```{r cities-acs-places-input, warning=FALSE, message=FALSE}
 
 # Pull Census places dictionary from GitHub repo
-cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_places.txt") %>% 
+cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_places.txt") %>% 
   filter(!is.na(POP))
 
 # Text for either/or option below
@@ -779,7 +779,7 @@ Census Tracts are available by state and county. To access tract data, please en
 # Set minimum overlap threshold, default units [m^2]
 tracts_places_counties <- reactive({ 
   
-  read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/national-tile-map/dictionaries/dict_location_crosswalk.txt") %>%
+  read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
     filter(county_place_overlap_pct > 0,
            place_GEOID %in% c(cities_acs_places_selected()$GEOID))
     
