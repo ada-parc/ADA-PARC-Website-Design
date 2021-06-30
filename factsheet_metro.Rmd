@@ -5,6 +5,8 @@ output: html_document
   theme: paper
 params:
   metro: 
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -35,16 +37,55 @@ dict_vars <- fun_pull_mongo_data(tables = "dict_vars", host_name = host_name)
 ```
 
 
-```{r cars}
-summary(cars)
+
+```{r metro snapshot data}
+
+# Pull location crosswalk dictionary from GitHub repo
+dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
+
+# Full data for cities in database
+metro_snapshot_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
+                                                 host_name, 
+                                                 "place")
+
+# ===============
+# Pull Census place data
+# ===============
+
+# Place for selected metro
+metro_snapshot_place <- metro_snapshot_place_full %>% 
+    filter(GEOID == params$GEOID)
+
+# ===============
+# Pull Census tract data for selected metro
+# ===============
+
+# Spatial, restrict tract call to selected city
+temp_metro <- dict_location_crosswalk %>% 
+  filter(place_GEOID %in% c(params$GEOID)) %>% 
+  pull(tract_GEOID)
+
+# Connect and pull
+temp_mongo_conn <- fun_mongo_connect(host_name,
+                                     collection_name = "geo_tract",
+                                     database_name = "ADA-PARC")
+temp_geo <- temp_mongo_conn$iterate(
+  query = sprintf('{ "properties.GEOID" : { "$in" : [  "%s" ] } }' ,
+                  str_c(temp_metro, collapse = '", "')))
+metro_snapshot_tract_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
+
+
+# Tabular data for selected city
+# Connect and pull
+temp_mongo_conn <- fun_mongo_connect(host_name,
+                                     collection_name = "acs_tract_S1810",
+                                     database_name = "ADA-PARC")
+metro_snapshot_tract <- temp_mongo_conn$find(
+  query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
+                  str_c(metro_snapshot_tract_sf$GEOID, collapse = '", "')))
+
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
