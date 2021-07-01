@@ -2,6 +2,7 @@
 title: "Metropolitan One Pager"
 output: 
   html_document:
+    css: "style.css"
     theme: paper
 params:
   GEOID: "1714000"
@@ -94,9 +95,9 @@ metro_snapshot_tract <- temp_mongo_conn$find(
 
 ```
 
-### Overview 
 
-```{r metro snapshot overview text}
+
+```{r metro snapshot overview text, class.output=""}
 
 # Overview text  
 metro_snap_overview_text <- paste0(

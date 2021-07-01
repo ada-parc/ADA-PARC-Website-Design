@@ -19,7 +19,7 @@ factsheet_metro_params <- read_csv("https://raw.githubusercontent.com/sean-conne
          metro, state, population) %>% 
   mutate("GEOID" = as.character(GEOID) %>% 
            stringr::str_pad(7, side = "left", pad = "0"),
-         "output_file" = stringr::str_c("factsheet_metro_pdfs/", 
+         "output_file" = stringr::str_c(here(), "/factsheet_metro/output_files/", 
                                         metro, "_", state, ".html"),
          "params" = map(GEOID, ~list(GEOID = .))) %>% 
   filter(GEOID %in% c("1714000", "3651000", "2507000")) %>% 
