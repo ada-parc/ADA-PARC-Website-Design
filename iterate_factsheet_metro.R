@@ -6,19 +6,31 @@
 # Libraries
 library(rmarkdown); library(tidyverse)
 
-# Pull location crosswalk dictionary from GitHub repo
-factsheet_metro_params <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>% 
-  distinct("GEOID" = place_GEOID, metro_state)
 
-# Full ACS cities list with population
-cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_places.txt") %>% 
-  filter(!is.na(POP))
+# Factsheet parameters ----------------------------------------------------
 
-# Join population data, separate metro_state for file name
-factsheet_metro_params <- factsheet_metro_params %>% 
-  left_join(cities_acs_places_ref %>% 
-              distinct(GEOID, POP),
-            by = "GEOID")
 
-rm(cities_acs_places_ref)
+# Pull baseline places in database from GitHub repo
+# Organize parameters for looping operation
+factsheet_metro_params <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/baseline_places_geoid_upload.csv") %>%
+  separate(metro_state, into = c("metro", "state"),
+           sep = ", ", remove = FALSE) %>% 
+  select("GEOID" = census_GEOID, metro_state, 
+         metro, state, population) %>% 
+  mutate("GEOID" = as.character(GEOID) %>% 
+           stringr::str_pad(7, side = "left", pad = "0"),
+         "output_file" = stringr::str_c("factsheet_metro_pdfs/", 
+                                        metro, "_", state, ".html"),
+         "params" = map(GEOID, ~list(GEOID = .))) %>% 
+  filter(GEOID %in% c("1714000", "3651000", "2507000")) %>% 
+  arrange(state, metro)
 
+
+# Create factsheets -------------------------------------------------------
+
+
+# Walk through dataframe, create documents
+factsheet_metro_params %>%
+  select(output_file, params) %>% 
+  pwalk(rmarkdown::render, 
+        input = "factsheet_metro.Rmd")
