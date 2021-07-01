@@ -15,13 +15,23 @@ output:
 # ====================
 
 # Packages
-library(tidyverse); library(readxl); library(openxlsx); library(summarytools); library(janitor) 
-library(sf); library(geofacet); library(leaflet); library(leaflet.extras);
-library(htmltools); library(shiny); library(shinyWidgets); library(flexdashboard)
-library(colourpicker); library(DT); library(gghighlight)
-library(knitr); library(kableExtra)
-library(scales); library(hrbrthemes); library(ggthemes)
-library(extrafont); library(plotly)
+library(tidyverse)
+library(sf)
+library(geofacet)
+library(leaflet); library(leaflet.extras);
+library(htmltools)
+library(shiny)
+library(shinyWidgets)
+library(flexdashboard)
+library(colourpicker)
+library(gghighlight)
+library(knitr)
+library(kableExtra)
+library(scales)
+library(hrbrthemes)
+library(ggthemes)
+library(extrafont)
+library(plotly)
 library(mongolite)
 library(here)
 
@@ -284,10 +294,10 @@ national_vars_in_topic <- reactive({
 renderUI({
   
   cap_choices <- c("Demographics" = "is_demographics", 
-                        "Community Participation" = "is_community_participation", 
-                        "Community Living" = "is_community_living", 
-                        "Work/Economic" = "is_work_economic")
-    
+                   "Community Participation" = "is_community_participation", 
+                   "Community Living" = "is_community_living", 
+                   "Work/Economic" = "is_work_economic")
+  
   table_caption <- paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
   
   # Reorganize dataframe
