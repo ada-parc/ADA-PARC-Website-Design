@@ -46,11 +46,14 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
   }
 }
 
+# Plotting functions
+
+ # Abbreviates values for large numbers in render_tile_map
 abbreviate_number <- function(x)
 {
   x <- x / 1000000
-  print(x)
-
+  # print(x)
+  
   if (x >= 1) {
     return(paste0(round(x, 1), "M"))
   } else {
@@ -59,9 +62,7 @@ abbreviate_number <- function(x)
   }
 }
 
-abbreviate_number <- Vectorize(abbreviate_number)
-
-# Plotting functions
+abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to provide correct values in text generation
 
 render_tile_map <- function(data, selected, palette_selected) {
   
@@ -495,4 +496,49 @@ downloadButtonRmd <- function (outputId, label = "Download", class = NULL, ...){
          class = paste("btn btn-default shiny-download-link", class), 
          href = "", target = "_blank", download = NA, 
          icon("download"), label, ...)
+}
+
+
+# Accessibility Functions -------------------------------------------------
+
+
+englishLangList <- function(x) {
+  if(length(x) > 2){
+    next_to_last <- length(x) - 1
+    paste0(paste(x[1:next_to_last], collapse = ", "), ", and ", x[length(x)], collapse = "")
+  } else {
+    paste(x, collapse = " and ")
+  }
+}
+
+between <- function(df, variable, probs) {
+  df %>% 
+    filter(!!sym(variable) >= probs[1] & !!sym(variable) <= probs[2]) %>%
+    pull(NAME)
+}
+
+
+altText <- function(data, variable) {
+
+  df <- data %>%
+    select(NAME, ABBR, sym(variable))
+  
+  title <- names(variable) # vars_pretty field for variable
+  
+  quartiles <- quantile(data %>% pull(variable))
+  
+  q1 <- between(df, variable, c(quartiles[1], quartiles[2])) # Vector of states within first to second quartile of variable
+  
+  q2 <- between(df, variable, c(quartiles[2], quartiles[3]))
+  
+  q3 <- between(df, variable, c(quartiles[3], quartiles[4]))
+  
+  q4 <- between(df, variable, c(quartiles[4], quartiles[5]))
+  
+  paste0("Color coded map of the United States based on the", str_to_lower(title), ". ",
+         "States have been grouped into four quartile ranges. ", 
+         "The first quartile ranges from ", quartiles[1], " to ", quartiles[2], " and includes the states ", englishLangList(q1), ". ",
+         "The second quartile ranges from ", quartiles[2], " to ", quartiles[3], " and includes the states " , englishLangList(q2), ". ", 
+         "The third quartile ranges from ", quartiles[3], " to ", quartiles[4], " and includes the states " , englishLangList(q3), ". ",
+         "The fourth quartile ranges from ", quartiles[4], " to ", quartiles[5], " and includes the states " , englishLangList(q4), ".")
 }
