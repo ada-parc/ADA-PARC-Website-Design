@@ -56,13 +56,9 @@ source(here("national_import.R"), local = TRUE)
 
 ```
 
+# Home
 
-
-Home
-============================================================================
-
-Sidebar {.sidebar}
------------------------------------------------------------------------
+## Sidebar {.sidebar}
 
 <br>
 
@@ -70,24 +66,21 @@ Sidebar {.sidebar}
 
 <br>
 
-Use the **National** tab to examine the status of people with disabilities at the national and state level.  
+Use the **National** tab to examine the status of people with disabilities at the national and state level.
 
 Use the **By Metro** tab to investigate people with disabilities statistics at the municipal level.
 
 Use the **Download** tab to get the raw data powering this dashboard and as well as pre-formatted fact sheets a specific area of interest.
 
-Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.  
+Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.
 
 <br>
 
 Application authors:
 
-Sean Connelly and Ethan Jantz
-<br>
-[UIC Voorhees Center](https://voorheescenter.uic.edu/)
+Sean Connelly and Ethan Jantz <br> [UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
-Row
------------------------------------------------------------------------
+## Row
 
 ### 
 
@@ -101,10 +94,10 @@ Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research projec
 
 The ADA-PARC research has four purposes:
 
-1. **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
-2. **To identify & examine key environmental factors** contributing to these disparities
-3. **To benchmark participation disparities and highlight promising practices** at state & city levels
-4. **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
+1.  **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
+2.  **To identify & examine key environmental factors** contributing to these disparities
+3.  **To benchmark participation disparities and highlight promising practices** at state & city levels
+4.  **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
 
 <br>
 
@@ -114,8 +107,8 @@ The ADA-PARC has research teams focused on Community Living, Community Participa
 
 The intent of this effort is to use this information to inform:
 
-1. ADA Center technical assistance and resource dissemination, and
-2. Community level stakeholders to increase participation opportunities in their communities.
+1.  ADA Center technical assistance and resource dissemination, and
+2.  Community level stakeholders to increase participation opportunities in their communities.
 
 <br>
 
@@ -123,29 +116,29 @@ The intent of this effort is to use this information to inform:
 
 The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-- Region 1 New England ADA Center
-- Region 2 Northeast ADA Center
-- Region 3 Mid-Atlantic ADA Center
-- Region 4 Southeast ADA Center
-- Region 5 Great Lakes ADA Center
-- Region 6 Southwest ADA Center
-- Region 7 Great Plains ADA Center
-- Region 8 Rocky Mountain ADA Center
-- Region 9 Pacific ADA Center
-- Region 10 Great Northwest ADA Center
+-   Region 1 New England ADA Center
+-   Region 2 Northeast ADA Center
+-   Region 3 Mid-Atlantic ADA Center
+-   Region 4 Southeast ADA Center
+-   Region 5 Great Lakes ADA Center
+-   Region 6 Southwest ADA Center
+-   Region 7 Great Plains ADA Center
+-   Region 8 Rocky Mountain ADA Center
+-   Region 9 Pacific ADA Center
+-   Region 10 Great Northwest ADA Center
 
 Other institutions collaborating in the ADA-PARC are:
 
-- The ADA Knowledge Translation Center
-- The Center on Disability at the Public Health Institute
-- TIRR Memorial Hermann
-- Syracuse University
-- The University of Illinois at Chicago
-- The University of Northern Colorado
+-   The ADA Knowledge Translation Center
+-   The Center on Disability at the Public Health Institute
+-   TIRR Memorial Hermann
+-   Syracuse University
+-   The University of Illinois at Chicago
+-   The University of Northern Colorado
 
 <br>
 
-![ADA-PARC Participants](./participant_logos.png){width=75%}
+![ADA-PARC Participants](./participant_logos.png){width="75%"}
 
 <br>
 
@@ -153,13 +146,9 @@ Other institutions collaborating in the ADA-PARC are:
 
 The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
 
+# National Data
 
-
-National Data
-======================================================================
-
-Sidebar {.sidebar}
------------------------------------------------------------------------
+## Sidebar {.sidebar}
 
 <br>
 
@@ -219,10 +208,10 @@ national_variable_choices <- reactive({
              !is.na(national_dropdown_label)) %>% # national_dropdown_label looks like "Percentage of People With Disabilities"
       select(national_dropdown_label, var_readable))
     
-    # Static check
+    # # Static check
     # tibble::deframe(
     # dict_vars %>%
-    #   filter(var_desc == "work_economic",
+    #   filter(is_work_economic == T,
     #          var_readable %in% (
     #            work_economic %>%
     #              select(-c(GEOID, NAME, ABBR)) %>%
@@ -251,14 +240,15 @@ national_variable_choices <- reactive({
 
 # national_variable <- reactive({ input$national_variable_selector })
 
+output$alt_text <- renderText ({ altText(national_data(), input$national_variable_selector) })
+
 ```
 
-Row 
------------------------------------------------------------------------
+## Row
 
 ### Map
 
-```{r, national_map, fig.alt = "Map of the selected variables in the sidebar"}
+```{r, national_map, fig.alt = textOutput("alt_text")}
 
 renderPlot({
   
@@ -341,11 +331,9 @@ renderUI({
 
 ```
 
-Metropolitan Data
-======================================================================
+# Metropolitan Data
 
-Sidebar {.sidebar}
------------------------------------------------------------------------
+## Sidebar {.sidebar}
 
 <br>
 
@@ -420,10 +408,9 @@ metro_snapshot_tract <- reactive ({
 
 ```
 
-Row
------------------------------------------------------------------------
+## Row
 
-### Overview 
+### Overview
 
 ```{r metro snapshot overview text}
 
@@ -617,8 +604,7 @@ leafletOutput("snapshotmap")
 
 ```
 
-Row
------------------------------------------------------------------------
+## Row
 
 ### City in Context
 
@@ -918,14 +904,17 @@ renderUI({
 ```
 
 <!-- Comparison {data-navmenu="By Metro"} -->
+
 <!-- ====================================================================== -->
 
 <!-- Sidebar {.sidebar} -->
+
 <!-- ----------------------------------------------------------------------- -->
 
 <!-- <br> -->
 
 <!-- ```{r } -->
+
 <!-- # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well) -->
 
 <!-- ``` -->
@@ -933,69 +922,101 @@ renderUI({
 <!-- ```{r } -->
 
 <!-- # Define inputs -->
+
 <!-- # Metro -->
+
 <!-- selectizeInput(inputId = "compare",  -->
+
 <!--                label = "Select Metro Areas to Compare",  -->
+
 <!--                choices = metro_snapshot_tract() %>% select(metro_state), -->
+
 <!--                multiple = TRUE, -->
+
 <!--                options = list( -->
+
 <!--                  maxItems = 3, -->
+
 <!--                  placeholder = "select up to 3 cities" -->
+
 <!--                ) -->
+
 <!-- ) -->
 
-
 <!-- ### I want to model something similar to the AARP website -->
+
 <!-- ### So these three inputs would feed into the DT and then we could do a transposed table of -->
+
 <!-- ### some subset of relevant fields for the user based on a selection -->
 
 <!-- ``` -->
 
 <!-- Row -->
-<!-- ----------------------------------------------------------------------- -->
 
+<!-- ----------------------------------------------------------------------- -->
 
 <!-- ### Table {.download-DT} -->
 
 <!-- ```{r } -->
 
-
 <!-- DT::renderDataTable({ -->
 
 <!--   if(is.null(input$compare)){ -->
+
 <!--     DT::datatable( -->
+
 <!--       metro_demo_data %>%  -->
+
 <!--         rename("City" = metro_state), -->
+
 <!--       options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))) -->
+
 <!--     ) -->
+
 <!--   }else{ -->
+
 <!--     DT::datatable( -->
+
 <!--       metro_demo_data %>%  -->
+
 <!--         filter(metro_state %in% input$compare) %>%  -->
+
 <!--         select("City" = metro_state, everything()) %>% -->
+
 <!--         pivot_longer( -->
+
 <!--           cols = -"City", -->
+
 <!--           names_to = "Variable" -->
+
 <!--         ) %>% -->
+
 <!--         pivot_wider( -->
+
 <!--           id_cols = Variable, -->
+
 <!--           names_from = City -->
+
 <!--         ) %>% -->
+
 <!--         select(" " = Variable, everything()), -->
+
 <!--       options (pageLength = 50) -->
+
 <!--     ) -->
+
 <!--   } -->
 
 <!-- }) -->
 
 <!-- ``` -->
 
-
-
 <!-- Explore {data-navmenu="By Metro"} -->
+
 <!-- ====================================================================== -->
 
 <!-- Sidebar {.sidebar} -->
+
 <!-- ----------------------------------------------------------------------- -->
 
 <!-- <br> -->
@@ -1003,28 +1024,45 @@ renderUI({
 <!-- ```{r metro explore sidebar} -->
 
 <!-- # Define inputs -->
+
 <!-- # Metro -->
+
 <!-- selectizeInput(inputId = "metro_explore_select",  -->
+
 <!--                label = "Select Metro Areas to explore",  -->
+
 <!--                choices = metro_demo_data %>% select(metro_state),  -->
+
 <!--                multiple = TRUE,  -->
+
 <!--                options = list("plugins" = list("remove_button"),  -->
+
 <!--                               "create" = TRUE, -->
+
 <!--                               "persist" = FALSE)) -->
 
 <!-- # Variable of interest -->
+
 <!-- selectizeInput(inputId = "var_explore_select",  -->
+
 <!--                label = "Select a demographic variable",  -->
+
 <!--                choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)),  -->
+
 <!--                selected = names(metro_demo_data %>% select(pwd)), -->
+
 <!--                multiple = TRUE,  -->
+
 <!--                options = list("plugins" = list("remove_button"),  -->
+
 <!--                               "create" = TRUE, -->
+
 <!--                               "persist" = FALSE)) -->
 
 <!-- ``` -->
 
 <!-- Row -->
+
 <!-- ----------------------------------------------------------------------- -->
 
 <!-- ### Table {.download-DT} -->
@@ -1034,22 +1072,39 @@ renderUI({
 <!-- DT::renderDataTable({ -->
 
 <!--   if(is.null(input$metro_explore_select)){ -->
+
 <!--     DT::datatable( -->
+
 <!--       metro_demo_data %>%  -->
+
 <!--         rename("City" = metro_state), -->
+
 <!--       options(list(scrollX = "200px", -->
+
 <!--                    pageLength = 5, -->
+
 <!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
+
 <!--     ) -->
+
 <!--   }else{ -->
+
 <!--     DT::datatable( -->
+
 <!--       metro_demo_data %>%  -->
+
 <!--         filter(metro_state %in% input$metro_explore_select) %>%  -->
+
 <!--         select("City" = metro_state, input$var_explore_select), -->
+
 <!--       options(list(scrollX = "200px",  -->
+
 <!--                    pageLength = 5, -->
+
 <!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
+
 <!--     ) -->
+
 <!--   } -->
 
 <!-- }) -->
@@ -1057,6 +1112,7 @@ renderUI({
 <!-- ``` -->
 
 <!-- Row -->
+
 <!-- ----------------------------------------------------------------------- -->
 
 <!-- ### Selected Variables by Metro -->
@@ -1066,26 +1122,45 @@ renderUI({
 <!-- output$metro_explore_plot <- renderPlotly({ -->
 
 <!--   # Require input action and non-null variable before plotting chart -->
+
 <!--   req(input$metro_explore_select) -->
+
 <!--   req(!is.null(input$var_explore_select)) -->
 
 <!--   # Plot -->
+
 <!--   plotly::ggplotly( -->
+
 <!--     metro_demo_data %>% -->
+
 <!--       filter(metro_state %in% input$metro_explore_select) %>% -->
+
 <!--       select(metro_state, input$var_explore_select) %>% -->
+
 <!--       pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% -->
+
 <!--       mutate(variable = str_replace_all(variable, "_", " "), -->
+
 <!--              value = as.numeric(value)) %>% -->
+
 <!--       ggplot(aes(x = variable, y = value, fill = metro_state)) + -->
+
 <!--       geom_bar(stat = "identity", width = 0.8, -->
+
 <!--                position = position_dodge2(width = 0.6, preserve = "single")) + -->
+
 <!--       labs(x = "Variable", y = "Value") + -->
+
 <!--       scale_y_comma() + -->
+
 <!--       coord_flip() + -->
+
 <!--       ggplot_fill_selected() + -->
+
 <!--       ggplot_theme_selected() + -->
+
 <!--       theme(legend.position = "top") -->
+
 <!--   ) -->
 
 <!-- }) -->
@@ -1094,13 +1169,9 @@ renderUI({
 
 <!-- ``` -->
 
+# Data {data-navmenu="Download" data-icon="fa-database"}
 
-
-Data {data-navmenu="Download" data-icon="fa-database"}
-======================================================================
-
-Sidebar {.sidebar}
------------------------------------------------------------------------
+## Sidebar {.sidebar}
 
 <br>
 
@@ -1128,8 +1199,7 @@ data_download_national_selected <- reactive({
 
 ```
 
-Row
------------------------------------------------------------------------
+## Row
 
 ### Selected Data for Download {.download-DT}
 
@@ -1154,13 +1224,9 @@ DT::dataTableOutput("data_download_table", width = 50)
 
 ```
 
+# Fact Sheets {data-navmenu="Download" data-icon="fa-file-alt"}
 
-
-Fact Sheets {data-navmenu="Download" data-icon="fa-file-alt"}
-======================================================================
-
-Sidebar {.sidebar}
------------------------------------------------------------------------
+## Sidebar {.sidebar}
 
 ```{r, fact sheet download sidebar}
 
@@ -1285,13 +1351,9 @@ stat_subset <- reactive({
 
 ```
 
+# Accessibility
 
-
-Accessibility
-======================================================================
-
-Row
------------------------------------------------------------------------
+## Row
 
 ###  {.long-row}
 
@@ -1327,18 +1389,18 @@ ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_th
 
 ```
 
-
-
 <!-- Custom Javascript  -->
+
+```{=html}
 <script>
 $("body").on("shown.bs.tab", "a[data-toggle='tab']", function(e) {
 Shiny.setInputValue("active_tab", $(e.target).parent().index());
 })
 </script>
-
-
-
+```
 <!-- CSS for dashboard  -->
+
+```{=html}
 <style  type="text/css">
 
 /* #################### */
@@ -1424,3 +1486,4 @@ overflow-y: scroll;
 }
 
 </style>
+```
