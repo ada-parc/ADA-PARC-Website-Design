@@ -535,7 +535,7 @@ altText <- function(data, variable) {
   
   q4 <- between(df, variable, c(quartiles[4], quartiles[5]))
   
-  paste0("Color coded map of the United States based on the", str_to_lower(title), ". ",
+  paste0("Color coded map of the United States based on the ", str_to_lower(title), ". ",
          "States have been grouped into four quartile ranges. ", 
          "The first quartile ranges from ", quartiles[1], " to ", quartiles[2], " and includes the states ", englishLangList(q1), ". ",
          "The second quartile ranges from ", quartiles[2], " to ", quartiles[3], " and includes the states " , englishLangList(q2), ". ", 
