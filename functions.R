@@ -46,9 +46,11 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
   }
 }
 
-# Plotting functions
 
- # Abbreviates values for large numbers in render_tile_map
+# Dashboard functions -----------------------------------------------------
+
+
+# Abbreviates values for large numbers in render_tile_map
 abbreviate_number <- function(x)
 {
   x <- x / 1000000
@@ -64,6 +66,7 @@ abbreviate_number <- function(x)
 
 abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to provide correct values in text generation
 
+# Tile map function
 render_tile_map <- function(data, selected, palette_selected) {
   
   # ### Unnecessary if selected is being passed as a string
@@ -76,27 +79,27 @@ render_tile_map <- function(data, selected, palette_selected) {
   # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
   # # outputs: "GEOID"
   
-  # Set quantiles
+  # Set quartiles
   no_classes <- 4
   labels <- c()
-  quantiles <- quantile(data %>% pull(!!sym(selected)), 
+  quartiles <- quantile(data %>% pull(!!sym(selected)), 
                         probs = seq(0, 1, length.out = no_classes + 1))
   
   # Custom labels based on percent or value
-  for(idx in 1:length(quantiles)){
+  for(idx in 1:length(quartiles)){
     if(grepl("pct", selected)) {
       
       # Percent, add divide by 100, add symbol to text
-      labels <- c(labels, paste0(scales::percent(quantiles[idx] / 100), 
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
                                  "-", 
-                                 scales::percent(quantiles[idx + 1] / 100)))
+                                 scales::percent(quartiles[idx + 1] / 100)))
       
     } else {
       
       # Values
-      labels <- c(labels, paste0(scales::comma(quantiles[idx]), 
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
                                  "-", 
-                                 scales::comma(quantiles[idx + 1])))
+                                 scales::comma(quartiles[idx + 1])))
     }
   }
   # Remove last label which will have NA
@@ -114,7 +117,7 @@ render_tile_map <- function(data, selected, palette_selected) {
     # Percents, adds symbol to text
     fill_text <- geom_text(aes(
       label = paste0(round(!!sym(selected), 1), "%"),
-      color = quantile_fill),
+      color = quartile_fill),
       size = 4,
       show.legend = FALSE)
     
@@ -123,7 +126,7 @@ render_tile_map <- function(data, selected, palette_selected) {
     # Values, rounds to nearest 100k
     fill_text <- geom_text(aes(
       label = abbreviate_number(!!sym(selected)),
-      color = quantile_fill),
+      color = quartile_fill),
       size = 4,
       show.legend = FALSE)
     
@@ -135,12 +138,12 @@ render_tile_map <- function(data, selected, palette_selected) {
   
   # Plot tile map
   data %>%
-    mutate("quantile_fill" = cut(data %>% pull(!!sym(selected)), 
-                                 breaks = quantiles, 
+    mutate("quartile_fill" = cut(data %>% pull(!!sym(selected)), 
+                                 breaks = quartiles, 
                                  labels = labels, 
                                  include.lowest = TRUE)) %>% 
     ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
-               fill = quantile_fill)) + # Selected variable
+               fill = quartile_fill)) + # Selected variable
     geom_tile() + # Imports x and y values
     # Fill
     scale_fill_brewer(palette = palette_selected) +
@@ -168,6 +171,140 @@ render_tile_map <- function(data, selected, palette_selected) {
           strip.text.x = element_text(size = 9L)) +
     guides(fill = guide_legend(label.position = "bottom"))
   
+}
+
+# Geographic map function
+render_geographic_map <- function(data, selected, palette_selected) {
+  
+  # Set quartiles
+  no_classes <- 4
+  labels <- c()
+  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1))
+  
+  # Custom labels based on percent or value
+  for(idx in 1:length(quartiles)){
+    if(grepl("pct", selected)) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
+                                 "-", 
+                                 scales::percent(quartiles[idx + 1] / 100)))
+      
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
+                                 "-", 
+                                 scales::comma(quartiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA
+  labels <- labels[1:length(labels)-1]
+  
+  # Set tile text fill based on contrast
+  hcl <- farver::decode_colour(RColorBrewer::brewer.pal(no_classes, 
+                                                        palette_selected), 
+                               "rgb", "hcl")
+  label_col <- ifelse(hcl[, "l"] > 50, "black", "white")
+  
+  # Tile text fill
+  if(grepl("pct", selected)) {
+    
+    # Percents, adds symbol to text
+    fill_text <- geom_text(aes(
+      label = paste0(round(!!sym(selected), 1), "%"),
+      color = quartile_fill),
+      size = 4,
+      show.legend = FALSE)
+    
+  } else {
+    
+    # Values, rounds to nearest 100k
+    fill_text <- geom_text(aes(
+      label = abbreviate_number(!!sym(selected)),
+      color = quartile_fill),
+      size = 4,
+      show.legend = FALSE)
+    
+  }
+
+  # Set map title and legend
+  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
+  legend_title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
+  
+  # US State geography, join data
+  states_sf <- states(class = "sf", cb = TRUE) %>% 
+    shift_geometry() %>% 
+    select("ABBR" = STUSPS) %>% 
+    inner_join(data %>% 
+                 select(ABBR, !!sym(selected)),
+               by = "ABBR") %>% 
+    mutate("hover_text" = ifelse(grepl("pct", selected),
+                                 paste0(ABBR, ": ",
+                                        round(!!sym(selected), 1), "%"),
+                                 paste0(ABBR, ": ",
+                                        abbreviate_number(!!sym(selected)))),
+           "quartile_fill" = cut(data %>% pull(!!sym(selected)), 
+                                 breaks = quartiles, 
+                                 labels = labels, 
+                                 include.lowest = TRUE))
+  
+  # Plot geographic map
+  ggplot_object <- ggplot(data = states_sf, 
+                          aes(text = hover_text)) +
+    geom_sf(data = states_sf, 
+            mapping = aes(fill = quartile_fill), 
+            color = NA) +
+    # Fill
+    scale_fill_brewer(palette = palette_selected) +
+    # Text
+    # fill_text +
+    # scale_color_manual(values = label_col) +
+    geom_sf(data = states_sf, fill = NA,
+            color = "black", size = 0.1) +
+    theme_void(base_size = 16) +
+    # Labels
+    labs(x = "", y = "",
+         title = title,
+         fill = legend_title) +
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "bottom",
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
+          strip.text.x = element_text(size = 9L)) +
+    guides(fill = guide_legend(label.position = "bottom"))
+  
+  # GGPlotly object
+  ggplotly(ggplot_object, tooltip = "text") %>% 
+    layout(
+      hovermode = "x",
+      height = 400,
+      margin = list(l = 25, t = 25, b = 90),
+      title = list(
+        font = list(size = 12),
+        yref = "paper",
+        y = 1,
+        yanchor = "bottom"
+      ),
+      legend = list(
+        orientation = "h",
+        x = 0.5,
+        y = 0.2,
+        xanchor = "center",
+        font = list(size = 10)
+      ),
+      font = list(size = 10)
+    )
+    
 }
 
 
@@ -519,26 +656,125 @@ between <- function(df, variable, probs) {
 
 
 altText <- function(data, variable) {
-
+  
+  # Selected data, format min/max for summary
   df <- data %>%
     select(NAME, ABBR, sym(variable))
   
-  title <- names(variable) # vars_pretty field for variable
+  # Min
+  text_min <- data %>%
+    mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
+    select(State, sym(variable)) %>%
+    filter(!!sym(variable) == min(!!sym(variable))) %>% 
+    mutate(across(-State & -ends_with("_pct"),
+                  ~scales::comma(.x))) %>% 
+    mutate(across(ends_with("_pct"),
+                  ~scales::percent(.x, 
+                                   accuracy = 0.1,
+                                   scale = 1))) %>% 
+    mutate("summary_text" = paste0(" The lowest state was ",
+                                   State, " at ", 
+                                   !!sym(variable), ".")) %>% 
+    pull(summary_text)
+    
+  # Max
+  text_max <- data %>%
+    mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
+    select(State, sym(variable)) %>%
+    filter(!!sym(variable) == max(!!sym(variable))) %>% 
+    mutate(across(-State & -ends_with("_pct"),
+                  ~scales::comma(.x))) %>% 
+    mutate(across(ends_with("_pct"),
+                  ~scales::percent(.x, 
+                                   accuracy = 0.1,
+                                   scale = 1))) %>% 
+    mutate("summary_text" = paste0(" The highest state was ",
+                                   State, " at ", 
+                                   !!sym(variable), ".")) %>% 
+    pull(summary_text)
   
+  # Max static check
+  # max_text_static <- demographics %>%
+  #   mutate("State" = paste0(NAME, " (", ABBR, ")")) %>%
+  #   select(State, sym("pop_total")) %>%
+  #   filter(!!sym("pop_total") == max(!!sym("pop_total"))) %>%
+  #   mutate(across(-State & -ends_with("_pct"),
+  #                 ~scales::comma(.x))) %>%
+  #   mutate(across(ends_with("_pct"),
+  #                 ~scales::percent(.x,
+  #                                  accuracy = 0.1,
+  #                                  scale = 1))) %>%
+  #   mutate("summary_text" = paste0(" The highest state was ",
+  #                                  State, " at ",
+  #                                  !!sym("pop_total"), ".")) %>%
+  #   pull(summary_text)
+  
+  # Title, vars_pretty field for variable
+  title <- dict_vars %>% 
+    filter(!is.na(national_dropdown_label),
+           var_readable == sym(variable)) %>% 
+    head(1) %>% 
+    pull(national_dropdown_label)
+  
+  # Vectors of states within each quartile of variable
   quartiles <- quantile(data %>% pull(variable))
-  
-  q1 <- between(df, variable, c(quartiles[1], quartiles[2])) # Vector of states within first to second quartile of variable
-  
+  q1 <- between(df, variable, c(quartiles[1], quartiles[2])) 
   q2 <- between(df, variable, c(quartiles[2], quartiles[3]))
-  
   q3 <- between(df, variable, c(quartiles[3], quartiles[4]))
-  
   q4 <- between(df, variable, c(quartiles[4], quartiles[5]))
   
-  paste0("Color coded map of the United States based on the ", str_to_lower(title), ". ",
-         "States have been grouped into four quartile ranges. ", 
-         "The first quartile ranges from ", quartiles[1], " to ", quartiles[2], " and includes the states ", englishLangList(q1), ". ",
-         "The second quartile ranges from ", quartiles[2], " to ", quartiles[3], " and includes the states " , englishLangList(q2), ". ", 
-         "The third quartile ranges from ", quartiles[3], " to ", quartiles[4], " and includes the states " , englishLangList(q3), ". ",
-         "The fourth quartile ranges from ", quartiles[4], " to ", quartiles[5], " and includes the states " , englishLangList(q4), ".")
+  # Set quartiles
+  # no_classes <- 4
+  # labels <- c()
+  # quartiles <- quantile(data %>% pull(!!sym(variable)), 
+  #                       probs = seq(0, 1, length.out = no_classes + 1))
+  
+  # Custom labels based on percent or value
+  for(idx in 1:length(quartiles)){
+    if(grepl("pct", variable)) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
+                                 " to ", 
+                                 scales::percent(quartiles[idx + 1] / 100)))
+      
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
+                                 " to ", 
+                                 scales::comma(quartiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA, flatten to string
+  labels <- labels[1:length(labels)-1]
+  labels <- labels[-1] %>% 
+    str_flatten(collapse = "; ") %>% 
+    stringi::stri_replace_last_fixed("; ", "; and ")
+  
+  # Text for summary
+  paste0("<b>", title, "</b><br>",
+         "Color coded map of the United States based on the ",
+         str_to_lower(title), ". ",
+         "States have been grouped into four quartile ranges. ",
+         
+         # Specific 
+         # "The first quartile ranges from ", quartiles[1], " to ", quartiles[2],
+         # " and includes the states ", englishLangList(q1),
+         # ". ",
+         # "The second quartile ranges from ", quartiles[2], " to ", quartiles[3],
+         # " and includes the states " , englishLangList(q2),
+         # ". ",
+         # "The third quartile ranges from ", quartiles[3], " to ", quartiles[4],
+         # " and includes the states " , englishLangList(q3),
+         # ". ",
+         # "The fourth quartile ranges from ", quartiles[4], " to ", quartiles[5],
+         # " and includes the states " , englishLangList(q4),
+         
+         # Grouped
+         "The quartiles range from ", labels,
+         ".",
+         text_min, text_max
+         )
+  
 }

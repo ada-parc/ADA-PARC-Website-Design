@@ -4,7 +4,7 @@
 
 
 # Libraries
-library(rmarkdown); library(tidyverse)
+library(rmarkdown); library(tidyverse);library(here)
 
 
 # Factsheet parameters ----------------------------------------------------
@@ -33,4 +33,4 @@ factsheet_metro_params <- read_csv("https://raw.githubusercontent.com/sean-conne
 factsheet_metro_params %>%
   select(output_file, params) %>% 
   pwalk(rmarkdown::render, 
-        input = "factsheet_metro.Rmd")
+        input = stringr::str_c(here(), "/factsheet_metro/factsheet_metro.Rmd"))

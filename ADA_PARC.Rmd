@@ -1,11 +1,14 @@
 ---
 title: "ADA-PARC"
 runtime: shiny
-output: 
+output:
   flexdashboard::flex_dashboard:
     orientation: rows
     vertical_layout: fill
     theme: cosmo
+resource_files:
+- www/participant_logos.png
+- config.yml
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +19,7 @@ output:
 
 # Packages
 library(tidyverse)
-library(sf)
+library(tigris); library(sf)
 library(geofacet)
 library(leaflet); library(leaflet.extras);
 library(htmltools)
@@ -35,7 +38,8 @@ library(plotly)
 library(mongolite)
 library(here)
 
-options(scipen = 999999)
+options(scipen = 999999,
+        tigris_use_cache = TRUE)
 
 # Set this to host_prod or host_dev
 host_name = "host_dev"
@@ -138,7 +142,7 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-![ADA-PARC Participants](./participant_logos.png){width="75%"}
+![ADA-PARC Participants](./www/participant_logos.png){width="75%"}
 
 <br>
 
@@ -161,14 +165,16 @@ selectInput(inputId = "national_category_selector",
                         "Community Participation" = "is_community_participation", 
                         "Community Living" = "is_community_living", 
                         "Work/Economic" = "is_work_economic"),
-            selected = NULL)
+            selected = NULL,
+            selectize = FALSE)
 
 # Initializes the variable selector
 # no choices until national_category_selector is selected
 selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
             choices = NULL,
-            selected = "Total Population")
+            selected = "Total Population",
+            selectize = FALSE)
 
 
 # Update select dropdown with named list of values created above
@@ -208,17 +214,18 @@ national_variable_choices <- reactive({
              !is.na(national_dropdown_label)) %>% # national_dropdown_label looks like "Percentage of People With Disabilities"
       select(national_dropdown_label, var_readable))
     
-    # # Static check
-    # tibble::deframe(
-    # dict_vars %>%
-    #   filter(is_work_economic == T,
-    #          var_readable %in% (
-    #            work_economic %>%
-    #              select(-c(GEOID, NAME, ABBR)) %>%
-    #              names()
-    #          ),
-    #          !is.na(national_dropdown_label)) %>%
-    #   select(national_dropdown_label, var_readable))
+    # Static check
+    # national_variable_selector_static <- tibble::deframe(
+    #   dict_vars %>%
+    #     filter(is_demographics == TRUE,
+    #            var_readable %in% (
+    #              demographics %>%
+    #                select(-c(GEOID, NAME, ABBR)) %>%
+    #                names()
+    #            ),
+    #            !is.na(national_dropdown_label)) %>%
+    #     select(national_dropdown_label, var_readable)) %>%
+    #   head(1)
     
 })
 
@@ -240,17 +247,60 @@ national_variable_choices <- reactive({
 
 # national_variable <- reactive({ input$national_variable_selector })
 
-output$alt_text <- renderText ({ altText(national_data(), input$national_variable_selector) })
+```
+
+## Row {data-height=100}
+
+### Summary
+
+```{r, national_map_summary}
+
+renderUI({
+  
+  req(input$national_variable_selector)
+  
+  HTML(
+    
+    altText(national_data(), 
+            input$national_variable_selector)
+    
+    # # Static check
+    # altText(demographics, 
+    #         national_variable_selector_static)
+    
+  )
+  
+})
 
 ```
 
 ## Row
 
-### Map
+### State Choropleth Map of Selected Topic
 
-```{r, national_map, fig.alt = textOutput("alt_text")}
+```{r, national_map}
 
-renderPlot({
+# Button to choose map type
+radioButtons(inputId = "national_map_toggle",
+             label = "Select a map type to display:",
+             choices = c("Tile" = "tile",
+                         "Geographic" = "geographic"),
+             selected = "tile",
+             inline = TRUE)
+
+# Conditional UI depending on button selection
+renderUI({
+  
+  if(input$national_map_toggle == "geographic") {
+    plotlyOutput("geographic_map")
+  } else {
+    plotOutput("tile_map")   
+  }
+  
+})
+
+# Tile map
+output$tile_map <- renderPlot({
   
   req(input$national_variable_selector)
   
@@ -260,13 +310,24 @@ renderPlot({
   
 })
 
+
+# Geographic map
+output$geographic_map <- renderPlotly({
+  
+  req(input$national_variable_selector)
+  
+  render_geographic_map(national_data(), 
+                        input$national_variable_selector, 
+                        input$access_map_palette)
+  
+})
+
 ```
 
 ### Table {.table-wrapper}
 
 ```{r, national_table}
 
-  
 # Get variable group based on selected variable
 national_vars_in_topic <- reactive({
   
@@ -274,36 +335,81 @@ national_vars_in_topic <- reactive({
     filter((!!sym(input$national_category_selector)) == TRUE,
            var_topic ==
              (dict_vars %>% 
-                filter(var_readable == input$national_variable_selector) %>% 
+                filter((!!sym(input$national_category_selector)) == TRUE,
+                       var_readable == input$national_variable_selector) %>% 
                 pull(var_topic))) %>% 
-    pull(var_readable)
+    select(var_pretty, var_readable)
+  
+    # Static check
+    # national_vars_in_topic_static <- dict_vars %>%
+    #   filter(is_demographics == TRUE,
+    #          var_topic ==
+    #          (dict_vars %>%
+    #             filter(is_demographics == TRUE,
+    #                    var_readable == "pwd_18_64_pct") %>%
+    #             pull(var_topic))) %>%
+    #   select(var_pretty, var_readable)
 
+})
+
+# Caption
+cap_choices <- c("Demographics" = "is_demographics", 
+                 "Community Participation" = "is_community_participation", 
+                 "Community Living" = "is_community_living", 
+                 "Work/Economic" = "is_work_economic")
+
+table_caption <- reactive({
+  
+  paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
   
 })
 
-renderUI({
+# Reorganize dataframe, switch to pretty names
+national_data_table_friendly <- reactive({
   
-  cap_choices <- c("Demographics" = "is_demographics", 
-                   "Community Participation" = "is_community_participation", 
-                   "Community Living" = "is_community_living", 
-                   "Work/Economic" = "is_work_economic")
+  national_data() %>%
+    mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
+    select(any_of(c("State",
+                    national_vars_in_topic() %>% 
+                      pull(var_readable)))) %>% 
+    mutate(across(-State & -ends_with("_pct"),
+                  ~scales::comma(.x))) %>% 
+    mutate(across(ends_with("_pct"),
+                  ~scales::percent(.x, 
+                                   accuracy = 0.1,
+                                   scale = 1))) %>% 
+    rename(!!any_of(national_vars_in_topic() %>% 
+                      deframe()))
   
-  table_caption <- paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
-  
-  # Reorganize dataframe
-  national_data <- national_data() %>%
-    select(GEOID:ABBR, national_vars_in_topic())
-  
-  # Summary table
-  national_topic_table <- knitr::kable(x = national_data,
-                                       caption = table_caption) %>%
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
-  
-  # UI Output
-  HTML(national_topic_table)
+  # # Static check
+  # demographics %>%
+  #   mutate("State" = paste0(NAME, " (", ABBR, ")")) %>%
+  #   select(any_of(c("State", 
+  #                   national_vars_in_topic_static %>% 
+  #                     pull(var_readable)))) %>%
+  #   mutate(across(-State & -ends_with("_pct"),
+  #                 ~scales::comma(.x))) %>%
+  #   mutate(across(ends_with("_pct"),
+  #                 ~scales::percent(.x,
+  #                                  accuracy = 0.1,
+  #                                  scale = 1))) %>%
+  #   rename(!!any_of(national_vars_in_topic_static %>% 
+  #                     deframe()))
   
 })
+
+# Summary table
+national_topic_table <- reactive({
+  
+  kbl(x = national_data_table_friendly(),
+      caption = table_caption()) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  position = "left")
+  
+})
+
+# UI Output
+renderUI({ HTML(national_topic_table()) })
 
 # renderPrint({  national_vars_in_topic() })
 # Data table
@@ -353,8 +459,8 @@ selectInput(inputId = "metro_snapshot",
             choices = tibble::deframe(
               dict_location_crosswalk %>% 
                 filter(place_GEOID %in% metro_snapshot_place_full$GEOID) %>% 
-                distinct("GEOID" = place_GEOID, metro_state))
-            )
+                distinct("GEOID" = place_GEOID, metro_state)),
+            selectize = FALSE)
 
 # ===============
 # Pull Census place data
@@ -652,7 +758,7 @@ output$metro_snapshot_demo_plot <- renderPlotly({
   plotly::ggplotly(gg, tooltip = "text") %>% 
     plotly::layout(
       height = 280,
-      margin = list(l = 25, t = 25, b = 90),
+      margin = list(l = 5, t = 5, b = 10),
       xaxis = list(title = list(text = "Total Population",
                                 standoff = 5,
                                 font = list(size = 14)),
