@@ -240,21 +240,22 @@ render_geographic_map <- function(data, selected, palette_selected) {
     inner_join(data %>% 
                  select(ABBR, !!sym(selected)),
                by = "ABBR") %>% 
-    mutate("hover_text" = ifelse(grepl("pct", selected),
+    mutate("hover_text" := ifelse(grepl("pct", 
+                                        !!sym(selected)) == TRUE,
                                  paste0(ABBR, ": ",
                                         round(!!sym(selected), 1), "%"),
                                  paste0(ABBR, ": ",
-                                        abbreviate_number(!!sym(selected)))),
-           "quartile_fill" = cut(data %>% pull(!!sym(selected)), 
+                                        abbreviate_number(!!sym(selected))))) %>%
+    mutate("quartile_fill" = cut(data %>% pull(!!sym(selected)), 
                                  breaks = quartiles, 
                                  labels = labels, 
                                  include.lowest = TRUE))
   
   # Plot geographic map
-  ggplot_object <- ggplot(data = states_sf, 
-                          aes(text = hover_text)) +
+  ggplot_object <- ggplot() +
     geom_sf(data = states_sf, 
-            mapping = aes(fill = quartile_fill), 
+            mapping = aes(fill = quartile_fill,
+                          text = hover_text), 
             color = NA) +
     # Fill
     scale_fill_brewer(palette = palette_selected) +
@@ -284,27 +285,34 @@ render_geographic_map <- function(data, selected, palette_selected) {
     guides(fill = guide_legend(label.position = "bottom"))
   
   # GGPlotly object
-  ggplotly(ggplot_object, tooltip = "text") %>% 
+  ggplotly_object <- ggplotly(ggplot_object, 
+                              tooltip = "text") %>%
+    style(hoverlabel = list(bgcolor = "white"),
+          hoveron = "fill") %>%
     layout(
-      hovermode = "x",
-      height = 400,
-      margin = list(l = 25, t = 25, b = 90),
+      hovermode = "fill",
+      height = 500,
+      margin = list(l = 100, t = 25, b = 100),
       title = list(
         font = list(size = 12),
         yref = "paper",
+
         y = 1,
         yanchor = "bottom"
       ),
       legend = list(
         orientation = "h",
         x = 0.5,
-        y = 0.2,
+        y = 0.1,
         xanchor = "center",
         font = list(size = 10)
       ),
       font = list(size = 10)
     )
     
+    ggplotly_object
+    
+    # return(states_sf)
 }
 
 

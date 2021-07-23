@@ -368,6 +368,7 @@ table_caption <- reactive({
 national_data_table_friendly <- reactive({
   
   national_data() %>%
+    arrange(GEOID) %>% 
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(any_of(c("State",
                     national_vars_in_topic() %>% 
@@ -758,7 +759,7 @@ output$metro_snapshot_demo_plot <- renderPlotly({
   plotly::ggplotly(gg, tooltip = "text") %>% 
     plotly::layout(
       height = 280,
-      margin = list(l = 5, t = 5, b = 10),
+      margin = list(l = 25, t = 25, b = 90),
       xaxis = list(title = list(text = "Total Population",
                                 standoff = 5,
                                 font = list(size = 14)),
