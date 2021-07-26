@@ -156,7 +156,7 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 <br>
 
-```{r national_sidebar, message=FALSE, warning=FALSE}
+```{r national_sidebar, message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
@@ -253,7 +253,7 @@ national_variable_choices <- reactive({
 
 ### Summary
 
-```{r, national_map_summary}
+```{r, national_map_summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
 renderUI({
   
@@ -278,7 +278,7 @@ renderUI({
 
 ### State Choropleth Map of Selected Topic
 
-```{r, national_map}
+```{r, national_map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 # Button to choose map type
 radioButtons(inputId = "national_map_toggle",
@@ -326,7 +326,7 @@ output$geographic_map <- renderPlotly({
 
 ### Table {.table-wrapper}
 
-```{r, national_table}
+```{r, national_table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable
 national_vars_in_topic <- reactive({
