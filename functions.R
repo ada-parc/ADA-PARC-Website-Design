@@ -174,7 +174,7 @@ render_tile_map <- function(data, selected, palette_selected) {
 }
 
 # Geographic map function
-render_geographic_map <- function(data, selected, palette_selected) {
+render_geo_interactive_map <- function(data, selected, palette_selected) {
   
   # Set quartiles
   no_classes <- 4
@@ -202,39 +202,13 @@ render_geographic_map <- function(data, selected, palette_selected) {
   # Remove last label which will have NA
   labels <- labels[1:length(labels)-1]
   
-  # Set tile text fill based on contrast
-  hcl <- farver::decode_colour(RColorBrewer::brewer.pal(no_classes, 
-                                                        palette_selected), 
-                               "rgb", "hcl")
-  label_col <- ifelse(hcl[, "l"] > 50, "black", "white")
-  
-  # Tile text fill
-  if(grepl("pct", selected)) {
-    
-    # Percents, adds symbol to text
-    fill_text <- geom_text(aes(
-      label = paste0(round(!!sym(selected), 1), "%"),
-      color = quartile_fill),
-      size = 4,
-      show.legend = FALSE)
-    
-  } else {
-    
-    # Values, rounds to nearest 100k
-    fill_text <- geom_text(aes(
-      label = abbreviate_number(!!sym(selected)),
-      color = quartile_fill),
-      size = 4,
-      show.legend = FALSE)
-    
-  }
-
   # Set map title and legend
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
   legend_title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
   
-  # US State geography, join data
+  # US State geography, remove territories, join data
   states_sf <- states(class = "sf", cb = TRUE) %>% 
+    filter(!GEOID %in% c("60", "66", "69", "78")) %>% 
     shift_geometry() %>% 
     select("ABBR" = STUSPS) %>% 
     inner_join(data %>% 
@@ -245,74 +219,28 @@ render_geographic_map <- function(data, selected, palette_selected) {
                                  paste0(ABBR, ": ",
                                         round(!!sym(selected), 1), "%"),
                                  paste0(ABBR, ": ",
-                                        abbreviate_number(!!sym(selected))))) %>%
-    mutate("quartile_fill" = cut(data %>% pull(!!sym(selected)), 
-                                 breaks = quartiles, 
-                                 labels = labels, 
-                                 include.lowest = TRUE))
+                                        abbreviate_number(!!sym(selected)))))
   
   # Plot geographic map
-  ggplot_object <- ggplot() +
-    geom_sf(data = states_sf, 
-            mapping = aes(fill = quartile_fill,
-                          text = hover_text), 
-            color = NA) +
-    # Fill
-    scale_fill_brewer(palette = palette_selected) +
-    # Text
-    # fill_text +
-    # scale_color_manual(values = label_col) +
-    geom_sf(data = states_sf, fill = NA,
-            color = "black", size = 0.1) +
-    theme_void(base_size = 16) +
-    # Labels
-    labs(x = "", y = "",
-         title = title,
-         fill = legend_title) +
-    # Theme, removes all of the grid elements that we don't need
-    theme(plot.background = element_rect(colour = "white"), 
-          panel.grid = element_blank(),
-          panel.grid.major = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          panel.spacing = unit(0L, "pt"),
-          legend.position = "bottom",
-          legend.title = element_text(face = "bold", vjust = 0.75),
-          legend.text = element_text(vjust = .5),
-          legend.key = element_rect(color = "black"),
-          strip.text.x = element_text(size = 9L)) +
-    guides(fill = guide_legend(label.position = "bottom"))
+  tmap_mode("view")
   
-  # GGPlotly object
-  ggplotly_object <- ggplotly(ggplot_object, 
-                              tooltip = "text") %>%
-    style(hoverlabel = list(bgcolor = "white"),
-          hoveron = "fill") %>%
-    layout(
-      hovermode = "fill",
-      height = 500,
-      margin = list(l = 100, t = 25, b = 100),
-      title = list(
-        font = list(size = 12),
-        yref = "paper",
-
-        y = 1,
-        yanchor = "bottom"
-      ),
-      legend = list(
-        orientation = "h",
-        x = 0.5,
-        y = 0.1,
-        xanchor = "center",
-        font = list(size = 10)
-      ),
-      font = list(size = 10)
-    )
+  tmap_object <- tm_shape(states_sf) +
+    tm_basemap(NULL) +
+    tm_polygons(col = selected,
+                style = "quantile",
+                n = 4,
+                palette = palette_selected,
+                popup.vars = c("hover_text"),
+                title = legend_title) +
+    tm_shape(states_sf) +
+    tm_borders(col = "black", lwd = 0.3) +
+    tm_layout(title = title,
+              title.size = 1.1,
+              title.position = c("center", "top"),
+              legend.position = c("right", "bottom")) 
+  
+  tmap_object
     
-    ggplotly_object
-    
-    # return(states_sf)
 }
 
 

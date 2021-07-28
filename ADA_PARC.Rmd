@@ -22,6 +22,7 @@ library(tidyverse)
 library(tigris); library(sf)
 library(geofacet)
 library(leaflet); library(leaflet.extras);
+library(tmap); library(tmaptools)
 library(htmltools)
 library(shiny)
 library(shinyWidgets)
@@ -283,16 +284,16 @@ renderUI({
 # Button to choose map type
 radioButtons(inputId = "national_map_toggle",
              label = "Select a map type to display:",
-             choices = c("Tile" = "tile",
-                         "Geographic" = "geographic"),
-             selected = "tile",
+             choices = c("Geographic" = "geographic",
+                         "Tile" = "tile"),
+             selected = "geographic",
              inline = TRUE)
 
 # Conditional UI depending on button selection
 renderUI({
   
   if(input$national_map_toggle == "geographic") {
-    plotlyOutput("geographic_map")
+    tmapOutput("geographic_map")
   } else {
     plotOutput("tile_map")   
   }
@@ -312,13 +313,13 @@ output$tile_map <- renderPlot({
 
 
 # Geographic map
-output$geographic_map <- renderPlotly({
+output$geographic_map <- renderTmap({
   
   req(input$national_variable_selector)
   
-  render_geographic_map(national_data(), 
-                        input$national_variable_selector, 
-                        input$access_map_palette)
+  render_geo_interactive_map(national_data(), 
+                             input$national_variable_selector, 
+                             input$access_map_palette)
   
 })
 
