@@ -152,7 +152,7 @@ render_tile_map <- function(data, selected, palette_selected) {
     scale_color_manual(values = label_col) +
     # Labels
     labs(x = "", y = "", 
-         title = title,
+         # title = title,
          fill = legend_title) +
     # Facet
     facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
@@ -204,43 +204,42 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
   
   # Set map title and legend
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
-  legend_title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
+  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
   
   # US State geography, remove territories, join data
-  states_sf <- states(class = "sf", cb = TRUE) %>% 
-    filter(!GEOID %in% c("60", "66", "69", "78")) %>% 
+  states_sf <- states(class = "sf", cb = TRUE, 
+                      resolution = "20m") %>% 
     shift_geometry() %>% 
     select("ABBR" = STUSPS) %>% 
     inner_join(data %>% 
                  select(ABBR, !!sym(selected)),
                by = "ABBR") %>% 
-    mutate("hover_text" := ifelse(grepl("pct", 
-                                        !!sym(selected)) == TRUE,
-                                 paste0(ABBR, ": ",
-                                        round(!!sym(selected), 1), "%"),
-                                 paste0(ABBR, ": ",
-                                        abbreviate_number(!!sym(selected)))))
-  
+    rowwise() %>% 
+    mutate("hover_text" := ifelse(grepl("_pct$", 
+                                        selected),
+                                  paste0(round(!!sym(selected), 1), "%"),
+                                 abbreviate_number(!!sym(selected))))
+
   # Plot geographic map
   tmap_mode("view")
-  
   tmap_object <- tm_shape(states_sf) +
     tm_basemap(NULL) +
     tm_polygons(col = selected,
                 style = "quantile",
                 n = 4,
                 palette = palette_selected,
-                popup.vars = c("hover_text"),
-                title = legend_title) +
+                popup.vars = c("Selected variable: " = "hover_text"),
+                title = "",
+                legend.format = list(fun = function(x) 
+                  if(grepl("_pct$", selected)) {
+                    paste0(round(x, 1), "%") }
+                  else { scales::comma(x) } )) +
     tm_shape(states_sf) +
-    tm_borders(col = "black", lwd = 0.3) +
-    tm_layout(title = title,
-              title.size = 1.1,
-              title.position = c("center", "top"),
-              legend.position = c("right", "bottom")) 
+    tm_borders(col = "black", lwd = 0.3)
   
-  tmap_object
-    
+  tmap_object +
+    tm_view(set.view = 3.5)
+  
 }
 
 
@@ -652,65 +651,19 @@ altText <- function(data, variable) {
     head(1) %>% 
     pull(national_dropdown_label)
   
-  # Vectors of states within each quartile of variable
-  quartiles <- quantile(data %>% pull(variable))
-  q1 <- between(df, variable, c(quartiles[1], quartiles[2])) 
-  q2 <- between(df, variable, c(quartiles[2], quartiles[3]))
-  q3 <- between(df, variable, c(quartiles[3], quartiles[4]))
-  q4 <- between(df, variable, c(quartiles[4], quartiles[5]))
-  
-  # Set quartiles
-  # no_classes <- 4
-  # labels <- c()
-  # quartiles <- quantile(data %>% pull(!!sym(variable)), 
-  #                       probs = seq(0, 1, length.out = no_classes + 1))
-  
-  # Custom labels based on percent or value
-  for(idx in 1:length(quartiles)){
-    if(grepl("pct", variable)) {
-      
-      # Percent, add divide by 100, add symbol to text
-      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
-                                 " to ", 
-                                 scales::percent(quartiles[idx + 1] / 100)))
-      
-    } else {
-      
-      # Values
-      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
-                                 " to ", 
-                                 scales::comma(quartiles[idx + 1])))
-    }
-  }
-  # Remove last label which will have NA, flatten to string
-  labels <- labels[1:length(labels)-1]
-  labels <- labels[-1] %>% 
-    str_flatten(collapse = "; ") %>% 
-    stringi::stri_replace_last_fixed("; ", "; and ")
+  # Summary text for variable
+  summary_text <- dict_vars %>% 
+    filter(!is.na(national_dropdown_label),
+           var_readable == sym(variable)) %>% 
+    head(1) %>% 
+    pull(national_summary_text)
   
   # Text for summary
   paste0("<b>", title, "</b><br>",
-         "Color coded map of the United States based on the ",
-         str_to_lower(title), ". ",
-         "States have been grouped into four quartile ranges. ",
-         
-         # Specific 
-         # "The first quartile ranges from ", quartiles[1], " to ", quartiles[2],
-         # " and includes the states ", englishLangList(q1),
-         # ". ",
-         # "The second quartile ranges from ", quartiles[2], " to ", quartiles[3],
-         # " and includes the states " , englishLangList(q2),
-         # ". ",
-         # "The third quartile ranges from ", quartiles[3], " to ", quartiles[4],
-         # " and includes the states " , englishLangList(q3),
-         # ". ",
-         # "The fourth quartile ranges from ", quartiles[4], " to ", quartiles[5],
-         # " and includes the states " , englishLangList(q4),
-         
-         # Grouped
-         "The quartiles range from ", labels,
-         ".",
-         text_min, text_max
+         summary_text, ". ",
+         # Min/Max
+         text_min, text_max,
+         " Detailed information is available below in the interactive map (left) and table (right)."
          )
   
 }

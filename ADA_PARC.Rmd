@@ -166,7 +166,7 @@ selectInput(inputId = "national_category_selector",
                         "Community Participation" = "is_community_participation", 
                         "Community Living" = "is_community_living", 
                         "Work/Economic" = "is_work_economic"),
-            selected = NULL,
+            selected = "is_community_participation",
             selectize = FALSE)
 
 # Initializes the variable selector
@@ -174,7 +174,7 @@ selectInput(inputId = "national_category_selector",
 selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
             choices = NULL,
-            selected = "Total Population",
+            selected = NULL,
             selectize = FALSE)
 
 
@@ -186,7 +186,7 @@ observeEvent(input$national_category_selector,
                updateSelectInput(session,
                                  input = "national_variable_selector",
                                  choices = national_variable_choices(),
-                                 selected = NULL)
+                                 selected = "pwd_commute_car_alone_pct")
                
              }
              
@@ -1534,7 +1534,7 @@ border-bottom:1px solid #000000;
 
 /* Leaflet background */
 .leaflet-container {
-background: #696969;
+background: #ddd;
 }
 
 /* Section dividers */
