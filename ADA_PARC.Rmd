@@ -1,11 +1,11 @@
 ---
 title: "ADA-PARC"
-runtime: shiny
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
     vertical_layout: fill
     theme: cosmo
+runtime: shiny
 resource_files:
 - www/participant_logos.png
 - config.yml
@@ -157,7 +157,7 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 <br>
 
-```{r national_sidebar, message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
+```{r national_sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
@@ -167,54 +167,46 @@ selectInput(inputId = "national_category_selector",
                         "Community Living" = "is_community_living", 
                         "Work/Economic" = "is_work_economic"),
             selected = "is_community_participation",
-            selectize = FALSE)
+            multiple = FALSE,
+            selectize = TRUE)
 
 # Initializes the variable selector
 # no choices until national_category_selector is selected
 selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
-            choices = NULL,
-            selected = NULL,
-            selectize = FALSE)
+            choices = tibble::deframe(
+              dict_vars %>%
+                filter(is_community_participation == TRUE,
+                       !is.na(national_dropdown_label)) %>% #
+                select(national_dropdown_label, var_readable)),
+            selected = "pwd_commute_car_alone_pct",
+            multiple = FALSE,
+            selectize = TRUE)
 
+renderText({ is.null(input$national_category_selector) })
+renderText({ is.null(input$national_variable_selector) })
+renderText({ input$national_category_selector })
+renderText({ input$national_variable_selector })
 
-# Update select dropdown with named list of values created above
-observeEvent(input$national_category_selector,
-             
-             {
-               
-               updateSelectInput(session,
-                                 input = "national_variable_selector",
-                                 choices = national_variable_choices(),
-                                 selected = "pwd_commute_car_alone_pct")
-               
-             }
-             
-)
-
-# Set national df by input$national_category_selector, which returns a string
-# eval() evaluates a symbol created by sym(input)
-# returns a df with the same name as the string 
-# "is_[table]" refers to a column in the variable dictionary
-# that denotes which table a variable belongs to
-national_data <- reactive({
-  eval(sym(str_remove(input$national_category_selector, "^is_")))
-})
-
-# Create reactive named list of choices based on national_category_selector
-national_variable_choices <- reactive({
+# Update select dropdown with named list of values created below
+observeEvent(input$national_category_selector, {
   
-  tibble::deframe(
+  temp_category <- input$national_category_selector
+   if (is.null(temp_category)) temp_category <- "is_community_participation"
+   
+  # Create reactive named list of choices based on national_category_selector
+  national_variable_choices <- tibble::deframe(
     dict_vars %>% 
-      filter((!!sym(input$national_category_selector)) == TRUE, # "is_[table]" is TRUE/FALSE
-             var_readable %in% ( # var_readable looks like "pwd_pct"
+      filter((!!sym(temp_category)) == TRUE,
+             var_readable %in% (
                national_data() %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
                  names()
              ),
-             !is.na(national_dropdown_label)) %>% # national_dropdown_label looks like "Percentage of People With Disabilities"
-      select(national_dropdown_label, var_readable))
-    
+             !is.na(national_dropdown_label)) %>%
+      select(national_dropdown_label, var_readable)
+    )
+  
     # Static check
     # national_variable_selector_static <- tibble::deframe(
     #   dict_vars %>%
@@ -227,7 +219,29 @@ national_variable_choices <- reactive({
     #            !is.na(national_dropdown_label)) %>%
     #     select(national_dropdown_label, var_readable)) %>%
     #   head(1)
-    
+  
+  # Default topic choice depending on category
+  national_variable_default <- 
+    if (temp_category == "is_community_participation") {
+      "pwd_commute_car_alone_pct"
+    } else {
+      "pop_total"
+    }
+  
+  updateSelectInput(session,
+                    input = "national_variable_selector",
+                    choices = national_variable_choices,
+                    selected = national_variable_default)
+  
+})
+
+# Set national df by input$national_category_selector, which returns a string
+# eval() evaluates a symbol created by sym(input)
+# returns a df with the same name as the string 
+# "is_[table]" refers to a column in the variable dictionary
+# that denotes which table a variable belongs to
+national_data <- reactive({
+  eval(sym(str_remove(input$national_category_selector, "^is_")))
 })
 
 # You can use this chunk of code to test whether a selector is working
@@ -258,7 +272,7 @@ national_variable_choices <- reactive({
 
 renderUI({
   
-  req(input$national_variable_selector)
+  # req(input$national_variable_selector)
   
   HTML(
     
@@ -303,7 +317,7 @@ renderUI({
 # Tile map
 output$tile_map <- renderPlot({
   
-  req(input$national_variable_selector)
+  # req(input$national_variable_selector)
   
   render_tile_map(national_data(), 
                   input$national_variable_selector, 
@@ -315,7 +329,7 @@ output$tile_map <- renderPlot({
 # Geographic map
 output$geographic_map <- renderTmap({
   
-  req(input$national_variable_selector)
+  # req(input$national_variable_selector)
   
   render_geo_interactive_map(national_data(), 
                              input$national_variable_selector, 
@@ -325,7 +339,7 @@ output$geographic_map <- renderTmap({
 
 ```
 
-### Table {.table-wrapper}
+### Table of Selected Topic {.table-wrapper}
 
 ```{r, national_table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
 
