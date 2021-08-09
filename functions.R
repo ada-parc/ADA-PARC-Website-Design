@@ -242,6 +242,94 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
   
 }
 
+# Geographic map function
+render_geo_static_map <- function(data, selected, palette_selected) {
+  
+  # Set quartiles
+  no_classes <- 4
+  labels <- c()
+  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1))
+  
+  # Custom labels based on percent or value
+  for(idx in 1:length(quartiles)){
+    if(grepl("pct", selected)) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
+                                 "-", 
+                                 scales::percent(quartiles[idx + 1] / 100)))
+      
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
+                                 "-", 
+                                 scales::comma(quartiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA
+  labels <- labels[1:length(labels)-1]
+  
+  # Set map title and legend
+  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
+  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
+  
+  # US State geography, remove territories, join data
+  states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
+    filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
+    select("ABBR" = state_abbv) %>% 
+    inner_join(data %>% 
+                 select(ABBR, !!sym(selected)),
+               by = "ABBR") %>% 
+    rowwise() %>% 
+    mutate("hover_text" := ifelse(grepl("_pct$", 
+                                        selected),
+                                  paste0(ABBR, ":\n", 
+                                         round(!!sym(selected), 1), "%"),
+                                  paste0(ABBR, ":\n", 
+                                         abbreviate_number(!!sym(selected)))),
+           "quartile_fill" = cut(!!sym(selected), 
+                                 breaks = quartiles, 
+                                 labels = labels, 
+                                 include.lowest = TRUE))
+  
+  # Plot geographic map
+  ggplot_object <- ggplot(states_sf) +
+    geom_sf(aes(fill = quartile_fill),
+            color = "black", size = 0.25) +
+    scale_fill_brewer(palette = palette_selected) +
+    # Text
+    geom_sf_text(data = get_urbn_labels(map = "territories_states", 
+                                        sf = TRUE) %>% 
+                   filter(!state_fips %in% c("60", "66", "69", "78")),
+                 aes(label = state_abbv),
+                 size = 4, fontface = "bold", check_overlap = TRUE) +
+    # Labels
+    labs(x = "", y = "", 
+         # title = title,
+         fill = legend_title) +
+    theme_void() +
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "bottom",
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
+          strip.text.x = element_text(size = 9L),
+          text = element_text(size = 16)) +
+    guides(fill = guide_legend(label.position = "bottom"))
+  
+  ggplot_object
+  
+}
+
 
 # census_download.Rmd functions -----------------------------------------------
 
@@ -660,7 +748,7 @@ altText <- function(data, variable) {
   
   # Text for summary
   paste0("<b>", title, "</b><br>",
-         summary_text, ". ",
+         summary_text, " ",
          # Min/Max
          text_min, text_max,
          " Detailed information is available below in the interactive map (left) and table (right)."
