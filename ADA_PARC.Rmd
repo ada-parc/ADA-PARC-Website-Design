@@ -20,7 +20,7 @@ resource_files:
 # Packages
 library(tidyverse)
 library(tigris); library(sf)
-library(geofacet)
+library(geofacet); library(urbnmapr)
 library(leaflet); library(leaflet.extras);
 library(tmap); library(tmaptools)
 library(htmltools)
@@ -183,10 +183,10 @@ selectInput(inputId = "national_variable_selector",
             multiple = FALSE,
             selectize = TRUE)
 
-renderText({ is.null(input$national_category_selector) })
-renderText({ is.null(input$national_variable_selector) })
-renderText({ input$national_category_selector })
-renderText({ input$national_variable_selector })
+# renderText({ is.null(input$national_category_selector) })
+# renderText({ is.null(input$national_variable_selector) })
+# renderText({ input$national_category_selector })
+# renderText({ input$national_variable_selector })
 
 # Update select dropdown with named list of values created below
 observeEvent(input$national_category_selector, {
@@ -275,10 +275,11 @@ renderUI({
   # req(input$national_variable_selector)
   
   HTML(
-    
+    paste0(
     altText(national_data(), 
-            input$national_variable_selector)
-    
+            input$national_variable_selector),
+    " Detailed information is available below in the interactive map (left) and table (right)."
+    )
     # # Static check
     # altText(demographics, 
     #         national_variable_selector_static)

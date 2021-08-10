@@ -207,10 +207,9 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
   legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
   
   # US State geography, remove territories, join data
-  states_sf <- states(class = "sf", cb = TRUE, 
-                      resolution = "20m") %>% 
-    shift_geometry() %>% 
-    select("ABBR" = STUSPS) %>% 
+  states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
+    filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
+    select("ABBR" = state_abbv) %>% 
     inner_join(data %>% 
                  select(ABBR, !!sym(selected)),
                by = "ABBR") %>% 
@@ -238,7 +237,9 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
     tm_borders(col = "black", lwd = 0.3)
   
   tmap_object +
-    tm_view(set.view = 3.5)
+    tm_view(set.view = 3.75,
+            leaflet.options = list(zoomSnap = 0.5,
+                                   zoomDelta = 0.5))
   
 }
 
@@ -689,6 +690,7 @@ altText <- function(data, variable) {
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(State, sym(variable)) %>%
     filter(!!sym(variable) == min(!!sym(variable))) %>% 
+    slice(1) %>% 
     mutate(across(-State & -ends_with("_pct"),
                   ~scales::comma(.x))) %>% 
     mutate(across(ends_with("_pct"),
@@ -705,6 +707,7 @@ altText <- function(data, variable) {
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(State, sym(variable)) %>%
     filter(!!sym(variable) == max(!!sym(variable))) %>% 
+    slice(1) %>% 
     mutate(across(-State & -ends_with("_pct"),
                   ~scales::comma(.x))) %>% 
     mutate(across(ends_with("_pct"),
@@ -750,8 +753,7 @@ altText <- function(data, variable) {
   paste0("<b>", title, "</b><br>",
          summary_text, " ",
          # Min/Max
-         text_min, text_max,
-         " Detailed information is available below in the interactive map (left) and table (right)."
+         text_min, text_max
          )
   
 }
