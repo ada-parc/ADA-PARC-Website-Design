@@ -1,8 +1,10 @@
 ---
+title: ""
 output: 
   html_document:
     css: "style.css"
-    theme: paper
+always_allow_html: true
+tables: true
 params:
   national_category_selector: "is_demographics"
   national_variable_selector: "pop_total"
@@ -75,6 +77,8 @@ render_geo_static_map(national_data,
 
 ```
 
+\newpage
+
 ### Table of Selected Topic
 
 ```{r, national_table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
@@ -114,26 +118,45 @@ national_data_table_friendly <- national_data %>%
                       deframe()))
 
 # Summary table
-national_topic_table <- 
-  knitr::kables(list(
-    # Left side
-    kbl(x = national_data_table_friendly[1:26,],
-        row.names = FALSE,
-        caption = table_caption) %>%
-      kable_styling(bootstrap_options = c("striped", "condensed"),
-                    position = "left") %>% 
-      column_spec(1, width = "80px"),
-      # Right side
-      kbl(x = national_data_table_friendly[27:52,],
-          row.names = FALSE,
-          caption = table_caption) %>%
-      kable_styling(bootstrap_options = c("striped", "condensed"),
-                    position = "left") %>% 
-      column_spec(1, width = "80px")
-  )) %>% 
-  kable_styling(bootstrap_options = c("striped", "condensed"),
+# Left side
+summary_1 <- kbl(x = national_data_table_friendly[1:26,],
+                 format = "html",
+                 row.names = FALSE,
+                 caption = table_caption) %>%
+  kable_paper("striped",
+              full_width = TRUE,
+              position = "left") %>% 
+  kable_styling(bootstrap_options = c("striped",
+                                      "condensed"),
+                full_width = TRUE,
                 position = "left") %>% 
-  column_spec(1, width = "80px")
+  column_spec(1, width = "1.5in")
+
+# Right side
+summary_2 <- kbl(x = national_data_table_friendly[27:52,],
+                 format = "html",
+                 row.names = FALSE,
+                 caption = table_caption) %>%
+  kable_paper("striped",
+              full_width = TRUE,
+              position = "left") %>% 
+  kable_styling(bootstrap_options = c("striped",
+                                      "condensed"),
+                full_width = TRUE,
+                position = "left") %>% 
+  column_spec(1, width = "1.5in")
+
+# Full table
+national_topic_table <- knitr::kables(list(summary_1,
+                                           summary_2)) %>%
+  kable_paper("striped",
+              full_width = TRUE,
+              position = "left") %>% 
+  kable_styling(bootstrap_options = c("striped",
+                                      "condensed"),
+                full_width = TRUE,
+                font_size = 11,
+                position = "left")
 
 # UI Output
 HTML(national_topic_table) 
