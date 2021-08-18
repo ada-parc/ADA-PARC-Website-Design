@@ -7,15 +7,16 @@ tables <- c("S1810")
 national_demographics <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Community Living
-tables <- c("S2601A", "S2602", "S1810")
+tables <- c("S1810", "S2601A", "S2602")
 national_living <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Community Participation
-tables <- c("B18135", "S1811", "S1810") 
+tables <- c("S1810", "S1811", "B18135") 
 national_participation <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Work/Economic
-tables <- c("B18135", "B18140", "C18120", "C18121", "C18130", "S1811", "B25091", "B25070") 
+tables <- c("S1810", "S1811", "B18135", "B18140", "B25091", "B25070",
+            "C18120", "C18121", "C18130") 
 national_economic <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 rm(tables)
 
@@ -31,10 +32,15 @@ demographics <- national_demographics %>%
     NAME = NAME,
     ABBR = ABBR,
     
-    ### Pop pwd
+    ### Pop, PWD, PWOD
+    # Pop
     pop_total = S1810_C01_001_estimate,
+    # PWD
     pwd_total = S1810_C02_001_estimate,
     pwd_pct = pwd_total / pop_total,
+    # PWOD
+    pwod_total = pop_total - pwd_total,
+    pwod_pct = pwod_total / pop_total,
     
     ### Age
     pop_18_64 = S1810_C01_015_estimate + S1810_C01_016_estimate,
@@ -89,7 +95,9 @@ community_living <- national_living %>%
     NAME = NAME,
     ABBR = ABBR,
     
-    ### Pop pwd
+    ### Pop, PWD, PWOD
+    # Must use table S2601A since it is total population
+    # Rather than civilian noninstitutionalized as is ACS default
     pop_total = S2601A_C01_001_estimate,
     pwd_pct = S2601A_C01_047_estimate,
     pwd_total = round(pop_total * (pwd_pct/100), 0),
@@ -104,6 +112,7 @@ community_living <- national_living %>%
     pwd_grpquarters_institution = round(pop_grpquarters * (pwd_grpquarters_institution_pct/100), 0),
     pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate / 100,
     pwd_grpquarters_noninstitution = round(pop_grpquarters * (pwd_grpquarters_noninstitution_pct/100), 0),
+    pwd_home = (pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution),
     pwd_home_pct = round((pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution) / pwd_total, 2),
     pwd_grpquarters_other_pct = round((pwd_grpquarters_noninstitution / pwd_total) * 100, 2),
     
@@ -125,9 +134,18 @@ community_participation <- national_participation %>%
     NAME = NAME,
     ABBR = ABBR,
     
+    ### Pop, PWD, PWOD
+    # Pop
+    pop_total = S1810_C01_001_estimate,
+    # PWD
+    pwd_total = S1810_C02_001_estimate,
+    pwd_pct = pwd_total / pop_total,
+    # PWOD
+    pwod_total = pop_total - pwd_total,
+    pwod_pct = pwod_total / pop_total,
+    
     ### Health Insurance
     pop_19_64 = B18135_013_estimate,
-    
     pwd_19_64 = B18135_014_estimate,
     pwd_19_64_insured = B18135_015_estimate,
     pwd_19_64_insured_private = B18135_016_estimate,
@@ -163,15 +181,26 @@ community_participation <- national_participation %>%
     pwd_grtoeq_65_insured_private_pct = pwd_grtoeq_65_insured_private / pwd_grtoeq_65,
     pwod_grtoeq_65_insured_private_pct = pwod_grtoeq_65_insured_private / pwod_grtoeq_65,
     
-    ### Medicare/Medicaid
-    pop_total = S1810_C01_001_estimate,
-    pwd_total = S1810_C02_001_estimate,
-    pwod_total = pop_total - pwd_total,
-    
     ### Transit Usage
+    ## Transit
+    # Population
+    pop_commute_public = S1811_C01_035_estimate * S1811_C01_032_estimate,
+    pop_commute_public_pct = S1811_C01_035_estimate / 100,
+    # PWD
+    pwd_commute_public = S1811_C02_035_estimate * S1811_C02_032_estimate,
     pwd_commute_public_pct = S1811_C02_035_estimate / 100,
+    # PWOD
+    pwod_commute_public = S1811_C03_035_estimate * S1811_C03_032_estimate,
     pwod_commute_public_pct = S1811_C03_035_estimate / 100,
+    ## Private Car
+    # Population
+    pop_commute_car_alone_pct = S1811_C01_033_estimate * S1811_C01_032_estimate,
+    pop_commute_car_alone_pct = S1811_C01_033_estimate / 100,
+    # PWD
+    pwd_commute_car_alone_pct = S1811_C02_033_estimate * S1811_C02_032_estimate,
     pwd_commute_car_alone_pct = S1811_C02_033_estimate / 100,
+    # PWOD
+    pwod_commute_car_alone_pct = S1811_C03_033_estimate * S1811_C03_032_estimate,
     pwod_commute_car_alone_pct = S1811_C03_033_estimate / 100,
     
     ### Educational Attainment
@@ -193,8 +222,17 @@ work_economic <- national_economic %>%
     NAME = NAME,
     ABBR = ABBR.x, # for some reason, national_economic doesn't properly join ABBR
     
+    ### Pop, PWD, PWOD
+    # Pop
+    pop_total = S1810_C01_001_estimate,
+    # PWD
+    pwd_total = S1810_C02_001_estimate,
+    pwd_pct = pwd_total / pop_total,
+    # PWOD
+    pwod_total = pop_total - pwd_total,
+    pwod_pct = pwod_total / pop_total,
+    
     ### Employment Status
-    pop_total = C18120_001_estimate,
     pop_19_64 = B18135_013_estimate, # Not the same as the instructions spreadsheet; used this instead to keep calculations in same universe
     pwd_19_64 = B18135_014_estimate,
     pwod_19_64 = pop_19_64 - pwd_19_64,
@@ -216,15 +254,21 @@ work_economic <- national_economic %>%
     pwd_18_64 = C18130_010_estimate,
     pwod_18_64 = C18130_013_estimate,
     pwd_below_poverty = C18130_011_estimate,
-    pwd_atorbelow_poverty = C18130_012_estimate,
     pwod_below_poverty = C18130_014_estimate,
-    pwod_atorbelow_poverty = C18130_015_estimate,
+    pwd_atorabove_poverty = C18130_012_estimate,
+    pwod_atorabove_poverty = C18130_015_estimate,
     pwd_below_poverty_pct = pwd_below_poverty / pwd_18_64,
     pwod_below_poverty_pct = pwod_below_poverty / pwod_18_64,
+    pwd_atorabove_poverty_pct = pwd_atorabove_poverty / pwd_18_64,
+    pwod_atorabove_poverty_pct = pwod_atorabove_poverty / pwod_18_64,
     
     ### Affordability
-    mortgage_burdened = B25091_008_estimate + B25091_009_estimate + B25091_010_estimate + B25091_011_estimate,
-    rent_burdened = B25070_007_estimate + B25070_008_estimate + B25070_009_estimate + B25070_010_estimate,
+    mortgage_burdened = B25091_008_estimate + B25091_009_estimate + 
+      B25091_010_estimate + B25091_011_estimate,
+    mortgage_burdened_pct = mortgage_burdened / B25091_002_estimate,
+    rent_burdened = B25070_007_estimate + B25070_008_estimate + 
+      B25070_009_estimate + B25070_010_estimate,
+    rent_burdened_pct = rent_burdened / B25070_001_estimate,
     
     ### Full/Part Time Workers
     pop_fulltime = C18121_002_estimate,
@@ -246,7 +290,16 @@ work_economic <- national_economic %>%
     pwod_grtoeq_16_med_individual_income = B18140_005_estimate,
     
     ### Working from Home
-    pwd_grtoeq_16_wfh_pct = S1811_C02_038_estimate / 100, # Percentages supplied by ACS are whole numbers
+    # Percentages supplied by ACS are whole numbers, numbers derived
+    # Pop
+    pop_grtoeq_16_wfh = S1811_C01_038_estimate * S1811_C01_032_estimate,
+    pop_grtoeq_16_wfh_pct = S1811_C01_038_estimate / 100, 
+    # PWD
+    pwd_grtoeq_16_wfh = S1811_C02_038_estimate * S1811_C02_032_estimate,
+    pwd_grtoeq_16_wfh_pct = S1811_C02_038_estimate / 100, 
+    # PWOD
+    pwod_grtoeq_16_wfh = S1811_C03_038_estimate * S1811_C03_032_estimate,
     pwod_grtoeq_16_wfh_pct = S1811_C03_038_estimate / 100
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
+
