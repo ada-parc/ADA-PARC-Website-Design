@@ -194,13 +194,13 @@ community_participation <- national_participation %>%
     pwod_commute_public_pct = S1811_C03_035_estimate / 100,
     ## Private Car
     # Population
-    pop_commute_car_alone_pct = S1811_C01_033_estimate * S1811_C01_032_estimate,
+    pop_commute_car_alone = S1811_C01_033_estimate * S1811_C01_032_estimate,
     pop_commute_car_alone_pct = S1811_C01_033_estimate / 100,
     # PWD
-    pwd_commute_car_alone_pct = S1811_C02_033_estimate * S1811_C02_032_estimate,
+    pwd_commute_car_alone = S1811_C02_033_estimate * S1811_C02_032_estimate,
     pwd_commute_car_alone_pct = S1811_C02_033_estimate / 100,
     # PWOD
-    pwod_commute_car_alone_pct = S1811_C03_033_estimate * S1811_C03_032_estimate,
+    pwod_commute_car_alone = S1811_C03_033_estimate * S1811_C03_032_estimate,
     pwod_commute_car_alone_pct = S1811_C03_033_estimate / 100,
     
     ### Educational Attainment
