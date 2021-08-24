@@ -4,18 +4,18 @@ pwd_total,Overview,People with Disabilities,S1810_C02_001,TRUE,FALSE,TRUE,TRUE,,
 pwd_pct,Overview,Percent of People with Disabilities,,TRUE,FALSE,TRUE,TRUE,Percent of People with Disabilities,"According to the U.S. Census Bureau, a person is considered to have a disability if they report one of six disability types (hearing, vision, cognitive, ambulatory, self-care, or independent living)."
 pwod_total,Overview,People without Disabilities,,TRUE,FALSE,TRUE,TRUE,,
 pwod_pct,Overview,Percent of People without Disabilities,,TRUE,FALSE,TRUE,TRUE,Percent of People without Disabilities,"According to the U.S. Census Bureau, a person is considered to have a disability if they do not report one of six disability types (hearing, vision, cognitive, ambulatory, self-care, or independent living)."
-pop_18_64,Age,"Total Population, Age 18 - 34",S1810_C01_015,TRUE,FALSE,FALSE,FALSE,,
-pop_18_64,Age,"Total Population, Age 35 - 64",S1810_C01_016,TRUE,FALSE,FALSE,FALSE,,
-pwd_0_5,Age,"People with Disabilities, Age 0 - 5",S1810_C02_013,TRUE,FALSE,FALSE,FALSE,,
-pwd_5_17,Age,"People with Disabilities, Age 5 - 17",S1810_C02_014,TRUE,FALSE,FALSE,FALSE,,
-pwd_18_64,Age,"People with Disabilities, Age 18 - 34",S1810_C02_015,TRUE,FALSE,FALSE,FALSE,,
-pwd_18_64,Age,"People with Disabilities, Age 35 - 64",S1810_C02_016,TRUE,FALSE,FALSE,FALSE,,
-pwd_18_64_pct,Age,"Percent of People with Disabilities, Age 18 - 64",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Age 18 - 64",
-pop_grtoeq_65,Age,"Total Population, Age 65 - 74",S1810_C01_017,TRUE,FALSE,FALSE,FALSE,,
-pop_grtoeq_65,Age,"Total Population, Age 75 or Older",S1810_C01_018,TRUE,FALSE,FALSE,FALSE,,
-pwd_grtoeq_65,Age,"People with Disabilities, Age 65 - 74",S1810_C02_017,TRUE,FALSE,FALSE,FALSE,,
-pwd_grtoeq_65,Age,"People with Disabilities, Age 75 or Older",S1810_C02_018,TRUE,FALSE,FALSE,FALSE,,
-pwd_grtoeq_65_pct,Age,"Percent of People with Disabilities, Age 65 or Older",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Age 65 and Older",
+pwd_hearing,Type of Disability,People with a Hearing Disability,S1810_C02_019,TRUE,FALSE,FALSE,FALSE,,
+pwd_hearing_pct,Type of Disability,Percent of People with a Hearing Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Hearing Disability,"According to the U.S. Census Bureau, a hearing disability is defined as being deaf or having serious difficulty hearing. "
+pwd_vision,Type of Disability,People with a Vision Disability,S1810_C02_029,TRUE,FALSE,FALSE,FALSE,,
+pwd_vision_pct,Type of Disability,Percent of People with a Vision Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Vision Disability,"According to the U.S. Census Bureau, a vision disability is defined as being blind or having serious difficulty seeing, even when wearing glasses"
+pwd_cognitive,Type of Disability,People with a Cognitive Disability,S1810_C02_039,TRUE,FALSE,FALSE,FALSE,,
+pwd_cognitive_pct,Type of Disability,Percent of People with a Cognitive Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Cognitive Disability,"According to the U.S. Census Bureau, a cognitive disability is defined as having difficulty remembering, concentrating, or making decisions because of a physical, mental, or emotional problem. "
+pwd_ambulatory,Type of Disability,People with an Ambulatory Disability,S1810_C02_047,TRUE,FALSE,FALSE,FALSE,,
+pwd_ambulatory_pct,Type of Disability,Percent of People with an Ambulatory Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with an Ambulatory Disability,"According to the U.S. Census Bureau, an ambulatory disability is defined as having serious difficulty walking or climbing stairs."
+pwd_selfcare,Type of Disability,People with a Self Care Disability,S1810_C02_055,TRUE,FALSE,FALSE,FALSE,,
+pwd_selfcare_pct,Type of Disability,Percent of People with a Self Care Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Self Care Disability,"According to the U.S. Census Bureau, a self-care disability is defined as having difficulty bathing or dressing."
+pwd_indliving,Type of Disability,People with an Independent Living Disability,S1810_C02_063,TRUE,FALSE,FALSE,FALSE,,
+pwd_indliving_pct,Type of Disability,Percent of People with an Independent Living Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with an Independent Living Disability,"According to the U.S. Census Bureau, an independent living disability is defined as having difficulty doing errands alone such as visiting a doctor's office or shopping because of a physical, mental, or emotional problem. "
 pwd_white,Race,"People with Disabilities, White",S1810_C02_004,TRUE,FALSE,FALSE,FALSE,,
 pwd_black,Race,"People with Disabilities, Black or African American alone",S1810_C02_005,TRUE,FALSE,FALSE,FALSE,,
 pwd_hisp,Race,"People with Disabilities, Hispanic",S1810_C02_012,TRUE,FALSE,FALSE,FALSE,,
@@ -30,6 +30,18 @@ pwd_black_pct,Race,"Percent of People with Disabilities, Black alone",,TRUE,FALS
 pwd_hisp_pct,Race,"Percent of People with Disabilities, Hispanic alone",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Hispanic alone","According to the U.S. Census Bureau, Hispanic or Latino is defined as a person of Cuban, Mexican, Puerto Rican, South or Central American, or other Spanish culture or origin regardless of race."
 pwd_white_nonhisp_pct,Race,"Percent of People with Disabilities, White Non-Hispanic alone",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, White Non-Hispanic alone","According to the U.S. Census Bureau, Hispanic or Latino is defined as a person of Cuban, Mexican, Puerto Rican, South or Central American, or other Spanish culture or origin regardless of race."
 pwd_other_pct,Race,"Percent of People with Disabilities, Another Race alone",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Another Race alone","According to the U.S. Census Bureau, other races include American Indian or Alaska Native, defined as A person having origins in any of the original peoples of North and South America (including Central America) and who maintains tribal affiliation or community attachment, and Native Hawaiian or Other Pacific Islander defined as a person having origins in any of the original peoples of Hawaii, Guam, Samoa, or other Pacific Islands."
+pop_18_64,Age,"Total Population, Age 18 - 34",S1810_C01_015,TRUE,FALSE,FALSE,FALSE,,
+pop_18_64,Age,"Total Population, Age 35 - 64",S1810_C01_016,TRUE,FALSE,FALSE,FALSE,,
+pwd_0_5,Age,"People with Disabilities, Age 0 - 5",S1810_C02_013,TRUE,FALSE,FALSE,FALSE,,
+pwd_5_17,Age,"People with Disabilities, Age 5 - 17",S1810_C02_014,TRUE,FALSE,FALSE,FALSE,,
+pwd_18_64,Age,"People with Disabilities, Age 18 - 34",S1810_C02_015,TRUE,FALSE,FALSE,FALSE,,
+pwd_18_64,Age,"People with Disabilities, Age 35 - 64",S1810_C02_016,TRUE,FALSE,FALSE,FALSE,,
+pwd_18_64_pct,Age,"Percent of People with Disabilities, Age 18 - 64",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Age 18 - 64",
+pop_grtoeq_65,Age,"Total Population, Age 65 - 74",S1810_C01_017,TRUE,FALSE,FALSE,FALSE,,
+pop_grtoeq_65,Age,"Total Population, Age 75 or Older",S1810_C01_018,TRUE,FALSE,FALSE,FALSE,,
+pwd_grtoeq_65,Age,"People with Disabilities, Age 65 - 74",S1810_C02_017,TRUE,FALSE,FALSE,FALSE,,
+pwd_grtoeq_65,Age,"People with Disabilities, Age 75 or Older",S1810_C02_018,TRUE,FALSE,FALSE,FALSE,,
+pwd_grtoeq_65_pct,Age,"Percent of People with Disabilities, Age 65 or Older",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Age 65 and Older",
 pop_female,Sex,"Total Population, Female",S1810_C01_003,TRUE,FALSE,FALSE,FALSE,,
 pwd_female,Sex,"People with Disabilities, Female",S1810_C02_003,TRUE,FALSE,FALSE,FALSE,,
 female_pwd_pct,Sex,"Percent of People with Disabilities, Female",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Female","According to the U.S. Census, biological sex is defined as female or male."
@@ -38,18 +50,6 @@ pop_male,Sex,"Total Population, Male",S1810_C01_002,TRUE,FALSE,FALSE,FALSE,,
 pwd_male,Sex,"People with Disabilities, Male",S1810_C02_002,TRUE,FALSE,FALSE,FALSE,,
 male_pwd_pct,Sex,"Percent of People with Disabilities, Male",,TRUE,FALSE,FALSE,FALSE,"Percent of People with Disabilities, Male","According to the U.S. Census, biological sex is defined as female or male."
 pwd_male_pct,Sex,Percent of Male Population with Disabilities,,TRUE,FALSE,FALSE,FALSE,,
-pwd_hearing,Type of Disability,People with a Hearing Disability,S1810_C02_019,TRUE,FALSE,FALSE,FALSE,,
-pwd_hearing_pct,Type of Disability,Percent of People with a Hearing Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Hearing Disability,"According to the U.S. Census Bureau, a hearing disability is defined as being deaf or having serious difficulty hearing. "
-pwd_vision,Type of Disability,People with a Vision Disability,S1810_C02_029,TRUE,FALSE,FALSE,FALSE,,
-pwd_vision_pct,Type of Disability,Percent of People with a Vision Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Vision Disability,"According to the U.S. Census Bureau, a vision disability is defined as being blind or having serious difficulty seeing, even when wearing glasses"
-pwd_cognitive,Type of Disability,People with a Cognitive Disability,S1810_C02_039,TRUE,FALSE,FALSE,FALSE,,
-pwd_cognitive_pct,Type of Disability,Percent of People with a Cognitive Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Cognitive Disability,"According to the U.S. Census Bureau, a cognitive disability is defined as having difficulty remembering, concentrating, or making decisions because of a physical, mental, or emotional problem. "
-pwd_ambulatory,Type of Disability,People with an Ambulatory Disability,S1810_C02_047,TRUE,FALSE,FALSE,FALSE,,
-pwd_ambulatory_pct,Type of Disability,Percent of People with an Ambulatory Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with an Ambulatory Disability,"According to the U.S. Census Bureau, an ambulatory disability is defined as having serious difficulty walking or climbing stairs."
-pwd_selfcare,Type of Disability,People with a Self Care Disability,S1810_C02_055,TRUE,FALSE,FALSE,FALSE,,
-pwd_selfcare_pct,Type of Disability,Percent of People with a Self Care Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with a Self Care Disability,"According to the U.S. Census Bureau, a self-care disability is defined as having difficulty bathing or dressing."
-pwd_indliving,Type of Disability,People with an Independent Living Disability,S1810_C02_063,TRUE,FALSE,FALSE,FALSE,,
-pwd_indliving_pct,Type of Disability,Percent of People with an Independent Living Disability,,TRUE,FALSE,FALSE,FALSE,Percent of People with an Independent Living Disability,"According to the U.S. Census Bureau, an independent living disability is defined as having difficulty doing errands alone such as visiting a doctor's office or shopping because of a physical, mental, or emotional problem. "
 pop_total,Overview,Total Population,S2601A_C01_001,FALSE,TRUE,FALSE,FALSE,Total Population,"The U.S. Census Bureau universe for reporting Community Living data (such as group quarters) is the noninstitutional and institutional populations, which includes persons who are inmates of institutions (e.g., penal and mental facilities, homes for the aged), and who are on active duty in the Armed Forces."
 pwd_total,Overview,People with Disabilities,,FALSE,TRUE,FALSE,FALSE,,
 pwd_pct,Overview,Percent of People with Disabilities,S2601A_C01_047,FALSE,TRUE,FALSE,FALSE,Percent of People with Disabilities,"According to the U.S. Census Bureau, a person is considered to have a disability if they report one of six disability types (hearing, vision, cognitive, ambulatory, self-care, or independent living)."
@@ -65,16 +65,16 @@ pwd_grpquarters_institution_pct,Where People Live,"Percent of People with Disabi
 pwd_grpquarters_noninstitution,Where People Live,"People with Disablities Living in Other Group Quarters, Community",,FALSE,TRUE,FALSE,FALSE,,
 pwd_grpquarters_noninstitution_pct,Where People Live,"Percent of People with Disabilities Living in Other Group Quarters, Community",S2601A_C04_047,FALSE,TRUE,FALSE,FALSE,"Percent of People with Disabilities, Living in Other Group Quarters in Community","According to the U.S. Census, people living in the community in group quarters include residences like group homes, missions or shelters"
 pop_nursing,Nursing Home Residents,Population Living in Nursing Homes,S2602_C04_001,FALSE,TRUE,FALSE,FALSE,,
-pop_18_64,Nursing Home Residents,Population Living in Nursing Homes Age 18 - 64,S2602_C01_047,FALSE,TRUE,FALSE,FALSE,,
-pwd_18_64_pct,Nursing Home Residents,Percent of People with Disabilities Age 18 - 64,S2602_C01_048,FALSE,TRUE,FALSE,FALSE,,
-pwd_18_64,Nursing Home Residents,People with Disabilities Age 18 - 64,,FALSE,TRUE,FALSE,FALSE,,
-pop_nursing_18_64_pct,Nursing Home Residents,Population Living in Nursing Homes Age 18 - 64,S2602_C04_006,FALSE,TRUE,FALSE,FALSE,,
-pop_nursing_18_64_pct,Nursing Home Residents,Population Living in Nursing Homes Age 18 - 64,S2602_C04_007,FALSE,TRUE,FALSE,FALSE,,
-pop_nursing_18_64_pct,Nursing Home Residents,Population Living in Nursing Homes Age 18 - 64,S2602_C04_008,FALSE,TRUE,FALSE,FALSE,,
-pop_nursing_18_64_pct,Nursing Home Residents,Population Living in Nursing Homes Age 18 - 64,S2602_C04_009,FALSE,TRUE,FALSE,FALSE,,
-pop_nursing_18_64_pct,Nursing Home Residents,Population Living in Nursing Homes Age 18 - 64,S2602_C04_010,FALSE,TRUE,FALSE,FALSE,,
-pwd_nursing_18_64_pct,Nursing Home Residents,Percent of People with Disabilities Living in Nursing Homes Age 18 - 64,S2602_C04_048,FALSE,TRUE,FALSE,FALSE,,
-pwd_nursing_18_64,Nursing Home Residents,People with Disabilities Living in Nursing Homes Age 18 - 64,,FALSE,TRUE,FALSE,FALSE,,
+pop_18_64,Nursing Home Residents,"Population Living in Nursing Homes, Age 18 - 64",S2602_C01_047,FALSE,TRUE,FALSE,FALSE,,
+pwd_18_64,Nursing Home Residents,"People with Disabilities, Age 18 - 64",,FALSE,TRUE,FALSE,FALSE,,
+pwd_18_64_pct,Nursing Home Residents,"Percent of People with Disabilities, Age 18 - 64",S2602_C01_048,FALSE,TRUE,FALSE,FALSE,,
+pop_nursing_18_24,Nursing Home Residents,"Population Living in Nursing Homes, Age 18 - 24",S2602_C04_006,FALSE,TRUE,FALSE,FALSE,,
+pop_nursing_25_34,Nursing Home Residents,"Population Living in Nursing Homes, Age 25 - 34",S2602_C04_007,FALSE,TRUE,FALSE,FALSE,,
+pop_nursing_35_44,Nursing Home Residents,"Population Living in Nursing Homes, Age 35 - 44",S2602_C04_008,FALSE,TRUE,FALSE,FALSE,,
+pop_nursing_45_54,Nursing Home Residents,"Population Living in Nursing Homes, Age 45 - 54",S2602_C04_009,FALSE,TRUE,FALSE,FALSE,,
+pop_nursing_55_64,Nursing Home Residents,"Population Living in Nursing Homes, Age 55 - 64",S2602_C04_010,FALSE,TRUE,FALSE,FALSE,,
+pwd_nursing_18_64,Nursing Home Residents,"People with Disabilities, Age 18 - 64 Living in Nursing Homes",,FALSE,TRUE,FALSE,FALSE,,
+pwd_nursing_18_64_pct,Nursing Home Residents,"Percent of People with Disabilities, Age 18 - 64 Living in Nursing Homes",,FALSE,TRUE,FALSE,FALSE,,
 pop_19_64,Overview,Population Age 19 - 64,B18135_013,FALSE,FALSE,TRUE,FALSE,,
 pwd_19_64,Overview,"People with Disabilities,Age 19 - 64",B18135_014,FALSE,FALSE,TRUE,FALSE,,
 pwod_19_64,Overview,"People without Disabilities, Age 19 - 64",B18135_019,FALSE,FALSE,TRUE,FALSE,,
