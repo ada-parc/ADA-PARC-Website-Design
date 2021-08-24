@@ -4,10 +4,10 @@ library(tidyverse);library(here)
 library(mongolite)
 
 # Load API keys and database connection information
-source(here("../functions.R"), local = TRUE)
+source(here("functions.R"), local = TRUE)
 
 # Load dictionary
-dict_vars <- read_csv(here("../dictionaries", "dict_vars.csv"))
+dict_vars <- read_csv(here("dictionaries", "dict_vars.csv"))
 
 dict_vars <- dict_vars %>% 
   mutate("national_summary_text" = ifelse(is.na(national_summary_text),
