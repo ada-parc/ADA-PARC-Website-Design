@@ -697,7 +697,7 @@ altText <- function(data, variable) {
                   ~scales::percent(.x, 
                                    accuracy = 0.1,
                                    scale = 1))) %>% 
-    mutate("summary_text" = paste0(" The lowest state was ",
+    mutate("summary_text" = paste0(" The lowest state or territory was ",
                                    State, " at ", 
                                    !!sym(variable), ".")) %>% 
     pull(summary_text)
@@ -714,7 +714,7 @@ altText <- function(data, variable) {
                   ~scales::percent(.x, 
                                    accuracy = 0.1,
                                    scale = 1))) %>% 
-    mutate("summary_text" = paste0(" The highest state was ",
+    mutate("summary_text" = paste0(" The highest state or territory was ",
                                    State, " at ", 
                                    !!sym(variable), ".")) %>% 
     pull(summary_text)
