@@ -166,7 +166,7 @@ selectInput(inputId = "national_category_selector",
                         "Community Participation" = "is_community_participation", 
                         "Community Living" = "is_community_living", 
                         "Work/Economic" = "is_work_economic"),
-            selected = "is_community_participation",
+            selected = "is_demographics",
             multiple = FALSE,
             selectize = TRUE)
 
@@ -176,10 +176,10 @@ selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
             choices = tibble::deframe(
               dict_vars %>%
-                filter(is_community_participation == TRUE,
-                       !is.na(national_dropdown_label)) %>% #
+                filter(is_demographics == TRUE,
+                       !is.na(national_dropdown_label)) %>%
                 select(national_dropdown_label, var_readable)),
-            selected = "pwd_commute_car_alone_pct",
+            selected = "pop_total",
             multiple = FALSE,
             selectize = TRUE)
 
@@ -191,13 +191,10 @@ selectInput(inputId = "national_variable_selector",
 # Update select dropdown with named list of values created below
 observeEvent(input$national_category_selector, {
   
-  temp_category <- input$national_category_selector
-   if (is.null(temp_category)) temp_category <- "is_community_participation"
-   
   # Create reactive named list of choices based on national_category_selector
   national_variable_choices <- tibble::deframe(
     dict_vars %>% 
-      filter((!!sym(temp_category)) == TRUE,
+      filter((!!sym(input$national_category_selector)) == TRUE,
              var_readable %in% (
                national_data() %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
@@ -221,17 +218,17 @@ observeEvent(input$national_category_selector, {
     #   head(1)
   
   # Default topic choice depending on category
-  national_variable_default <- 
-    if (temp_category == "is_community_participation") {
-      "pwd_commute_car_alone_pct"
-    } else {
-      "pop_total"
-    }
+  # national_variable_default <- 
+  #   if (temp_category == "is_community_participation") {
+  #     "pwd_commute_car_alone_pct"
+  #   } else {
+  #     "pop_total"
+  #   }
   
   updateSelectInput(session,
                     input = "national_variable_selector",
                     choices = national_variable_choices,
-                    selected = national_variable_default)
+                    selected = "pop_total")
   
 })
 
