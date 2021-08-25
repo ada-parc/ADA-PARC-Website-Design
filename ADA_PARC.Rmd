@@ -350,7 +350,8 @@ national_vars_in_topic <- reactive({
              (dict_vars %>% 
                 filter((!!sym(input$national_category_selector)) == TRUE,
                        var_readable == input$national_variable_selector) %>% 
-                pull(var_topic))) %>% 
+                pull(var_topic)),
+           display == T) %>% 
     select(var_pretty, var_readable)
   
     # Static check
