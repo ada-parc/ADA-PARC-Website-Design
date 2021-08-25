@@ -99,8 +99,8 @@ community_living <- national_living %>%
     # Must use table S2601A since it is total population
     # Rather than civilian noninstitutionalized as is ACS default
     pop_total = S2601A_C01_001_estimate,
-    pwd_pct = S2601A_C01_047_estimate,
-    pwd_total = round(pop_total * (pwd_pct/100), 0),
+    pwd_pct = S2601A_C01_047_estimate / 100,
+    pwd_total = round(pop_total * pwd_pct, 0),
     
     ### Group quarters
     pop_grpquarters = S2601A_C02_001_estimate,
@@ -184,24 +184,24 @@ community_participation <- national_participation %>%
     ### Transit Usage
     ## Transit
     # Population
-    pop_commute_public = S1811_C01_035_estimate * S1811_C01_032_estimate,
     pop_commute_public_pct = S1811_C01_035_estimate / 100,
+    pop_commute_public = pop_commute_public_pct * S1811_C01_032_estimate,
     # PWD
-    pwd_commute_public = S1811_C02_035_estimate * S1811_C02_032_estimate,
     pwd_commute_public_pct = S1811_C02_035_estimate / 100,
+    pwd_commute_public = pwd_commute_public_pct * S1811_C02_032_estimate,
     # PWOD
-    pwod_commute_public = S1811_C03_035_estimate * S1811_C03_032_estimate,
     pwod_commute_public_pct = S1811_C03_035_estimate / 100,
+    pwod_commute_public = pwod_commute_public_pct * S1811_C03_032_estimate,
     ## Private Car
     # Population
-    pop_commute_car_alone = S1811_C01_033_estimate * S1811_C01_032_estimate,
     pop_commute_car_alone_pct = S1811_C01_033_estimate / 100,
+    pop_commute_car_alone = pop_commute_car_alone_pct * S1811_C01_032_estimate,
     # PWD
-    pwd_commute_car_alone = S1811_C02_033_estimate * S1811_C02_032_estimate,
     pwd_commute_car_alone_pct = S1811_C02_033_estimate / 100,
+    pwd_commute_car_alone = pwd_commute_car_alone_pct * S1811_C02_032_estimate,
     # PWOD
-    pwod_commute_car_alone = S1811_C03_033_estimate * S1811_C03_032_estimate,
     pwod_commute_car_alone_pct = S1811_C03_033_estimate / 100,
+    pwod_commute_car_alone = pwod_commute_car_alone_pct * S1811_C03_032_estimate,
     
     ### Educational Attainment
     pwd_lessthan_highschool_pct = S1811_C02_040_estimate / 100,
@@ -263,11 +263,17 @@ work_economic <- national_economic %>%
     pwod_atorabove_poverty_pct = pwod_atorabove_poverty / pwod_18_64,
     
     ### Affordability
-    mortgage_burdened = B25091_008_estimate + B25091_009_estimate + 
-      B25091_010_estimate + B25091_011_estimate,
+    mortgage_burdened_30_35 = B25091_008_estimate,
+    mortgage_burdened_35_40 =  B25091_009_estimate,
+    mortgage_burdened_40_50 = B25091_010_estimate,
+    mortgage_burdened_grtoeq_50 = B25091_011_estimate,
+    mortgage_burdened = mortgage_burdened_30_35 + mortgage_burdened_35_40 + mortgage_burdened_40_50 + mortgage_burdened_grtoeq_50,
     mortgage_burdened_pct = mortgage_burdened / B25091_002_estimate,
-    rent_burdened = B25070_007_estimate + B25070_008_estimate + 
-      B25070_009_estimate + B25070_010_estimate,
+    rent_burdened_30_35 = B25070_007_estimate,
+    rent_burdened_35_40 = B25070_008_estimate,
+    rent_burdened_40_50 = B25070_009_estimate,
+    rent_burdened_grtoeq_50 = B25070_010_estimate,
+    rent_burdened = rent_burdened_30_35 + rent_burdened_35_40 + rent_burdened_40_50  + rent_burdened_grtoeq_50,
     rent_burdened_pct = rent_burdened / B25070_001_estimate,
     
     ### Full/Part Time Workers
