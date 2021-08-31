@@ -7,8 +7,8 @@ tables <- c("S1810")
 national_demographics <- fun_pull_mongo_data(tables, host_name = host_name, "state")
 
 ### Community Living
-tables <- c("S1810", "S2601A", "S2602")
-national_living <- fun_pull_mongo_data(tables, host_name = host_name, "state")
+tables <- c("S1810", "S2601A", "S2602", "B26108")
+national_living <- fun_pull_mongo_data(tables, host_name = host_name, "state") 
 
 ### Community Participation
 tables <- c("S1810", "S1811", "B18135") 
@@ -89,6 +89,9 @@ demographics <- national_demographics %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 
 community_living <- national_living %>%
+  select(everything(), 
+         ABBR = "ABBR.x") %>% # Quick fix to a joining error
+  # Because S2601 separates out American and Puerto Rico (S2601A and S2601APR), which is not done for any other tables
   transmute(
     ### ID
     GEOID = GEOID,
@@ -123,7 +126,13 @@ community_living <- national_living %>%
     pwd_18_64 = round(pop_total * (pwd_18_64_pct / 100), 0),
     pop_nursing_18_64_pct = (S2602_C04_006_estimate + S2602_C04_007_estimate + S2602_C04_008_estimate + S2602_C04_009_estimate + S2602_C04_010_estimate) / 100,
     pwd_nursing_18_64_pct = S2602_C04_048_estimate / 100,
-    pwd_nursing_18_64 = round(pwd_total * (pwd_nursing_18_64_pct/100), 0) 
+    pwd_nursing_18_64 = round(pwd_total * (pwd_nursing_18_64_pct/100), 0),
+    
+    ### Incarcerated Persons
+    pop_corrections = B26108_037_estimate,
+    pop_corrections_pct = pop_corrections / pop_total,
+    pwd_corrections = B26108_038_estimate,
+    pwd_corrections_pct = pwd_corrections / pop_corrections
   ) %>%
   mutate(across(.cols = ends_with("pct"),.fns = ~ round(.x * 100, 2)))
 

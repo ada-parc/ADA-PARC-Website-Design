@@ -77,6 +77,10 @@ pop_nursing_45_54,Nursing Home Residents,"Population Living in Nursing Homes, Ag
 pop_nursing_55_64,Nursing Home Residents,"Population Living in Nursing Homes, Age 55 - 64",S2602_C04_010,FALSE,TRUE,FALSE,FALSE,FALSE,,
 pwd_nursing_18_64,Nursing Home Residents,"People with Disabilities, Age 18 - 64 Living in Nursing Homes",,FALSE,TRUE,FALSE,FALSE,TRUE,,
 pwd_nursing_18_64_pct,Nursing Home Residents,"Percent of People with Disabilities, Age 18 - 64 Living in Nursing Homes",,FALSE,TRUE,FALSE,FALSE,TRUE,,
+pop_corrections,Incarcerated Residents,People Living in Adult Correctional Facilities,B26108_037,FALSE,TRUE,FALSE,FALSE,TRUE,People Living in Adult Correctional Facilities,"According to the Bureau of Justice Statistics, adult correctional facilities include prisons and prison farms; reception, diagnostic, and classification centers; facilities for parole violators; road and forestry correctional camps; facilities for youthful offenders; and drug and alcohol treatment facilities."
+pop_corrections_pct,Incarcerated Residents,Percent of People Living in Adult Correctional Facilities,,FALSE,TRUE,FALSE,FALSE,TRUE,,
+pwd_corrections,Incarcerated Residents,People with Disabilities Living in Adult Correctional Facilities,B26108_038,FALSE,TRUE,FALSE,FALSE,TRUE,,
+pwd_corrections_pct,Incarcerated Residents,Percent of People Living in Adult Correctional Facilities with Disabilities,,FALSE,TRUE,FALSE,FALSE,TRUE,Percent of People Living in Adult Correctional Facilities with Disabilities,"According to the Bureau of Justice Statistics, adult correctional facilities include prisons and prison farms; reception, diagnostic, and classification centers; facilities for parole violators; road and forestry correctional camps; facilities for youthful offenders; and drug and alcohol treatment facilities."
 pop_19_64,Overview,Population Age 19 - 64,B18135_013,FALSE,FALSE,TRUE,FALSE,TRUE,,
 pwd_19_64,Overview,"People with Disabilities,Age 19 - 64",B18135_014,FALSE,FALSE,TRUE,FALSE,TRUE,,
 pwod_19_64,Overview,"People without Disabilities, Age 19 - 64",B18135_019,FALSE,FALSE,TRUE,FALSE,TRUE,,
