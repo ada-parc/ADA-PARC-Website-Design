@@ -82,7 +82,7 @@ render_tile_map <- function(data, selected, palette_selected) {
   # Set quartiles
   no_classes <- 4
   labels <- c()
-  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+  quartiles <- quantile(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
                         probs = seq(0, 1, length.out = no_classes + 1))
   
   # Custom labels based on percent or value
@@ -157,18 +157,21 @@ render_tile_map <- function(data, selected, palette_selected) {
     # Facet
     facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
     # Theme, removes all of the grid elements that we don't need
-    theme(plot.background = element_rect(colour = "white"), 
-          panel.grid = element_blank(),
-          panel.grid.major = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          panel.spacing = unit(0L, "pt"),
-          legend.position = "bottom",
-          legend.title = element_text(face = "bold", vjust = 0.75),
-          legend.text = element_text(vjust = .5),
-          legend.key = element_rect(color = "black"),
-          strip.text.x = element_text(size = 9L)) +
+    theme(
+      plot.background = element_rect(colour = "white"), 
+      panel.grid = element_blank(),
+      panel.grid.major = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.line = element_blank(),
+      panel.spacing = unit(0L, "pt"),
+      legend.position = "bottom",
+      legend.title = element_text(face = "bold", vjust = 0.75),
+      legend.text = element_text(vjust = .5),
+      legend.key = element_rect(color = "black"),
+      plot.margin = unit(c(0,0,2,0), "cm"),
+      strip.text.x = element_text(size = 9L)
+    ) +
     guides(fill = guide_legend(label.position = "bottom"))
   
 }
@@ -217,8 +220,8 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
     mutate("hover_text" := ifelse(grepl("_pct$", 
                                         selected),
                                   paste0(round(!!sym(selected), 1), "%"),
-                                 abbreviate_number(!!sym(selected))))
-
+                                  abbreviate_number(!!sym(selected))))
+  
   # Plot geographic map
   tmap_mode("view")
   tmap_object <- tm_shape(states_sf) +

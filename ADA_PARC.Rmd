@@ -5,6 +5,8 @@ output:
     orientation: rows
     vertical_layout: fill
     theme: cosmo
+    includes: 
+      in_header: "cssloaders_in_header.html"
 runtime: shiny
 resource_files:
 - www/participant_logos.png
@@ -25,6 +27,8 @@ library(leaflet); library(leaflet.extras);
 library(tmap); library(tmaptools)
 library(htmltools)
 library(shiny)
+library(shinycssloaders)
+# devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
 library(shinyWidgets)
 library(flexdashboard)
 library(colourpicker)
@@ -202,20 +206,20 @@ observeEvent(input$national_category_selector, {
              ),
              !is.na(national_dropdown_label)) %>%
       select(national_dropdown_label, var_readable)
-    )
+  )
   
-    # Static check
-    # national_variable_selector_static <- tibble::deframe(
-    #   dict_vars %>%
-    #     filter(is_demographics == TRUE,
-    #            var_readable %in% (
-    #              demographics %>%
-    #                select(-c(GEOID, NAME, ABBR)) %>%
-    #                names()
-    #            ),
-    #            !is.na(national_dropdown_label)) %>%
-    #     select(national_dropdown_label, var_readable)) %>%
-    #   head(1)
+  # Static check
+  # national_variable_selector_static <- tibble::deframe(
+  #   dict_vars %>%
+  #     filter(is_demographics == TRUE,
+  #            var_readable %in% (
+  #              demographics %>%
+  #                select(-c(GEOID, NAME, ABBR)) %>%
+  #                names()
+  #            ),
+  #            !is.na(national_dropdown_label)) %>%
+  #     select(national_dropdown_label, var_readable)) %>%
+  #   head(1)
   
   # Default topic choice depending on category
   # national_variable_default <- 
@@ -267,15 +271,15 @@ national_data <- reactive({
 
 ```{r, national_map_summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
-renderUI({
+output$national_summary <- renderUI({
   
   # req(input$national_variable_selector)
   
   HTML(
     paste0(
-    altText(national_data(), 
-            input$national_variable_selector),
-    " Detailed information is available below in the interactive map (left) and table (right)."
+      altText(national_data(), 
+              input$national_variable_selector),
+      " Detailed information is available below in the interactive map (left) and table (right)."
     )
     # # Static check
     # altText(demographics, 
@@ -284,6 +288,8 @@ renderUI({
   )
   
 })
+
+withSpinner(uiOutput("national_summary"))
 
 ```
 
@@ -302,26 +308,31 @@ radioButtons(inputId = "national_map_toggle",
              inline = TRUE)
 
 # Conditional UI depending on button selection
-renderUI({
+output$national_map <- renderUI({
   
   if(input$national_map_toggle == "geographic") {
-    tmapOutput("geographic_map")
+    withSpinner(tmapOutput("geographic_map"))
   } else {
-    plotOutput("tile_map")   
+    withSpinner(plotOutput("tile_map", height = "300px"))
   }
   
 })
 
+uiOutput("national_map")
+
+
 # Tile map
-output$tile_map <- renderPlot({
-  
-  # req(input$national_variable_selector)
-  
-  render_tile_map(national_data(), 
-                  input$national_variable_selector, 
-                  input$access_map_palette)
-  
-})
+output$tile_map <-
+  renderPlot({
+    
+    # req(input$national_variable_selector)
+    
+    render_tile_map(national_data(), 
+                    input$national_variable_selector, 
+                    input$access_map_palette)
+    
+  })
+
 
 
 # Geographic map
@@ -354,16 +365,16 @@ national_vars_in_topic <- reactive({
            display == T) %>% 
     select(var_pretty, var_readable)
   
-    # Static check
-    # national_vars_in_topic_static <- dict_vars %>%
-    #   filter(is_demographics == TRUE,
-    #          var_topic ==
-    #          (dict_vars %>%
-    #             filter(is_demographics == TRUE,
-    #                    var_readable == "pwd_18_64_pct") %>%
-    #             pull(var_topic))) %>%
-    #   select(var_pretty, var_readable)
-
+  # Static check
+  # national_vars_in_topic_static <- dict_vars %>%
+  #   filter(is_demographics == TRUE,
+  #          var_topic ==
+  #          (dict_vars %>%
+  #             filter(is_demographics == TRUE,
+  #                    var_readable == "pwd_18_64_pct") %>%
+  #             pull(var_topic))) %>%
+  #   select(var_pretty, var_readable)
+  
 })
 
 # Caption
@@ -424,7 +435,9 @@ national_topic_table <- reactive({
 })
 
 # UI Output
-renderUI({ HTML(national_topic_table()) })
+output$national_table <- renderUI({ HTML(national_topic_table()) })
+
+withSpinner(uiOutput("national_table"))
 
 # renderPrint({  national_vars_in_topic() })
 # Data table
@@ -582,14 +595,14 @@ renderUI({
                                         S1811_C02_034_estimate),
                                    accuracy = 1),
                              "<br>(", comma((S1811_C02_033_estimate +
-                                            S1811_C02_034_estimate),
-                                         accuracy = 0.1), "%)"),
+                                               S1811_C02_034_estimate),
+                                            accuracy = 0.1), "%)"),
                     "Transit" = 
                       paste0(comma(S1811_C02_032_estimate * 
                                      (S1811_C02_035_estimate),
                                    accuracy = 1),
                              "<br>(", comma(S1811_C02_035_estimate,
-                                         accuracy = 0.1), "%)"),
+                                            accuracy = 0.1), "%)"),
                     
                     "Walk or<br>Bike" = 
                       paste0(comma(S1811_C02_032_estimate * 
@@ -597,14 +610,14 @@ renderUI({
                                         S1811_C02_037_estimate),
                                    accuracy = 1),
                              "<br>(", comma((S1811_C02_036_estimate +
-                                            S1811_C02_037_estimate),
-                                         accuracy = 0.1), "%)"),
+                                               S1811_C02_037_estimate),
+                                            accuracy = 0.1), "%)"),
                     "Work from<br>Home" = 
                       paste0(comma(S1811_C02_032_estimate * 
                                      (S1811_C02_038_estimate),
                                    accuracy = 1),
                              "<br>(", comma((S1811_C02_038_estimate),
-                                         accuracy = 0.1), "%)"),
+                                            accuracy = 0.1), "%)"),
                     "<b>Total" = 
                       paste0(comma(S1811_C02_032_estimate, 
                                    accuracy = 1),
@@ -827,7 +840,7 @@ output$metro_snapshot_cp_plot <- renderPlotly({
   
   # Interactive plotly settings
   plotly::ggplotly(gg, tooltip = "text") %>% 
-        plotly::layout(
+    plotly::layout(
       height = 280,
       margin = list(l = 25, t = 25, b = 90),
       xaxis = list(title = list(text = "PWD, 25 or Older",
@@ -937,7 +950,7 @@ metro_snapshot_table_data <- reactive({
   #                                      database_name = "ADA-PARC")
   # temp <- temp_mongo_conn$find(
   #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }'))
-
+  
   # Value and percent (Remove White and Hispanic, reorder Race topic)
   temp_values <- temp %>% 
     select(GEOID:NAME, matches("_C02_")) %>%
@@ -965,7 +978,7 @@ metro_snapshot_table_data <- reactive({
         "S1810_C02_013", "S1810_C02_014", "S1810_C02_015",
         "S1810_C02_016", "S1810_C02_017", "S1810_C02_018"))) %>% 
     arrange(variable)
-
+  
   # Output
   temp_values %>%
     left_join(.,
@@ -997,7 +1010,7 @@ renderUI({
   req(nrow(metro_snapshot_table_data()) > 0)
   
   HTML(
-  
+    
     kbl(x = metro_snapshot_table_data() %>%
           mutate("output_est" = paste0(comma(estimate,
                                              accuracy = 1), 
@@ -1019,8 +1032,8 @@ renderUI({
       kable_styling(bootstrap_options = c("striped", "hover", 
                                           "condensed"),
                     full_width = TRUE)
-  
-) })
+    
+  ) })
 
 ```
 
