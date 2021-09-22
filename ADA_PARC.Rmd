@@ -548,7 +548,7 @@ metro_snapshot_tract <- reactive ({
 
 ```{r metro snapshot overview text}
 
-renderUI({
+output$city_overview <- renderUI({
   
   # Overview text  
   metro_snap_overview_text <- paste0(
@@ -664,6 +664,8 @@ renderUI({
   
 })
 
+withSpinner(uiOutput("city_overview"))
+
 ```
 
 ## Row
@@ -736,7 +738,7 @@ output$snapshotmap <- renderLeaflet({
 #   
 # })
 
-leafletOutput("snapshotmap") 
+withSpinner(leafletOutput("snapshotmap"))
 
 ```
 

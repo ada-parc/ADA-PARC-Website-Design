@@ -49,41 +49,10 @@ fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) {
 
 # Dashboard functions -----------------------------------------------------
 
+# Set quartiles
+set_quartile_labels <- function(quartiles, no_classes, selected) {
 
-# Abbreviates values for large numbers in render_tile_map
-abbreviate_number <- function(x)
-{
-  x <- x / 1000000
-  # print(x)
-  
-  if (x >= 1) {
-    return(paste0(round(x, 1), "M"))
-  } else {
-    x <- x * 1000
-    return(paste0(round(x, 0), "K"))
-  }
-}
-
-abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to provide correct values in text generation
-
-# Tile map function
-render_tile_map <- function(data, selected, palette_selected) {
-  
-  # ### Unnecessary if selected is being passed as a string
-  # # but we may want to pass the variable itself at some point
-  # selected_varname <- deparse(substitute(!!sym(selected))) %>% gsub("^[^\\$]*\\$", "", .) 
-  # ### Parsing the regex
-  # # ^ anchor for beginning of string
-  # # [^\\$]* matches everything excluding "$" char
-  # # \\$ terminates match at "$" char
-  # # example: deparse(substitute(national_demographic_readable$GEOID)) %>% gsub("^[^\\$]*\\$", "", .)
-  # # outputs: "GEOID"
-  
-  # Set quartiles
-  no_classes <- 4
   labels <- c()
-  quartiles <- quantile(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1))
   
   # Custom labels based on percent or value
   for(idx in 1:length(quartiles)){
@@ -104,11 +73,40 @@ render_tile_map <- function(data, selected, palette_selected) {
   }
   # Remove last label which will have NA
   labels <- labels[1:length(labels)-1]
+}
+
+# Abbreviates values for large numbers in render_tile_map
+abbreviate_number <- function(x)
+{
+  x <- x / 1000000
+  # print(x)
+  
+  if (x >= 1) {
+    return(paste0(round(x, 1), "M"))
+  } else {
+    x <- x * 1000
+    return(paste0(round(x, 0), "K"))
+  }
+}
+
+abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to provide correct values in text generation
+
+# Tile map function
+render_tile_map <- function(data, selected, palette_selected) {
+
+  
+  no_classes <- 4
+  
+  quartiles <- quantile(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1))
+  
+  labels <- set_quartile_labels(quartiles, no_classes, selected)
   
   # Set tile text fill based on contrast
   hcl <- farver::decode_colour(RColorBrewer::brewer.pal(no_classes, 
                                                         palette_selected), 
                                "rgb", "hcl")
+  
   label_col <- ifelse(hcl[, "l"] > 50, "black", "white")
   
   # Tile text fill
@@ -138,7 +136,8 @@ render_tile_map <- function(data, selected, palette_selected) {
   
   # Plot tile map
   data %>%
-    mutate("quartile_fill" = cut(data %>% pull(!!sym(selected)), 
+    filter(!is.na(!!sym(selected))) %>%
+    mutate("quartile_fill" = cut(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
                                  breaks = quartiles, 
                                  labels = labels, 
                                  include.lowest = TRUE)) %>% 
@@ -179,31 +178,12 @@ render_tile_map <- function(data, selected, palette_selected) {
 # Geographic map function
 render_geo_interactive_map <- function(data, selected, palette_selected) {
   
-  # Set quartiles
   no_classes <- 4
-  labels <- c()
-  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+  
+  quartiles <- quantile(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
                         probs = seq(0, 1, length.out = no_classes + 1))
   
-  # Custom labels based on percent or value
-  for(idx in 1:length(quartiles)){
-    if(grepl("pct", selected)) {
-      
-      # Percent, add divide by 100, add symbol to text
-      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
-                                 "-", 
-                                 scales::percent(quartiles[idx + 1] / 100)))
-      
-    } else {
-      
-      # Values
-      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
-                                 "-", 
-                                 scales::comma(quartiles[idx + 1])))
-    }
-  }
-  # Remove last label which will have NA
-  labels <- labels[1:length(labels)-1]
+  labels <- set_quartile_labels(quartiles, no_classes, selected)
   
   # Set map title and legend
   title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
@@ -214,7 +194,8 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
     filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
     select("ABBR" = state_abbv) %>% 
     inner_join(data %>% 
-                 select(ABBR, !!sym(selected)),
+                 select(ABBR, !!sym(selected)) %>%
+                 filter(!is.na(!!sym(selected))),
                by = "ABBR") %>% 
     rowwise() %>% 
     mutate("hover_text" := ifelse(grepl("_pct$", 
@@ -284,7 +265,8 @@ render_geo_static_map <- function(data, selected, palette_selected) {
     filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
     select("ABBR" = state_abbv) %>% 
     inner_join(data %>% 
-                 select(ABBR, !!sym(selected)),
+                 select(ABBR, !!sym(selected)) %>%
+                 filter(!is.na(!!sym(selected))),
                by = "ABBR") %>% 
     rowwise() %>% 
     mutate("hover_text" := ifelse(grepl("_pct$", 
