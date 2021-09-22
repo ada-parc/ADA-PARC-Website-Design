@@ -668,7 +668,8 @@ altText <- function(data, variable) {
   
   # Selected data, format min/max for summary
   df <- data %>%
-    select(NAME, ABBR, sym(variable))
+    select(NAME, ABBR, sym(variable)) %>%
+    filter(!is.na(sym(variable)))
   
   # Min
   text_min <- data %>%
