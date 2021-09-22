@@ -115,8 +115,8 @@ community_living <- national_living %>%
     pwd_grpquarters_institution = round(pop_grpquarters * (pwd_grpquarters_institution_pct/100), 0),
     pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate / 100,
     pwd_grpquarters_noninstitution = round(pop_grpquarters * (pwd_grpquarters_noninstitution_pct/100), 0),
-    pwd_home = (pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution),
-    pwd_home_pct = round((pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution) / pwd_total, 2),
+    pwd_home_pct = (pwd_grpquarters_pct - pwd_grpquarters_institution_pct - pwd_grpquarters_noninstitution_pct),
+    pwd_home = round((pwd_total * pwd_home_pct), 2),
     pwd_grpquarters_other_pct = round((pwd_grpquarters_noninstitution / pwd_total) * 100, 2),
     
     ### Nursing homes
