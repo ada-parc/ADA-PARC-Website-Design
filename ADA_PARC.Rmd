@@ -465,7 +465,7 @@ withSpinner(uiOutput("national_table"))
 
 ```
 
-# Metropolitan Data
+# City Data
 
 ## Sidebar {.sidebar}
 
@@ -666,6 +666,8 @@ renderUI({
 
 ```
 
+## Row
+
 ### People With Disabilities Map
 
 ```{r metro snapshot overview map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
@@ -711,331 +713,331 @@ output$snapshotmap <- renderLeaflet({
   
 })
 
-# Click event for the map
-click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
-  
-  x <- input$snapshotmap_shape_click
-  y <- x$id
-  
-  return(y)
-  
-})
+# # Click event for the map
+# click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
+#   
+#   x <- input$snapshotmap_shape_click
+#   y <- x$id
+#   
+#   return(y)
+#   
+# })
 
-# Add the clicked state to the map, and remove when a new one is clicked
-observe({
-  
-  req(click_snapshotmap())
-  
-  snapshotmap <- leafletProxy("snapshotmap") %>%
-    removeShape("highlight_tract") %>%
-    addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_snapshotmap(), ], 
-                fill = FALSE, weight = 3,
-                color = "#000000", opacity = 1, layerId = "highlight_tract")
-  
-})
+# # Add the clicked state to the map, and remove when a new one is clicked
+# observe({
+#   
+#   req(click_snapshotmap())
+#   
+#   snapshotmap <- leafletProxy("snapshotmap") %>%
+#     removeShape("highlight_tract") %>%
+#     addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_snapshotmap(), ], 
+#                 fill = FALSE, weight = 3,
+#                 color = "#000000", opacity = 1, layerId = "highlight_tract")
+#   
+# })
 
 leafletOutput("snapshotmap") 
 
 ```
 
-## Row
+<!-- ## Row -->
 
-### City in Context
+<!-- ### City in Context -->
 
-```{r metro snapshot plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"}
+<!-- ```{r metro snapshot plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"} -->
 
-# ===============
-# Demographics
-# ===============
+<!-- # =============== -->
+<!-- # Demographics -->
+<!-- # =============== -->
 
-# Definition
-output$metro_snapshot_demo_plot <- renderPlotly({
-  
-  # Plot
-  gg <- metro_snapshot_place_full %>%
-    mutate("NAME" = str_replace_all(
-      NAME, 
-      pattern = " (city|village|municipality|town), ",
-      replacement = ", ")) %>% 
-    select(GEOID,
-           NAME, 
-           "pwd" = S1810_C02_001_estimate,
-           "total_population" = S1810_C01_001_estimate,
-           "pwd_pct" = S1810_C03_001_estimate) %>%
-    ggplot(aes(text = paste0("City: ", NAME, 
-                             "<br>PWD: ", scales::comma(pwd,
-                                                        accuracy = 1), 
-                             " (", pwd_pct, "%)",
-                             "<br>Total Pop.: ", 
-                             scales::comma(total_population,
-                                           accuracy = 1)))) +
-    geom_point(stat = "identity",
-               alpha = 0.8, position = "jitter",
-               aes(x = total_population, y = pwd_pct)) +
-    gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "Total Population", 
-         y = "PWD (%)",
-         title = "People with Disabilities (%) vs. Total Population") +
-    scale_x_log10(labels = scales::comma) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
-  
-  # Interactive plotly settings
-  plotly::ggplotly(gg, tooltip = "text") %>% 
-    plotly::layout(
-      height = 280,
-      margin = list(l = 25, t = 25, b = 90),
-      xaxis = list(title = list(text = "Total Population",
-                                standoff = 5,
-                                font = list(size = 14)),
-                   tickfont = list(size = 12)),
-      yaxis = list(title = list(text = "PWD (%)",
-                                standoff = 5,
-                                font = list(size = 14)),
-                   tickfont = list(size = 12)),
-      title = list(text = "People with Disabilities (%) vs. Total Population",
-                   font = list(size = 16),
-                   yref = "paper",
-                   y = 1,
-                   yanchor = "bottom"),
-      font = list(size = 10)
-    )
-  
-})
+<!-- # Definition -->
+<!-- output$metro_snapshot_demo_plot <- renderPlotly({ -->
 
-# ===============
-# Community Participation
-# ===============
+<!--   # Plot -->
+<!--   gg <- metro_snapshot_place_full %>% -->
+<!--     mutate("NAME" = str_replace_all( -->
+<!--       NAME,  -->
+<!--       pattern = " (city|village|municipality|town), ", -->
+<!--       replacement = ", ")) %>%  -->
+<!--     select(GEOID, -->
+<!--            NAME,  -->
+<!--            "pwd" = S1810_C02_001_estimate, -->
+<!--            "total_population" = S1810_C01_001_estimate, -->
+<!--            "pwd_pct" = S1810_C03_001_estimate) %>% -->
+<!--     ggplot(aes(text = paste0("City: ", NAME,  -->
+<!--                              "<br>PWD: ", scales::comma(pwd, -->
+<!--                                                         accuracy = 1),  -->
+<!--                              " (", pwd_pct, "%)", -->
+<!--                              "<br>Total Pop.: ",  -->
+<!--                              scales::comma(total_population, -->
+<!--                                            accuracy = 1)))) + -->
+<!--     geom_point(stat = "identity", -->
+<!--                alpha = 0.8, position = "jitter", -->
+<!--                aes(x = total_population, y = pwd_pct)) + -->
+<!--     gghighlight(GEOID == input$metro_snapshot) + -->
+<!--     labs(x = "Total Population",  -->
+<!--          y = "PWD (%)", -->
+<!--          title = "People with Disabilities (%) vs. Total Population") + -->
+<!--     scale_x_log10(labels = scales::comma) + -->
+<!--     scale_y_continuous(labels = function(x) paste0(x, "%")) + -->
+<!--     ggplot_fill_selected() + -->
+<!--     ggplot_theme_selected() + -->
+<!--     theme(legend.position = "top") -->
 
-output$metro_snapshot_cp_plot <- renderPlotly({
-  
-  # Plot
-  gg <- metro_snapshot_place_full %>%
-    mutate("NAME" = str_replace_all(
-      NAME, 
-      pattern = " (city|village|municipality|town), ",
-      replacement = ", ")) %>%  
-    select(GEOID,
-           NAME,
-           "pwd_25_over" = S1811_C02_039_estimate,
-           "pwd_bachelors" = S1811_C02_043_estimate) %>% 
-    ggplot(aes(text = paste0("City: ", NAME, 
-                             "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%",
-                             "<br>PWD 25+: ", scales::comma(pwd_25_over,
-                                                            accuracy = 1)))) +
-    geom_point(stat = "identity",
-               alpha = 0.8, position = "jitter",
-               aes(x = pwd_25_over, y = pwd_bachelors)) +
-    gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "PWD, 25 or Older", 
-         y = "Bachelor's Degree or Higher (%)",
-         title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") +
-    scale_x_log10(labels = scales::comma) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
-  
-  # Interactive plotly settings
-  plotly::ggplotly(gg, tooltip = "text") %>% 
-    plotly::layout(
-      height = 280,
-      margin = list(l = 25, t = 25, b = 90),
-      xaxis = list(title = list(text = "PWD, 25 or Older",
-                                standoff = 5,
-                                font = list(size = 14)),
-                   tickfont = list(size = 12)),
-      yaxis = list(title = list(text = "Bachelor's Degree or Higher (%)",
-                                standoff = 5,
-                                font = list(size = 14)),
-                   tickfont = list(size = 12)),
-      title = list(text = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older",
-                   font = list(size = 16),
-                   yref = "paper",
-                   y = 1,
-                   yanchor = "bottom"),
-      font = list(size = 10)
-    )
-  
-})
+<!--   # Interactive plotly settings -->
+<!--   plotly::ggplotly(gg, tooltip = "text") %>%  -->
+<!--     plotly::layout( -->
+<!--       height = 280, -->
+<!--       margin = list(l = 25, t = 25, b = 90), -->
+<!--       xaxis = list(title = list(text = "Total Population", -->
+<!--                                 standoff = 5, -->
+<!--                                 font = list(size = 14)), -->
+<!--                    tickfont = list(size = 12)), -->
+<!--       yaxis = list(title = list(text = "PWD (%)", -->
+<!--                                 standoff = 5, -->
+<!--                                 font = list(size = 14)), -->
+<!--                    tickfont = list(size = 12)), -->
+<!--       title = list(text = "People with Disabilities (%) vs. Total Population", -->
+<!--                    font = list(size = 16), -->
+<!--                    yref = "paper", -->
+<!--                    y = 1, -->
+<!--                    yanchor = "bottom"), -->
+<!--       font = list(size = 10) -->
+<!--     ) -->
 
-# ===============
-# Work/Economic
-# ===============
+<!-- }) -->
 
-# Definition
-output$metro_snapshot_we_plot <- renderPlotly({
-  
-  # Plot
-  gg <- metro_snapshot_place_full %>%
-    mutate("NAME" = str_replace_all(
-      NAME, 
-      pattern = " (city|village|municipality|town), ",
-      replacement = ", ")) %>% 
-    select(GEOID,
-           NAME,
-           "pwd_employed" = S1811_C02_004_estimate,
-           "pwd" = S1811_C02_001_estimate,
-           "pwd_employed_pct" = S1811_C02_002_estimate) %>% 
-    ggplot(aes(text = paste0("City: ", NAME, 
-                             "<br>PWD Employed: ", 
-                             scales::comma(pwd_employed,
-                                           accuracy = 1), 
-                             " (", pwd_employed_pct, "%)",
-                             "<br>PWD ", scales::comma(pwd,
-                                                       accuracy = 1)))) +
-    geom_point(stat = "identity",
-               alpha = 0.8, position = "jitter",
-               aes(x = pwd, y = pwd_employed_pct)) +
-    gghighlight(GEOID == input$metro_snapshot) +
-    labs(x = "People with Disabilities", 
-         y = "PWD Employment Rate (%)",
-         title = "PWD Employment Rate (%) vs. PWD Population") +
-    scale_x_log10(labels = scales::comma) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    ggplot_fill_selected() +
-    ggplot_theme_selected() +
-    theme(legend.position = "top")
-  
-  # Interactive plotly settings
-  plotly::ggplotly(gg, tooltip = "text") %>% 
-    plotly::layout(
-      height = 280,
-      margin = list(l = 25, t = 25, b = 90),
-      xaxis = list(title = list(text = "PWD Population",
-                                standoff = 5,
-                                font = list(size = 14)),
-                   tickfont = list(size = 12)),
-      yaxis = list(title = list(text = "PWD Employment Rate (%)",
-                                standoff = 5,
-                                font = list(size = 14)),
-                   tickfont = list(size = 12)),
-      title = list(text = "PWD Employment Rate (%) vs. PWD Population",
-                   font = list(size = 16),
-                   yref = "paper",
-                   y = 1,
-                   yanchor = "bottom"),
-      font = list(size = 10)
-    )
-  
-})
+<!-- # =============== -->
+<!-- # Community Participation -->
+<!-- # =============== -->
 
-# Tab panel output
-tabsetPanel(type = "tabs",
-            tabPanel("Demographics",
-                     plotlyOutput("metro_snapshot_demo_plot")),
-            tabPanel("Community Participation",
-                     plotlyOutput("metro_snapshot_cp_plot")),
-            tabPanel("Work/Economic",
-                     plotlyOutput("metro_snapshot_we_plot")))
+<!-- output$metro_snapshot_cp_plot <- renderPlotly({ -->
 
-```
+<!--   # Plot -->
+<!--   gg <- metro_snapshot_place_full %>% -->
+<!--     mutate("NAME" = str_replace_all( -->
+<!--       NAME,  -->
+<!--       pattern = " (city|village|municipality|town), ", -->
+<!--       replacement = ", ")) %>%   -->
+<!--     select(GEOID, -->
+<!--            NAME, -->
+<!--            "pwd_25_over" = S1811_C02_039_estimate, -->
+<!--            "pwd_bachelors" = S1811_C02_043_estimate) %>%  -->
+<!--     ggplot(aes(text = paste0("City: ", NAME,  -->
+<!--                              "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%", -->
+<!--                              "<br>PWD 25+: ", scales::comma(pwd_25_over, -->
+<!--                                                             accuracy = 1)))) + -->
+<!--     geom_point(stat = "identity", -->
+<!--                alpha = 0.8, position = "jitter", -->
+<!--                aes(x = pwd_25_over, y = pwd_bachelors)) + -->
+<!--     gghighlight(GEOID == input$metro_snapshot) + -->
+<!--     labs(x = "PWD, 25 or Older",  -->
+<!--          y = "Bachelor's Degree or Higher (%)", -->
+<!--          title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") + -->
+<!--     scale_x_log10(labels = scales::comma) + -->
+<!--     scale_y_continuous(labels = function(x) paste0(x, "%")) + -->
+<!--     ggplot_fill_selected() + -->
+<!--     ggplot_theme_selected() + -->
+<!--     theme(legend.position = "top") -->
 
-### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper}
+<!--   # Interactive plotly settings -->
+<!--   plotly::ggplotly(gg, tooltip = "text") %>%  -->
+<!--     plotly::layout( -->
+<!--       height = 280, -->
+<!--       margin = list(l = 25, t = 25, b = 90), -->
+<!--       xaxis = list(title = list(text = "PWD, 25 or Older", -->
+<!--                                 standoff = 5, -->
+<!--                                 font = list(size = 14)), -->
+<!--                    tickfont = list(size = 12)), -->
+<!--       yaxis = list(title = list(text = "Bachelor's Degree or Higher (%)", -->
+<!--                                 standoff = 5, -->
+<!--                                 font = list(size = 14)), -->
+<!--                    tickfont = list(size = 12)), -->
+<!--       title = list(text = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older", -->
+<!--                    font = list(size = 16), -->
+<!--                    yref = "paper", -->
+<!--                    y = 1, -->
+<!--                    yanchor = "bottom"), -->
+<!--       font = list(size = 10) -->
+<!--     ) -->
 
-```{r, metro snapshot tract table}
+<!-- }) -->
 
-# Reconfigure tract data for table
-metro_snapshot_table_data <- reactive({
-  
-  # Select tract
-  temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ] 
-  
-  # Static check
-  # Census Tract 59.01, Montgomery County, Alabama
-  # temp_mongo_conn <- fun_mongo_connect(host_name = "host_dev",
-  #                                      collection_name = "acs_tract_S1810",
-  #                                      database_name = "ADA-PARC")
-  # temp <- temp_mongo_conn$find(
-  #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }'))
-  
-  # Value and percent (Remove White and Hispanic, reorder Race topic)
-  temp_values <- temp %>% 
-    select(GEOID:NAME, matches("_C02_")) %>%
-    # Values
-    pivot_longer(cols = -c(GEOID:NAME),
-                 names_to = c("variable", ".value"),
-                 names_pattern = "(.*)_(.*)") %>% 
-    # Percent
-    mutate("pct" = format(round((estimate / max(estimate)) * 100,
-                                digits = 1),
-                          nsmall = 1)) %>% 
-    mutate("pct" = replace_na(pct, 0)) %>% 
-    # Variable order
-    filter(!variable %in% c("S1810_C02_004")) %>% 
-    mutate("variable" = fct_relevel(
-      variable,
-      c("S1810_C02_001", 
-        # Gender
-        "S1810_C02_002", "S1810_C02_003",
-        # Race/Ethnicity
-        "S1810_C02_011", "S1810_C02_005", "S1810_C02_012",
-        "S1810_C02_007", "S1810_C02_006", "S1810_C02_008",
-        "S1810_C02_009", "S1810_C02_010",
-        # Age
-        "S1810_C02_013", "S1810_C02_014", "S1810_C02_015",
-        "S1810_C02_016", "S1810_C02_017", "S1810_C02_018"))) %>% 
-    arrange(variable)
-  
-  # Output
-  temp_values %>%
-    left_join(.,
-              dict_vars %>% 
-                select("category" = var_topic,
-                       "label" = var_pretty,
-                       "variable" = var_database),
-              by = "variable") %>%
-    # Label
-    mutate("label" = str_remove_all(label, 
-                                    "Total Persons with Disabilities, ")) %>%
-    mutate("label" = case_when(variable == "S1810_C02_001" ~
-                                 "People with Disabilities",
-                               variable == "S1810_C02_011" ~
-                                 "White alone",
-                               variable == "S1810_C02_012" ~
-                                 "Hispanic or Latino",
-                               TRUE ~ label)) %>%
-    mutate("category" = str_to_title(category)) %>% 
-    select(GEOID, NAME, category, variable, label,
-           estimate, moe, pct) 
-  
-})
+<!-- # =============== -->
+<!-- # Work/Economic -->
+<!-- # =============== -->
 
-# Table
-renderUI({ 
-  
-  # Req
-  req(nrow(metro_snapshot_table_data()) > 0)
-  
-  HTML(
-    
-    kbl(x = metro_snapshot_table_data() %>%
-          mutate("output_est" = paste0(comma(estimate,
-                                             accuracy = 1), 
-                                       " (", pct, "%)"),
-                 "output_moe" = paste0("(±", 
-                                       comma(moe,
-                                             accuracy = 1),
-                                       ")")) %>% 
-          mutate(across(everything(), 
-                        ~cell_spec(., "html",
-                                   color = ifelse(moe >= estimate, 
-                                                  "red", "black")))) %>%
-          select("Variable" = label, "Est" = output_est,  "MOE" = output_moe),
-        caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME),
-        escape = FALSE,
-        table.attr = "style='width:100%;'") %>% 
-      pack_rows(index = table(
-        fct_inorder(metro_snapshot_table_data()$category))) %>% 
-      kable_styling(bootstrap_options = c("striped", "hover", 
-                                          "condensed"),
-                    full_width = TRUE)
-    
-  ) })
+<!-- # Definition -->
+<!-- output$metro_snapshot_we_plot <- renderPlotly({ -->
 
-```
+<!--   # Plot -->
+<!--   gg <- metro_snapshot_place_full %>% -->
+<!--     mutate("NAME" = str_replace_all( -->
+<!--       NAME,  -->
+<!--       pattern = " (city|village|municipality|town), ", -->
+<!--       replacement = ", ")) %>%  -->
+<!--     select(GEOID, -->
+<!--            NAME, -->
+<!--            "pwd_employed" = S1811_C02_004_estimate, -->
+<!--            "pwd" = S1811_C02_001_estimate, -->
+<!--            "pwd_employed_pct" = S1811_C02_002_estimate) %>%  -->
+<!--     ggplot(aes(text = paste0("City: ", NAME,  -->
+<!--                              "<br>PWD Employed: ",  -->
+<!--                              scales::comma(pwd_employed, -->
+<!--                                            accuracy = 1),  -->
+<!--                              " (", pwd_employed_pct, "%)", -->
+<!--                              "<br>PWD ", scales::comma(pwd, -->
+<!--                                                        accuracy = 1)))) + -->
+<!--     geom_point(stat = "identity", -->
+<!--                alpha = 0.8, position = "jitter", -->
+<!--                aes(x = pwd, y = pwd_employed_pct)) + -->
+<!--     gghighlight(GEOID == input$metro_snapshot) + -->
+<!--     labs(x = "People with Disabilities",  -->
+<!--          y = "PWD Employment Rate (%)", -->
+<!--          title = "PWD Employment Rate (%) vs. PWD Population") + -->
+<!--     scale_x_log10(labels = scales::comma) + -->
+<!--     scale_y_continuous(labels = function(x) paste0(x, "%")) + -->
+<!--     ggplot_fill_selected() + -->
+<!--     ggplot_theme_selected() + -->
+<!--     theme(legend.position = "top") -->
+
+<!--   # Interactive plotly settings -->
+<!--   plotly::ggplotly(gg, tooltip = "text") %>%  -->
+<!--     plotly::layout( -->
+<!--       height = 280, -->
+<!--       margin = list(l = 25, t = 25, b = 90), -->
+<!--       xaxis = list(title = list(text = "PWD Population", -->
+<!--                                 standoff = 5, -->
+<!--                                 font = list(size = 14)), -->
+<!--                    tickfont = list(size = 12)), -->
+<!--       yaxis = list(title = list(text = "PWD Employment Rate (%)", -->
+<!--                                 standoff = 5, -->
+<!--                                 font = list(size = 14)), -->
+<!--                    tickfont = list(size = 12)), -->
+<!--       title = list(text = "PWD Employment Rate (%) vs. PWD Population", -->
+<!--                    font = list(size = 16), -->
+<!--                    yref = "paper", -->
+<!--                    y = 1, -->
+<!--                    yanchor = "bottom"), -->
+<!--       font = list(size = 10) -->
+<!--     ) -->
+
+<!-- }) -->
+
+<!-- # Tab panel output -->
+<!-- tabsetPanel(type = "tabs", -->
+<!--             tabPanel("Demographics", -->
+<!--                      plotlyOutput("metro_snapshot_demo_plot")), -->
+<!--             tabPanel("Community Participation", -->
+<!--                      plotlyOutput("metro_snapshot_cp_plot")), -->
+<!--             tabPanel("Work/Economic", -->
+<!--                      plotlyOutput("metro_snapshot_we_plot"))) -->
+
+<!-- ``` -->
+
+<!-- ### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper} -->
+
+<!-- ```{r, metro snapshot tract table} -->
+
+<!-- # Reconfigure tract data for table -->
+<!-- metro_snapshot_table_data <- reactive({ -->
+
+<!--   # Select tract -->
+<!--   temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ]  -->
+
+<!--   # Static check -->
+<!--   # Census Tract 59.01, Montgomery County, Alabama -->
+<!--   # temp_mongo_conn <- fun_mongo_connect(host_name = "host_dev", -->
+<!--   #                                      collection_name = "acs_tract_S1810", -->
+<!--   #                                      database_name = "ADA-PARC") -->
+<!--   # temp <- temp_mongo_conn$find( -->
+<!--   #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }')) -->
+
+<!--   # Value and percent (Remove White and Hispanic, reorder Race topic) -->
+<!--   temp_values <- temp %>%  -->
+<!--     select(GEOID:NAME, matches("_C02_")) %>% -->
+<!--     # Values -->
+<!--     pivot_longer(cols = -c(GEOID:NAME), -->
+<!--                  names_to = c("variable", ".value"), -->
+<!--                  names_pattern = "(.*)_(.*)") %>%  -->
+<!--     # Percent -->
+<!--     mutate("pct" = format(round((estimate / max(estimate)) * 100, -->
+<!--                                 digits = 1), -->
+<!--                           nsmall = 1)) %>%  -->
+<!--     mutate("pct" = replace_na(pct, 0)) %>%  -->
+<!--     # Variable order -->
+<!--     filter(!variable %in% c("S1810_C02_004")) %>%  -->
+<!--     mutate("variable" = fct_relevel( -->
+<!--       variable, -->
+<!--       c("S1810_C02_001",  -->
+<!--         # Gender -->
+<!--         "S1810_C02_002", "S1810_C02_003", -->
+<!--         # Race/Ethnicity -->
+<!--         "S1810_C02_011", "S1810_C02_005", "S1810_C02_012", -->
+<!--         "S1810_C02_007", "S1810_C02_006", "S1810_C02_008", -->
+<!--         "S1810_C02_009", "S1810_C02_010", -->
+<!--         # Age -->
+<!--         "S1810_C02_013", "S1810_C02_014", "S1810_C02_015", -->
+<!--         "S1810_C02_016", "S1810_C02_017", "S1810_C02_018"))) %>%  -->
+<!--     arrange(variable) -->
+
+<!--   # Output -->
+<!--   temp_values %>% -->
+<!--     left_join(., -->
+<!--               dict_vars %>%  -->
+<!--                 select("category" = var_topic, -->
+<!--                        "label" = var_pretty, -->
+<!--                        "variable" = var_database), -->
+<!--               by = "variable") %>% -->
+<!--     # Label -->
+<!--     mutate("label" = str_remove_all(label,  -->
+<!--                                     "Total Persons with Disabilities, ")) %>% -->
+<!--     mutate("label" = case_when(variable == "S1810_C02_001" ~ -->
+<!--                                  "People with Disabilities", -->
+<!--                                variable == "S1810_C02_011" ~ -->
+<!--                                  "White alone", -->
+<!--                                variable == "S1810_C02_012" ~ -->
+<!--                                  "Hispanic or Latino", -->
+<!--                                TRUE ~ label)) %>% -->
+<!--     mutate("category" = str_to_title(category)) %>%  -->
+<!--     select(GEOID, NAME, category, variable, label, -->
+<!--            estimate, moe, pct)  -->
+
+<!-- }) -->
+
+<!-- # Table -->
+<!-- renderUI({  -->
+
+<!--   # Req -->
+<!--   req(nrow(metro_snapshot_table_data()) > 0) -->
+
+<!--   HTML( -->
+
+<!--     kbl(x = metro_snapshot_table_data() %>% -->
+<!--           mutate("output_est" = paste0(comma(estimate, -->
+<!--                                              accuracy = 1),  -->
+<!--                                        " (", pct, "%)"), -->
+<!--                  "output_moe" = paste0("(±",  -->
+<!--                                        comma(moe, -->
+<!--                                              accuracy = 1), -->
+<!--                                        ")")) %>%  -->
+<!--           mutate(across(everything(),  -->
+<!--                         ~cell_spec(., "html", -->
+<!--                                    color = ifelse(moe >= estimate,  -->
+<!--                                                   "red", "black")))) %>% -->
+<!--           select("Variable" = label, "Est" = output_est,  "MOE" = output_moe), -->
+<!--         caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME), -->
+<!--         escape = FALSE, -->
+<!--         table.attr = "style='width:100%;'") %>%  -->
+<!--       pack_rows(index = table( -->
+<!--         fct_inorder(metro_snapshot_table_data()$category))) %>%  -->
+<!--       kable_styling(bootstrap_options = c("striped", "hover",  -->
+<!--                                           "condensed"), -->
+<!--                     full_width = TRUE) -->
+
+<!--   ) }) -->
+
+<!-- ``` -->
 
 <!-- Comparison {data-navmenu="By Metro"} -->
 
