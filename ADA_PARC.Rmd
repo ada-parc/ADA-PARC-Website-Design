@@ -15,7 +15,7 @@ resource_files:
 
 ```{r setup, include=FALSE}
 
-### ----- Libraries and database connections -----
+### ----- Libraries -----
 
 # Packages
 library(tidyverse)
@@ -37,6 +37,8 @@ library(mongolite); library(here)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE)
+
+### ----- Database connections -----
 
 # Set this to host_prod or host_dev
 host_name = "host_dev"
