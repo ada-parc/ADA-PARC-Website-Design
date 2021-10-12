@@ -155,16 +155,22 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 ```{r national sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
+national_category_choices <- c("Demographics" = "is_demographics", 
+                        "Community Participation" = "is_community_participation", 
+                        "Community Living" = "is_community_living", 
+                        "Work/Economic" = "is_work_economic")
+
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
             label = "Select a category", 
-            choices = c("Demographics" = "is_demographics", 
-                        "Community Participation" = "is_community_participation", 
-                        "Community Living" = "is_community_living", 
-                        "Work/Economic" = "is_work_economic"),
+            choices = names(national_category_choices),
             selected = "is_demographics",
             multiple = FALSE,
             selectize = TRUE)
+
+national_category_selected <- reactive({ # Output looks like "is_demographics"
+  national_category_choices[[input$national_category_selector]]
+})
 
 # Initializes the variable selector
 # no choices until national_category_selector is selected
@@ -179,10 +185,10 @@ selectInput(inputId = "national_variable_selector",
             multiple = FALSE,
             selectize = TRUE)
 
-# renderText({ is.null(input$national_category_selector) })
-# renderText({ is.null(input$national_variable_selector) })
-# renderText({ input$national_category_selector })
-# renderText({ input$national_variable_selector })
+renderText({ is.null(national_category_selected()) })
+renderText({ is.null(input$national_variable_selector) })
+renderText({ national_category_selected() })
+renderText({ input$national_variable_selector })
 
 # Update select dropdown with named list of values created below
 observeEvent(input$national_category_selector, {
@@ -190,7 +196,7 @@ observeEvent(input$national_category_selector, {
   # Create reactive named list of choices based on national_category_selector
   national_variable_choices <- tibble::deframe(
     dict_vars %>% 
-      filter((!!sym(input$national_category_selector)) == TRUE,
+      filter((!!sym(national_category_selected())) == TRUE,
              var_readable %in% (
                national_data() %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
@@ -234,7 +240,7 @@ observeEvent(input$national_category_selector, {
 # "is_[table]" refers to a column in the variable dictionary
 # that denotes which table a variable belongs to
 national_data <- reactive({
-  eval(sym(str_remove(input$national_category_selector, "^is_")))
+  eval(sym(str_remove(national_category_selected(), "^is_")))
 })
 
 # You can use this chunk of code to test whether a selector is working
