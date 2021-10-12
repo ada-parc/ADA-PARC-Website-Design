@@ -15,33 +15,25 @@ resource_files:
 
 ```{r setup, include=FALSE}
 
-# ====================
-# Setup
-# ====================
+### ----- Libraries and database connections -----
 
 # Packages
 library(tidyverse)
 library(tigris); library(sf)
 library(geofacet); library(urbnmapr)
-library(leaflet); library(leaflet.extras);
+library(leaflet); library(leaflet.extras)
 library(tmap); library(tmaptools)
 library(htmltools)
 library(shiny)
 library(shinycssloaders)
 # devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
-library(shinyWidgets)
-library(flexdashboard)
-library(colourpicker)
-library(gghighlight)
-library(knitr)
-library(kableExtra)
-library(scales)
-library(hrbrthemes)
-library(ggthemes)
-library(extrafont)
-library(plotly)
-library(mongolite)
-library(here)
+library(shinyWidgets); library(flexdashboard)
+library(colourpicker); library(gghighlight)
+library(knitr); library(kableExtra)
+library(openxlsx); library(scales)
+library(hrbrthemes); library(ggthemes)
+library(extrafont); library(plotly)
+library(mongolite); library(here)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE)
@@ -52,13 +44,13 @@ host_name = "host_dev"
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
 
-# Load variable dictionary for relating tables, variable codes, and readable values
-dict_vars <- fun_pull_mongo_data(tables = "dict_vars", host_name = host_name)
+# Load variable dictionary for relating tables, variable codes,
+# and readable values
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
+                                 host_name = host_name)
 
+### ----- National Data import and clean -----
 
-### ------------------------
-### National data import and clean
-###
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
 source(here("national_import.R"), local = TRUE)
@@ -161,7 +153,7 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 <br>
 
-```{r national_sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
+```{r national sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
@@ -269,9 +261,9 @@ national_data <- reactive({
 
 ### Summary
 
-```{r, national_map_summary, fig.alt = "Descriptive summary of data for the selected topic."}
+```{r national map summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
-output$national_summary <- renderUI({
+output$national_map_summary <- renderUI({
   
   # req(input$national_variable_selector)
   
@@ -289,15 +281,15 @@ output$national_summary <- renderUI({
   
 })
 
-withSpinner(uiOutput("national_summary"))
+withSpinner(uiOutput("national_map_summary"))
 
 ```
 
 ## Row
 
-### State Choropleth Map of Selected Topic
+### State-by-State Map of Selected Topic
 
-```{r, national_map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+```{r national map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 # Button to choose map type
 radioButtons(inputId = "national_map_toggle",
@@ -350,7 +342,7 @@ output$geographic_map <- renderTmap({
 
 ### Table of Selected Topic {.table-wrapper}
 
-```{r, national_table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
+```{r national table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable
 national_vars_in_topic <- reactive({
@@ -439,30 +431,6 @@ output$national_table <- renderUI({ HTML(national_topic_table()) })
 
 withSpinner(uiOutput("national_table"))
 
-# renderPrint({  national_vars_in_topic() })
-# Data table
-# DT::renderDataTable({
-# 
-#   # Reorganize dataframe
-#   national_data <- national_data() %>%
-#     select(GEOID:ABBR, national_vars_in_topic())
-# 
-#   # Table
-#   DT::datatable(national_data,
-#                 rownames = FALSE,
-#                 fillContainer = TRUE,
-#                 extensions = c("Buttons"),
-#                 options = list(pageLength = -1,
-#                                searching = TRUE,
-#                                scrollY = "100vh",
-#                                scrollX = "100px",
-#                                dom = "Bfti",
-#                                # https://datatables.net/reference/option/dom
-#                                buttons = c("copy", "csv", "excel")))
-# })
-# 
-# DT::dataTableOutput("national_data")
-
 ```
 
 # City Data
@@ -471,47 +439,43 @@ withSpinner(uiOutput("national_table"))
 
 <br>
 
-```{r metro snapshot input}
+```{r city sidebar}
 
 # Pull location crosswalk dictionary from GitHub repo
 dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
 
 # Full data for cities in database
-metro_snapshot_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
-                                                 host_name, 
-                                                 "place")
+city_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
+                                       host_name, 
+                                       "place")
 
 # Define inputs, restrict to cities in database
-selectInput(inputId = "metro_snapshot", 
+selectInput(inputId = "city_selector", 
             label = "Select a City or Town", 
             choices = tibble::deframe(
               dict_location_crosswalk %>% 
-                filter(place_GEOID %in% metro_snapshot_place_full$GEOID) %>% 
+                filter(place_GEOID %in% city_place_full$GEOID) %>% 
                 distinct("GEOID" = place_GEOID, metro_state)),
             selectize = FALSE)
 
-# ===============
-# Pull Census place data
-# ===============
+### ----- Pull Census Place data for selected city -----
 
-# Place for selected metro
-metro_snapshot_place <- reactive({
+# Place for selected city
+city_place <- reactive({
   
-  metro_snapshot_place_full %>% 
-    filter(GEOID == input$metro_snapshot)
+  city_place_full %>% 
+    filter(GEOID == input$city_selector)
   
 })
 
-# ===============
-# Pull Census tract data for selected metro
-# ===============
+### ----- Pull Census Tract data for selected city -----
 
 # Spatial
-metro_snapshot_tract_sf <- reactive({
+city_tract_sf <- reactive({
   
-  # Restrict tract call to selected cities
-  temp_metro <- dict_location_crosswalk %>% 
-    filter(place_GEOID %in% c(input$metro_snapshot)) %>% 
+  # Restrict tract call to selected city
+  temp_city <- dict_location_crosswalk %>% 
+    filter(place_GEOID %in% c(input$city_selector)) %>% 
     pull(tract_GEOID)
   
   # Connect and pull
@@ -520,14 +484,14 @@ metro_snapshot_tract_sf <- reactive({
                                        database_name = "ADA-PARC")
   temp_geo <- temp_mongo_conn$iterate(
     query = sprintf('{ "properties.GEOID" : { "$in" : [  "%s" ] } }' ,
-                    str_c(temp_metro, collapse = '", "')))
+                    str_c(temp_city, collapse = '", "')))
   temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
   return(temp_sf)
   
 })
 
 # Tabular
-metro_snapshot_tract <- reactive ({
+city_tract <- reactive ({
   
   # Connect and pull
   temp_mongo_conn <- fun_mongo_connect(host_name,
@@ -535,7 +499,7 @@ metro_snapshot_tract <- reactive ({
                                        database_name = "ADA-PARC")
   temp <- temp_mongo_conn$find(
     query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
-                    str_c(metro_snapshot_tract_sf()$GEOID, collapse = '", "')))
+                    str_c(city_tract_sf()$GEOID, collapse = '", "')))
   return(temp)
   
 })
@@ -546,20 +510,20 @@ metro_snapshot_tract <- reactive ({
 
 ### Overview
 
-```{r metro snapshot overview text}
+```{r city overview}
 
 output$city_overview <- renderUI({
   
-  # Overview text  
-  metro_snap_overview_text <- paste0(
-    "<h4>",  metro_snapshot_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h4>", # "<br>",
-    "Based on ACS 2018 5-Year Estimates, <b>", metro_snapshot_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", metro_snapshot_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", metro_snapshot_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
+  # Overview text
+  city_overview_text <- paste0(
+    "<h4>",  city_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h4>",
+    "Based on ACS 2018 5-Year Estimates, <b>", city_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", city_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", city_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
   # Summary tables side by side
-  metro_snap_tables <- knitr::kables(list(
+  city_overview_tables <- knitr::kables(list(
     
     # Demographics
-    kbl(x = metro_snapshot_place() %>%
+    kbl(x = city_place() %>%
           mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
                    S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
           select("White" = S1810_C02_011_estimate,
@@ -588,7 +552,7 @@ output$city_overview <- renderUI({
                     position = "left"),
     
     # Community Participation
-    kbl(x = metro_snapshot_place() %>%
+    kbl(x = city_place() %>%
           transmute("Car" = 
                       paste0(comma(S1811_C02_032_estimate * 
                                      (S1811_C02_033_estimate +
@@ -634,7 +598,7 @@ output$city_overview <- renderUI({
                     position = "left"),
     
     # Work/Economic
-    kbl(x = metro_snapshot_place() %>%
+    kbl(x = city_place() %>%
           transmute("Employed" = 
                       paste0(comma(S1811_C02_004_estimate, accuracy = 1),
                              "<br>(", S1811_C02_002_estimate, "%)"),
@@ -660,7 +624,7 @@ output$city_overview <- renderUI({
                   position = "left")
   
   # UI Output
-  HTML(paste(metro_snap_overview_text, metro_snap_tables, sep = "<br>"))
+  HTML(paste(city_overview_text, city_overview_tables, sep = "<br>"))
   
 })
 
@@ -672,13 +636,13 @@ withSpinner(uiOutput("city_overview"))
 
 ### People With Disabilities Map
 
-```{r metro snapshot overview map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
+```{r city pwd map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
 # Palette
-pal_metro_snapshot <- reactive ({
+pal_city <- reactive ({
   
   colorQuantile(palette = input$access_map_palette,
-                domain = pull(metro_snapshot_tract(), S1810_C02_001_estimate),
+                domain = pull(city_tract(), S1810_C02_001_estimate),
                 n = 4)
   
 })
@@ -686,19 +650,20 @@ pal_metro_snapshot <- reactive ({
 # Tract map
 output$snapshotmap <- renderLeaflet({
   
-  left_join(metro_snapshot_tract_sf(),
-            metro_snapshot_tract() %>% select(GEOID, S1810_C02_001_estimate),
+  left_join(city_tract_sf(),
+            city_tract() %>% select(GEOID, S1810_C02_001_estimate),
             by = "GEOID") %>%
     leaflet() %>%
     clearShapes() %>%
     addProviderTiles(providers$Esri, group = "Esri") %>%
     addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
     addResetMapButton() %>%
-    addPolygons(stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
-                fillColor = ~pal_metro_snapshot()(S1810_C02_001_estimate),
+    addPolygons(stroke = TRUE, color = "#444444", 
+                weight = 1, smoothFactor = 0,
+                fillColor = ~pal_city()(S1810_C02_001_estimate),
                 fillOpacity = 0.5,
                 layerId = ~GEOID) %>%
-    addLegend(position = "topright", pal = pal_metro_snapshot(),
+    addLegend(position = "topright", pal = pal_city(),
               values = ~S1810_C02_001_estimate,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
@@ -732,7 +697,7 @@ output$snapshotmap <- renderLeaflet({
 #   
 #   snapshotmap <- leafletProxy("snapshotmap") %>%
 #     removeShape("highlight_tract") %>%
-#     addPolygons(data = metro_snapshot_tract_sf()[metro_snapshot_tract_sf()$GEOID == click_snapshotmap(), ], 
+#     addPolygons(data = city_tract_sf()[city_tract_sf()$GEOID == click_snapshotmap(), ], 
 #                 fill = FALSE, weight = 3,
 #                 color = "#000000", opacity = 1, layerId = "highlight_tract")
 #   
@@ -746,17 +711,17 @@ withSpinner(leafletOutput("snapshotmap"))
 
 <!-- ### City in Context -->
 
-<!-- ```{r metro snapshot plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"} -->
+<!-- ```{r city context plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"} -->
 
 <!-- # =============== -->
 <!-- # Demographics -->
 <!-- # =============== -->
 
 <!-- # Definition -->
-<!-- output$metro_snapshot_demo_plot <- renderPlotly({ -->
+<!-- output$city_demo_plot <- renderPlotly({ -->
 
 <!--   # Plot -->
-<!--   gg <- metro_snapshot_place_full %>% -->
+<!--   gg <- city_place_full %>% -->
 <!--     mutate("NAME" = str_replace_all( -->
 <!--       NAME,  -->
 <!--       pattern = " (city|village|municipality|town), ", -->
@@ -776,7 +741,7 @@ withSpinner(leafletOutput("snapshotmap"))
 <!--     geom_point(stat = "identity", -->
 <!--                alpha = 0.8, position = "jitter", -->
 <!--                aes(x = total_population, y = pwd_pct)) + -->
-<!--     gghighlight(GEOID == input$metro_snapshot) + -->
+<!--     gghighlight(GEOID == input$city_selector) + -->
 <!--     labs(x = "Total Population",  -->
 <!--          y = "PWD (%)", -->
 <!--          title = "People with Disabilities (%) vs. Total Population") + -->
@@ -813,10 +778,10 @@ withSpinner(leafletOutput("snapshotmap"))
 <!-- # Community Participation -->
 <!-- # =============== -->
 
-<!-- output$metro_snapshot_cp_plot <- renderPlotly({ -->
+<!-- output$city_cp_plot <- renderPlotly({ -->
 
 <!--   # Plot -->
-<!--   gg <- metro_snapshot_place_full %>% -->
+<!--   gg <- city_place_full %>% -->
 <!--     mutate("NAME" = str_replace_all( -->
 <!--       NAME,  -->
 <!--       pattern = " (city|village|municipality|town), ", -->
@@ -832,7 +797,7 @@ withSpinner(leafletOutput("snapshotmap"))
 <!--     geom_point(stat = "identity", -->
 <!--                alpha = 0.8, position = "jitter", -->
 <!--                aes(x = pwd_25_over, y = pwd_bachelors)) + -->
-<!--     gghighlight(GEOID == input$metro_snapshot) + -->
+<!--     gghighlight(GEOID == input$city_selector) + -->
 <!--     labs(x = "PWD, 25 or Older",  -->
 <!--          y = "Bachelor's Degree or Higher (%)", -->
 <!--          title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") + -->
@@ -870,10 +835,10 @@ withSpinner(leafletOutput("snapshotmap"))
 <!-- # =============== -->
 
 <!-- # Definition -->
-<!-- output$metro_snapshot_we_plot <- renderPlotly({ -->
+<!-- output$city_we_plot <- renderPlotly({ -->
 
 <!--   # Plot -->
-<!--   gg <- metro_snapshot_place_full %>% -->
+<!--   gg <- city_place_full %>% -->
 <!--     mutate("NAME" = str_replace_all( -->
 <!--       NAME,  -->
 <!--       pattern = " (city|village|municipality|town), ", -->
@@ -893,7 +858,7 @@ withSpinner(leafletOutput("snapshotmap"))
 <!--     geom_point(stat = "identity", -->
 <!--                alpha = 0.8, position = "jitter", -->
 <!--                aes(x = pwd, y = pwd_employed_pct)) + -->
-<!--     gghighlight(GEOID == input$metro_snapshot) + -->
+<!--     gghighlight(GEOID == input$city_selector) + -->
 <!--     labs(x = "People with Disabilities",  -->
 <!--          y = "PWD Employment Rate (%)", -->
 <!--          title = "PWD Employment Rate (%) vs. PWD Population") + -->
@@ -929,11 +894,11 @@ withSpinner(leafletOutput("snapshotmap"))
 <!-- # Tab panel output -->
 <!-- tabsetPanel(type = "tabs", -->
 <!--             tabPanel("Demographics", -->
-<!--                      plotlyOutput("metro_snapshot_demo_plot")), -->
+<!--                      plotlyOutput("city_demo_plot")), -->
 <!--             tabPanel("Community Participation", -->
-<!--                      plotlyOutput("metro_snapshot_cp_plot")), -->
+<!--                      plotlyOutput("city_cp_plot")), -->
 <!--             tabPanel("Work/Economic", -->
-<!--                      plotlyOutput("metro_snapshot_we_plot"))) -->
+<!--                      plotlyOutput("city_we_plot"))) -->
 
 <!-- ``` -->
 
@@ -942,10 +907,10 @@ withSpinner(leafletOutput("snapshotmap"))
 <!-- ```{r, metro snapshot tract table} -->
 
 <!-- # Reconfigure tract data for table -->
-<!-- metro_snapshot_table_data <- reactive({ -->
+<!-- city_table_data <- reactive({ -->
 
 <!--   # Select tract -->
-<!--   temp <- metro_snapshot_tract()[metro_snapshot_tract()$GEOID == click_snapshotmap(), ]  -->
+<!--   temp <- city_tract()[city_tract()$GEOID == click_snapshotmap(), ]  -->
 
 <!--   # Static check -->
 <!--   # Census Tract 59.01, Montgomery County, Alabama -->
@@ -1011,11 +976,11 @@ withSpinner(leafletOutput("snapshotmap"))
 <!-- renderUI({  -->
 
 <!--   # Req -->
-<!--   req(nrow(metro_snapshot_table_data()) > 0) -->
+<!--   req(nrow(city_table_data()) > 0) -->
 
 <!--   HTML( -->
 
-<!--     kbl(x = metro_snapshot_table_data() %>% -->
+<!--     kbl(x = city_table_data() %>% -->
 <!--           mutate("output_est" = paste0(comma(estimate, -->
 <!--                                              accuracy = 1),  -->
 <!--                                        " (", pct, "%)"), -->
@@ -1028,11 +993,11 @@ withSpinner(leafletOutput("snapshotmap"))
 <!--                                    color = ifelse(moe >= estimate,  -->
 <!--                                                   "red", "black")))) %>% -->
 <!--           select("Variable" = label, "Est" = output_est,  "MOE" = output_moe), -->
-<!--         caption = metro_snapshot_table_data() %>% head(1) %>% pull(NAME), -->
+<!--         caption = city_table_data() %>% head(1) %>% pull(NAME), -->
 <!--         escape = FALSE, -->
 <!--         table.attr = "style='width:100%;'") %>%  -->
 <!--       pack_rows(index = table( -->
-<!--         fct_inorder(metro_snapshot_table_data()$category))) %>%  -->
+<!--         fct_inorder(city_table_data()$category))) %>%  -->
 <!--       kable_styling(bootstrap_options = c("striped", "hover",  -->
 <!--                                           "condensed"), -->
 <!--                     full_width = TRUE) -->
@@ -1041,7 +1006,7 @@ withSpinner(leafletOutput("snapshotmap"))
 
 <!-- ``` -->
 
-<!-- Comparison {data-navmenu="By Metro"} -->
+<!-- Comparison {data-navmenu="By City"} -->
 
 <!-- ====================================================================== -->
 
@@ -1061,13 +1026,13 @@ withSpinner(leafletOutput("snapshotmap"))
 
 <!-- # Define inputs -->
 
-<!-- # Metro -->
+<!-- # City -->
 
 <!-- selectizeInput(inputId = "compare",  -->
 
-<!--                label = "Select Metro Areas to Compare",  -->
+<!--                label = "Select Cities to Compare",  -->
 
-<!--                choices = metro_snapshot_tract() %>% select(metro_state), -->
+<!--                choices = city_tract() %>% select(metro_state), -->
 
 <!--                multiple = TRUE, -->
 
@@ -1307,124 +1272,61 @@ withSpinner(leafletOutput("snapshotmap"))
 
 <!-- ``` -->
 
-# Data {data-navmenu="Download" data-icon="fa-database"}
-
-## Sidebar {.sidebar}
-
-<br>
-
-```{r, data download sidebar}
-
-# ====================
-# Filters
-# ====================
-
-# Define inputs
-radioButtons(inputId = "data_download_national",
-             label = "Select an Area of Interest",
-             choices = c("Demographics" = "demographics",
-                         "Community Living" = "community_living", 
-                         "Community Participation" = "community_participation", 
-                         "Work/Economic" = "work_economic"),
-             selected = NULL)
-
-# Restrict statistic breakdown based on type
-data_download_national_selected <- reactive({
-  
-  eval(sym(input$data_download_national))
-  
-})
-
-```
+# Download Data
 
 ## Row
 
-### Selected Data for Download {.download-DT}
+###  
 
-```{r, data download table}
+```{r download data body}
 
-# Selected data for download
-output$data_download_table <- DT::renderDataTable({
+### ----- National Data -----
+
+# Text
+h5("Download National Data:")
+
+# Download button
+downloadButtonRmd(outputId = "download_data_national_button",
+                  label = "Download",
+                  style = "vertical-align: middle; height: 40px !important; width: 125px !important;")
+
+# Download file 
+output$download_data_national_button <- downloadHandler(
   
-  DT::datatable(data_download_national_selected(),
-                fillContainer = TRUE,
-                extensions = "Buttons",
-                options = list(dom = "Bfrtip",
-                               buttons = c("copy", "csv", "excel", "pdf", "print"),
-                               bPaginate = FALSE,
-                               scrollX = "200px",
-                               scrollY = "800px",
-                               pageLength = dim(data_download_national_selected())[1]))
-  
-})
-
-DT::dataTableOutput("data_download_table", width = 50)
+  filename = function() {
+    paste0("ADA-PARC_National_Data_Download_",
+           format(Sys.time(), "%Y-%m-%d_%I%M%p"),
+           ".xlsx")
+  },
+  content = function(file) {
+    openxlsx::write.xlsx(
+      list("Demographics" = demographics %>% 
+             arrange(GEOID), 
+           "Community Participation" = community_participation %>% 
+             arrange(GEOID), 
+           "Community Living" = community_living %>% 
+             arrange(GEOID), 
+           "Work-Economic" = work_economic %>% 
+             arrange(GEOID),
+           "Lookup" = dict_vars %>%
+             filter((is_demographics == TRUE | 
+                      is_community_living == TRUE |
+                      is_community_participation == TRUE |
+                      is_work_economic == TRUE)) %>% 
+             select("variable_key" = var_readable, 
+                    "variable_label" = var_pretty, 
+                    is_demographics:is_work_economic)),
+      file)
+  }
+)
 
 ```
 
-# Fact Sheets {data-navmenu="Download" data-icon="fa-file-alt"}
+# Download Fact Sheets
 
 ## Sidebar {.sidebar}
 
-```{r, fact sheet download sidebar}
-
-# ====================
-# Lookups for filters
-# ====================
-
-# Demographics
-demographics_lu <- names(national_demographics) %>% 
-  as_tibble_col(column_name = "column_name") %>% 
-  mutate(column_type =
-           case_when(str_detect(string = column_name,
-                                pattern = "percent") ~
-                       "percent",
-                     TRUE ~ "value"),
-         filter_temp = 
-           case_when(column_name %in%
-                       c("pwd",
-                         "percent_of_total_population_with_a_disability") ~
-                       "general __ General",
-                     column_name %in%
-                       c("pwd_18_64_years",
-                         "pwd_65_years") ~
-                       "age __ Age",
-                     TRUE ~ NA_character_)) %>% 
-  filter(!is.na(filter_temp)) %>% 
-  separate(col = "filter_temp", 
-           into = c("filter_value", "filter_label"),
-           sep = " __ ")
-
-# Community Living
-community_living_lu <- names(national_living) %>% 
-  as_tibble_col(column_name = "column_name") %>% 
-  mutate(column_type =
-           case_when(str_detect(string = column_name,
-                                pattern = "percent") ~
-                       "percent",
-                     TRUE ~ "value"),
-         filter_temp = 
-           case_when(column_name %in%
-                       c("pwd_in_institutionalized_group_quarters",
-                         "percent_pwd_institution") ~
-                       "institution_pop __ PWD Living in Institutional Residence",
-                     column_name %in%
-                       c("pwd_in_home",
-                         "percent_pwd_home") ~
-                       "home_pop __ PWD Living in Home Residence",
-                     column_name %in%
-                       c("pwd_in_non_institutional_group_quarters",
-                         "percent_pwd_other_group_quarters") ~
-                       "othergq_pop __ PWD Living in Other Group Quarters Residence",
-                     column_name %in%
-                       c("total_population_in_nursing_18_64",
-                         "percent_of_pwd_18_64_in_nursing") ~
-                       "nursing_working_pop __ PWD of Working Age, Living in Nursing Home",
-                     TRUE ~ NA_character_)) %>% 
-  filter(!is.na(filter_temp)) %>% 
-  separate(col = "filter_temp", 
-           into = c("filter_value", "filter_label"),
-           sep = " __ ")
+```{r download fact sheets sidebar}
 
 # ====================
 # Filters
@@ -1495,7 +1397,7 @@ stat_subset <- reactive({
 
 ###  {.long-row}
 
-```{r}
+```{r accessibility page body}
 
 # Map palette
 selectInput(inputId = "access_map_palette",
@@ -1536,10 +1438,11 @@ Shiny.setInputValue("active_tab", $(e.target).parent().index());
 })
 </script>
 ```
+
 <!-- CSS for dashboard  -->
 
 ```{=html}
-<style  type="text/css">
+<style type="text/css">
 
 /* #################### */
 /* Fonts */

@@ -14,9 +14,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 
-# ====================
-# Setup
-# ====================
+### ----- Libraries and database connections ----- 
 
 # Packages
 library(tidyverse); library(sf); library(htmltools)
@@ -38,11 +36,10 @@ host_name = "host_dev"
 source(here("functions.R"), local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes, and readable values
-dict_vars <- fun_pull_mongo_data(tables = "dict_vars", host_name = host_name)
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
+                                 host_name = host_name)
 
-### ==========
-### National data import and clean
-### ==========
+### ----- National data import and clean ----- 
 
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
@@ -60,16 +57,16 @@ rmd_title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == p
 
 ### Summary
 
-```{r, national_map_summary, fig.alt = "Descriptive summary of data for the selected topic."}
+```{r national map summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
 HTML(altText(national_data, 
              params$national_variable_selector))
 
 ```
 
-### State Choropleth Map of Selected Topic
+### State-by-State Map of Selected Topic
 
-```{r, national_map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+```{r national map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 render_geo_static_map(national_data, 
                       params$national_variable_selector, 
@@ -81,7 +78,7 @@ render_geo_static_map(national_data,
 
 ### Table of Selected Topic
 
-```{r, national_table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
+```{r national table, fig.alt = "State-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable
 national_vars_in_topic <- dict_vars %>% 
