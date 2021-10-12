@@ -157,10 +157,12 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 ```{r national sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
-national_category_choices <- c("Demographics" = "is_demographics", 
-                        "Community Participation" = "is_community_participation", 
-                        "Community Living" = "is_community_living", 
-                        "Work/Economic" = "is_work_economic")
+national_category_choices <- c(
+  "Demographics" = "is_demographics", 
+  "Community Participation" = "is_community_participation", 
+  "Community Living" = "is_community_living", 
+  "Work/Economic" = "is_work_economic"
+)
 
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
@@ -187,10 +189,10 @@ selectInput(inputId = "national_variable_selector",
             multiple = FALSE,
             selectize = TRUE)
 
-renderText({ is.null(national_category_selected()) })
-renderText({ is.null(input$national_variable_selector) })
-renderText({ national_category_selected() })
-renderText({ input$national_variable_selector })
+# renderText({ is.null(national_category_selected()) })
+# renderText({ is.null(input$national_variable_selector) })
+# renderText({ national_category_selected() })
+# renderText({ input$national_variable_selector })
 
 # Update select dropdown with named list of values created below
 observeEvent(input$national_category_selector, {
@@ -329,7 +331,7 @@ output$tile_map <-
     
     render_tile_map(national_data(), 
                     input$national_variable_selector, 
-                    input$access_map_palette)
+                    access_map_palette_selected())
     
   })
 
@@ -342,7 +344,7 @@ output$geographic_map <- renderTmap({
   
   render_geo_interactive_map(national_data(), 
                              input$national_variable_selector, 
-                             input$access_map_palette)
+                             access_map_palette_selected())
   
 })
 
@@ -356,10 +358,10 @@ output$geographic_map <- renderTmap({
 national_vars_in_topic <- reactive({
   
   dict_vars %>% 
-    filter((!!sym(input$national_category_selector)) == TRUE,
+    filter((!!sym(national_category_selected())) == TRUE,
            var_topic ==
              (dict_vars %>% 
-                filter((!!sym(input$national_category_selector)) == TRUE,
+                filter((!!sym(national_category_selected())) == TRUE,
                        var_readable == input$national_variable_selector) %>% 
                 pull(var_topic)),
            display == T) %>% 
@@ -385,7 +387,7 @@ cap_choices <- c("Demographics" = "is_demographics",
 
 table_caption <- reactive({
   
-  paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
+  paste(names(cap_choices[cap_choices == national_category_selected()]), "Table")
   
 })
 
@@ -649,7 +651,7 @@ withSpinner(uiOutput("city_overview"))
 # Palette
 pal_city <- reactive ({
   
-  colorQuantile(palette = input$access_map_palette,
+  colorQuantile(palette = access_map_palette_selected(),
                 domain = pull(city_tract(), S1810_C02_001_estimate),
                 n = 4)
   
