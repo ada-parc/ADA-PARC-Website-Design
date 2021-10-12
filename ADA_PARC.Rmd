@@ -1400,16 +1400,21 @@ stat_subset <- reactive({
 ```{r accessibility page body}
 
 # Map palette
+access_map_palette_choices <- list(
+  "Yellow-Orange-Brown" = "YlOrBr", 
+  "Yellow-Orange-Red" = "YlOrRd", 
+  "Green-Blue" = "GnBu")
+
 selectInput(inputId = "access_map_palette",
             label = h5("Select a color palette for maps:"),
-            choices = list("Yellow-Orange-Brown" = "YlOrBr", 
-                           "Yellow-Orange-Red" = "YlOrRd", 
-                           "Green-Blue" = "GnBu"),
+            choices = names(access_map_palette_choices),
             selected = "Yellow-Orange-Brown")
 
-
+access_map_palette_selected <- reactive({
+  access_map_palette_choices[[input$access_map_palette]] })
+  
 # GGplot themes and colors
-access_ggplot_themes <- list(
+access_ggplot_theme_choices <- list(
   "The Economist" = list(theme_economist(), scale_fill_economist(), scale_color_economist()),
   "Five Thirty Eight" = list(theme_fivethirtyeight(), scale_fill_economist(), scale_color_fivethirtyeight()),
   "Highcharts" = list(theme_hc(), scale_fill_hc(), scale_color_hc()),
@@ -1420,12 +1425,12 @@ access_ggplot_themes <- list(
 
 selectInput(inputId = "access_ggplot_theme", 
             label = h5("Select a theme for plots:"), 
-            choices = names(access_ggplot_themes),
+            choices = names(access_ggplot_theme_choices),
             selected = "Ipsum")
 
-ggplot_theme_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][1] })
-ggplot_fill_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][2] }) 
-ggplot_color_selected <- reactive({ access_ggplot_themes[[input$access_ggplot_theme]][3] }) 
+ggplot_theme_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggplot_theme]][1] })
+ggplot_fill_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggplot_theme]][2] }) 
+ggplot_color_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggplot_theme]][3] }) 
 
 ```
 
@@ -1477,21 +1482,22 @@ color: #000000;
 }
 
 /* Colors for map palette dropdown */
-#access_map_palette ~ .selectize-control .option[data-value=YlOrBr]{ 
+/*
+#access_map_palette ~ .selectize-control .option[data-value="Yellow-Orange-Brown"]{ 
 background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
 background-size: auto !important;
 }
 
-#access_map_palette ~ .selectize-control .option[data-value=YlOrRd]{ 
+#access_map_palette ~ .selectize-control .option[data-value="Yellow-Orange-Red"]{ 
 background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
 background-size: auto !important;
 }
 
-#access_map_palette ~ .selectize-control .option[data-value=GnBu]{ 
+#access_map_palette ~ .selectize-control .option[data-value="Green-Blue"]{ 
 background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
 background-size: auto !important;
 }
-
+*/
 
 
 /* #################### */
