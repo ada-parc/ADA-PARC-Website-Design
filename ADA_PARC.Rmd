@@ -15,7 +15,7 @@ resource_files:
 
 ```{r setup, include=FALSE}
 
-### ----- Libraries and database connections -----
+### ----- Libraries -----
 
 # Packages
 library(tidyverse)
@@ -37,6 +37,8 @@ library(mongolite); library(here)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE)
+
+### ----- Database connections -----
 
 # Set this to host_prod or host_dev
 host_name = "host_dev"
@@ -187,7 +189,10 @@ national_category_selected <- reactive({ # Output looks like "is_demographics"
 #   )
 # })
 
-### National variable selection widget
+# renderText({ is.null(national_category_selected()) })
+# renderText({ is.null(input$national_variable_selector) })
+# renderText({ national_category_selected() })
+# renderText({ input$national_variable_selector })
 
 national_variable_choices <- reactive({
   
@@ -378,7 +383,7 @@ cap_choices <- c("Demographics" = "is_demographics",
 
 table_caption <- reactive({
   
-  paste(names(cap_choices[cap_choices == input$national_category_selector]), "Table")
+  paste(names(cap_choices[cap_choices == national_category_selected()]), "Table")
   
 })
 
@@ -642,7 +647,7 @@ withSpinner(uiOutput("city_overview"))
 # Palette
 pal_city <- reactive ({
   
-  colorQuantile(palette = input$access_map_palette,
+  colorQuantile(palette = access_map_palette_selected(),
                 domain = pull(city_tract(), S1810_C02_001_estimate),
                 n = 4)
   
