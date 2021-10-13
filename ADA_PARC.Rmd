@@ -168,32 +168,14 @@ selectInput(inputId = "national_category_selector",
             label = "Select a category", 
             choices = names(national_category_choices),
             selected = "is_demographics",
-            multiple = FALSE,
-            selectize = F)
+            multiple = FALSE)
 
 national_category_selected <- reactive({ # Output looks like "is_demographics"
-  national_category_choices[[input$national_category_selector]]
+  getElement(national_category_choices, input$national_category_selector)
+  # national_category_choices[[input$national_category_selector]]
 })
 
-# national_variable_choices <- reactive({
-#   tibble::deframe(
-#     dict_vars %>% 
-#       filter((!!sym(national_category_selected())) == TRUE,
-#              var_readable %in% (
-#                national_data() %>%
-#                  select(-c(GEOID, NAME, ABBR)) %>%
-#                  names()
-#              ),
-#              !is.na(national_dropdown_label)) %>%
-#       select(national_dropdown_label, var_readable)
-#   )
-# })
-
-# renderText({ is.null(national_category_selected()) })
-# renderText({ is.null(input$national_variable_selector) })
-# renderText({ national_category_selected() })
-# renderText({ input$national_variable_selector })
-
+# National variable selection widget
 national_variable_choices <- reactive({
   
   tibble::deframe(
@@ -213,41 +195,15 @@ national_variable_choices <- reactive({
 selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
             choices = "Population",
-            multiple = F,
-            selectize = F)
+            multiple = F)
 
 observeEvent(input$national_category_selector, {
     choices <- names(national_variable_choices())
     updateSelectInput(session, "national_variable_selector", choices = choices)
   })
 
-# selectInput(inputId = "national_variable_selector",
-#             label = "Select a topic",
-#             choices =  names(national_variable_choices()),
-#             selected = "pop_total",
-#             multiple = FALSE,
-#             selectize = TRUE)
-
-
-# # Update select dropdown with named list of values created below
-# observe({
-#   
-#   # Initializes the variable selector
-#   # no choices until national_category_selector is selected
-# 
-#   
-#   updateSelectInput(session,
-#                     input = "national_variable_selector",
-#                     choices = names(national_variable_choices()),
-#                     selected = "pop_total",
-#               multiple = FALSE,
-#               selectize = TRUE)
-# #   
-# })
-
 national_variable_selected <- reactive({ # Output looks like "is_demographics"
   getElement(national_variable_choices(), input$national_variable_selector)
-  # national_variable_choices()[input$national_variable_selector]
 })
 
 ### For debugging
@@ -270,8 +226,6 @@ national_data <- reactive({
 ```{r national map summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
 output$national_map_summary <- renderUI({
-  
-  # req(input$national_variable_selector)
   
   HTML(
     paste0(
@@ -461,8 +415,7 @@ selectInput(inputId = "city_selector",
             choices = tibble::deframe(
               dict_location_crosswalk %>% 
                 filter(place_GEOID %in% city_place_full$GEOID) %>% 
-                distinct("GEOID" = place_GEOID, metro_state)),
-            selectize = FALSE)
+                distinct("GEOID" = place_GEOID, metro_state)))
 
 ### ----- Pull Census Place data for selected city -----
 
