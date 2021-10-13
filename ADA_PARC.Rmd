@@ -155,6 +155,7 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 ```{r national sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
+### National category selection widget
 national_category_choices <- c("Demographics" = "is_demographics", 
                         "Community Participation" = "is_community_participation", 
                         "Community Living" = "is_community_living", 
@@ -166,37 +167,33 @@ selectInput(inputId = "national_category_selector",
             choices = names(national_category_choices),
             selected = "is_demographics",
             multiple = FALSE,
-            selectize = TRUE)
+            selectize = F)
 
 national_category_selected <- reactive({ # Output looks like "is_demographics"
   national_category_choices[[input$national_category_selector]]
 })
 
-# Initializes the variable selector
-# no choices until national_category_selector is selected
-selectInput(inputId = "national_variable_selector",
-            label = "Select a topic",
-            choices = tibble::deframe(
-              dict_vars %>%
-                filter(is_demographics == TRUE,
-                       !is.na(national_dropdown_label)) %>%
-                select(national_dropdown_label, var_readable)),
-            selected = "pop_total",
-            multiple = FALSE,
-            selectize = TRUE)
+# national_variable_choices <- reactive({
+#   tibble::deframe(
+#     dict_vars %>% 
+#       filter((!!sym(national_category_selected())) == TRUE,
+#              var_readable %in% (
+#                national_data() %>%
+#                  select(-c(GEOID, NAME, ABBR)) %>%
+#                  names()
+#              ),
+#              !is.na(national_dropdown_label)) %>%
+#       select(national_dropdown_label, var_readable)
+#   )
+# })
 
-renderText({ is.null(national_category_selected()) })
-renderText({ is.null(input$national_variable_selector) })
-renderText({ national_category_selected() })
-renderText({ input$national_variable_selector })
+### National variable selection widget
 
-# Update select dropdown with named list of values created below
-observeEvent(input$national_category_selector, {
+national_variable_choices <- reactive({
   
-  # Create reactive named list of choices based on national_category_selector
-  national_variable_choices <- tibble::deframe(
+  tibble::deframe(
     dict_vars %>% 
-      filter((!!sym(national_category_selected())) == TRUE,
+      filter(!!sym(national_category_selected()) == TRUE,
              var_readable %in% (
                national_data() %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
@@ -206,60 +203,58 @@ observeEvent(input$national_category_selector, {
       select(national_dropdown_label, var_readable)
   )
   
-  # Static check
-  # national_variable_selector_static <- tibble::deframe(
-  #   dict_vars %>%
-  #     filter(is_demographics == TRUE,
-  #            var_readable %in% (
-  #              demographics %>%
-  #                select(-c(GEOID, NAME, ABBR)) %>%
-  #                names()
-  #            ),
-  #            !is.na(national_dropdown_label)) %>%
-  #     select(national_dropdown_label, var_readable)) %>%
-  #   head(1)
-  
-  # Default topic choice depending on category
-  # national_variable_default <- 
-  #   if (temp_category == "is_community_participation") {
-  #     "pwd_commute_car_alone_pct"
-  #   } else {
-  #     "pop_total"
-  #   }
-  
-  updateSelectInput(session,
-                    input = "national_variable_selector",
-                    choices = national_variable_choices,
-                    selected = "pop_total")
-  
 })
 
-# Set national df by input$national_category_selector, which returns a string
-# eval() evaluates a symbol created by sym(input)
-# returns a df with the same name as the string 
-# "is_[table]" refers to a column in the variable dictionary
-# that denotes which table a variable belongs to
+selectInput(inputId = "national_variable_selector",
+            label = "Select a topic",
+            choices = "Population",
+            multiple = F,
+            selectize = F)
+
+observeEvent(input$national_category_selector, {
+    choices <- names(national_variable_choices())
+    updateSelectInput(session, "national_variable_selector", choices = choices)
+  })
+
+# selectInput(inputId = "national_variable_selector",
+#             label = "Select a topic",
+#             choices =  names(national_variable_choices()),
+#             selected = "pop_total",
+#             multiple = FALSE,
+#             selectize = TRUE)
+
+
+# # Update select dropdown with named list of values created below
+# observe({
+#   
+#   # Initializes the variable selector
+#   # no choices until national_category_selector is selected
+# 
+#   
+#   updateSelectInput(session,
+#                     input = "national_variable_selector",
+#                     choices = names(national_variable_choices()),
+#                     selected = "pop_total",
+#               multiple = FALSE,
+#               selectize = TRUE)
+# #   
+# })
+
+national_variable_selected <- reactive({ # Output looks like "is_demographics"
+  getElement(national_variable_choices(), input$national_variable_selector)
+  # national_variable_choices()[input$national_variable_selector]
+})
+
+### For debugging
+# renderText({ is.null(national_category_selected()) })
+# renderText({ is.null(national_variable_selected()) })
+# renderText({ national_category_selected() })
+# renderText({ national_variable_selected() })
+# renderText({ national_variable_choices() })
+
 national_data <- reactive({
   eval(sym(str_remove(national_category_selected(), "^is_")))
 })
-
-# You can use this chunk of code to test whether a selector is working
-# as intended. Here the intention is to have the input return a string.
-# Uncommenting this code puts a small message beneath the selectors in 
-# the sidebar showeing the result. 
-# output$check <- renderText({
-#   cap_choices <- c("Demographics" = "is_demographics", 
-#                         "Community Participation" = "is_community_participation", 
-#                         "Community Living" = "is_community_living", 
-#                         "Work/Economic" = "is_work_economic")
-#   
-#   paste0("national_category is: ", names(cap_choices)[cap_choices == input$national_category_selector], 
-#          "\n and national_variable is: ", input$national_variable_selector)
-# })
-# # 
-# textOutput("check")
-
-# national_variable <- reactive({ input$national_variable_selector })
 
 ```
 
@@ -276,7 +271,7 @@ output$national_map_summary <- renderUI({
   HTML(
     paste0(
       altText(national_data(), 
-              input$national_variable_selector),
+              national_variable_selected()),
       " Detailed information is available below in the interactive map (left) and table (right)."
     )
     # # Static check
@@ -326,8 +321,8 @@ output$tile_map <-
     # req(input$national_variable_selector)
     
     render_tile_map(national_data(), 
-                    input$national_variable_selector, 
-                    input$access_map_palette)
+                    national_variable_selected(), 
+                    access_map_palette_selected())
     
   })
 
@@ -339,8 +334,8 @@ output$geographic_map <- renderTmap({
   # req(input$national_variable_selector)
   
   render_geo_interactive_map(national_data(), 
-                             input$national_variable_selector, 
-                             input$access_map_palette)
+                             national_variable_selected(), 
+                             access_map_palette_selected())
   
 })
 
@@ -354,11 +349,11 @@ output$geographic_map <- renderTmap({
 national_vars_in_topic <- reactive({
   
   dict_vars %>% 
-    filter((!!sym(input$national_category_selector)) == TRUE,
+    filter((!!sym(national_category_selected())) == TRUE,
            var_topic ==
              (dict_vars %>% 
-                filter((!!sym(input$national_category_selector)) == TRUE,
-                       var_readable == input$national_variable_selector) %>% 
+                filter((!!sym(national_category_selected())) == TRUE,
+                       var_readable == national_variable_selected()) %>% 
                 pull(var_topic)),
            display == T) %>% 
     select(var_pretty, var_readable)
