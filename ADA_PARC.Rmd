@@ -1382,10 +1382,11 @@ access_ggplot_theme_choices <- list(
   "Minimal" = list(theme_minimal(),scale_fill_ordinal(), scale_color_ordinal()),
   "Stata" = list(theme_stata(), scale_fill_stata(), scale_color_stata()))
 
-selectInput(inputId = "access_ggplot_theme", 
-            label = h5("Select a theme for plots:"), 
-            choices = names(access_ggplot_theme_choices),
-            selected = "Ipsum")
+# Hide selector for now since city data plots are excluded
+# selectInput(inputId = "access_ggplot_theme", 
+#             label = h5("Select a theme for plots:"), 
+#             choices = names(access_ggplot_theme_choices),
+#             selected = "Ipsum")
 
 ggplot_theme_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggplot_theme]][1] })
 ggplot_fill_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggplot_theme]][2] }) 
@@ -1440,23 +1441,11 @@ background-color: #CCCCCC;
 color: #000000;
 }
 
-/* Colors for map palette dropdown */
-/*
-#access_map_palette ~ .selectize-control .option[data-value="Yellow-Orange-Brown"]{ 
-background-image: linear-gradient(to right, white, #ffffd4, #fed98e, #fe9929, #cc4c02) !important;
-background-size: auto !important;
+/* Kable caption colors (darken to meet contrast requirements) */
+caption {
+color: black;
+font-weight: bold;
 }
-
-#access_map_palette ~ .selectize-control .option[data-value="Yellow-Orange-Red"]{ 
-background-image: linear-gradient(to right, white , #ffffb2, #fecc5c, #fd8d3c, #e31a1c) !important;
-background-size: auto !important;
-}
-
-#access_map_palette ~ .selectize-control .option[data-value="Green-Blue"]{ 
-background-image: linear-gradient(to right, white , #f0f9e8, #bae4bc, #7bccc4, #2b8cbe) !important;
-background-size: auto !important;
-}
-*/
 
 
 /* #################### */
