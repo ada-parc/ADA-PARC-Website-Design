@@ -37,6 +37,7 @@ library(mongolite); library(here)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE)
+knitr::opts_chunk$set(fig.cap = TRUE)
 
 ### ----- Database connections -----
 
@@ -141,7 +142,7 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-![ADA-PARC Participants](./www/participant_logos.png){width="75%"}
+![Picture of the participating ADA-Regional Centers](./www/participant_logos.png){width="75%"}
 
 <br>
 
@@ -249,7 +250,7 @@ withSpinner(uiOutput("national_map_summary"))
 
 ### State-by-State Map of Selected Topic
 
-```{r national map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+```{r national map, fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 # Button to choose map type
 radioButtons(inputId = "national_map_toggle",
