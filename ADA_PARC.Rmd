@@ -84,6 +84,8 @@ Application authors:
 
 Sean Connelly and Ethan Jantz <br> [UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
+<div role="main">
+
 ## Row
 
 ### 
@@ -142,7 +144,7 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-![Picture of the participating ADA-Regional Centers](./www/participant_logos.png){width="75%"}
+<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%">
 
 <br>
 
@@ -150,13 +152,17 @@ Other institutions collaborating in the ADA-PARC are:
 
 The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
 
+</div>
+
+<div role="main">
+
 # National Data
 
 ## Sidebar {.sidebar}
 
 <br>
 
-```{r national sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
+```{r national-sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
 ### National category selection widget
 national_category_choices <- c("Demographics" = "is_demographics", 
@@ -222,9 +228,11 @@ national_data <- reactive({
 
 ## Row {data-height=100}
 
-### Summary
+<div role="region" aria-labelledby="section-national-summary">
 
-```{r national map summary, fig.alt = "Descriptive summary of data for the selected topic."}
+### National Summary
+
+```{r national-map-summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
 output$national_map_summary <- renderUI({
   
@@ -246,11 +254,15 @@ withSpinner(uiOutput("national_map_summary"))
 
 ```
 
+</div>
+
 ## Row
+
+<div role="region" aria-labelledby="section-state-by-state-map-of-selected-topic">
 
 ### State-by-State Map of Selected Topic
 
-```{r national map, fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+```{r national-map, fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 # Button to choose map type
 radioButtons(inputId = "national_map_toggle",
@@ -264,7 +276,9 @@ radioButtons(inputId = "national_map_toggle",
 output$national_map <- renderUI({
   
   if(input$national_map_toggle == "geographic") {
-    withSpinner(tmapOutput("geographic_map"))
+    withSpinner(tmapOutput("geographic_map") %>% 
+                  # Adding the `alt` attribute to our plot
+                  tagAppendAttributes(alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."))
   } else {
     withSpinner(plotOutput("tile_map", height = "300px"))
   }
@@ -301,9 +315,13 @@ output$geographic_map <- renderTmap({
 
 ```
 
+</div>
+
+<div role="region" aria-labelledby="section-table-of-selected-topic">
+
 ### Table of Selected Topic {.table-wrapper}
 
-```{r national table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
+```{r national-table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable
 national_vars_in_topic <- reactive({
@@ -394,13 +412,19 @@ withSpinner(uiOutput("national_table"))
 
 ```
 
+</div>
+
+</div>
+
+<div role="main">
+
 # City Data
 
 ## Sidebar {.sidebar}
 
 <br>
 
-```{r city sidebar}
+```{r city-sidebar}
 
 # Pull location crosswalk dictionary from GitHub repo
 dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
@@ -468,9 +492,11 @@ city_tract <- reactive ({
 
 ## Row
 
-### Overview
+<div role="region" aria-labelledby="section-city-summary">
 
-```{r city overview}
+### City Summary
+
+```{r city-summary}
 
 output$city_overview <- renderUI({
   
@@ -505,8 +531,8 @@ output$city_overview <- renderUI({
                        values_to = "PWD (%)"),
         caption = "Race/Ethnicity",
         escape = FALSE,
-        align = c("l", "r") #,
-        # table.attr = "style='width:80%;'"
+        align = c("l", "r"),
+        table.attr = "scope=\'col\'"
     ) %>% 
       kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                     position = "left"),
@@ -552,11 +578,10 @@ output$city_overview <- renderUI({
         caption = "Commute, Workers 16+",
         escape = FALSE,
         align = c("l", "r") #,
-        # table.attr = "style='width:100%;'"
+        # table.attr = "scope=\'col\'"
     ) %>%
       kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                     position = "left"),
-    
     # Work/Economic
     kbl(x = city_place() %>%
           transmute("Employed" = 
@@ -592,11 +617,15 @@ withSpinner(uiOutput("city_overview"))
 
 ```
 
+</div>
+
 ## Row
+
+<div role="region" aria-labelledby="section-people-with-disabilities-map">
 
 ### People With Disabilities Map
 
-```{r city pwd map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
+```{r city-pwd-map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
 # Palette
 pal_city <- reactive ({
@@ -666,6 +695,10 @@ output$snapshotmap <- renderLeaflet({
 withSpinner(leafletOutput("snapshotmap"))
 
 ```
+
+</div>
+
+</div>
 
 <!-- ## Row -->
 
@@ -1236,9 +1269,11 @@ withSpinner(leafletOutput("snapshotmap"))
 
 ## Row
 
+<div role="main">
+
 ###  
 
-```{r download data body}
+```{r download-data-body}
 
 ### ----- National Data -----
 
@@ -1282,82 +1317,17 @@ output$download_data_national_button <- downloadHandler(
 
 ```
 
+</div>
+
 # Download Fact Sheets
-
-## Sidebar {.sidebar}
-
-```{r download fact sheets sidebar}
-
-# ====================
-# Filters
-# ====================
-
-# Define inputs
-radioButtons(inputId = "fact_sheet_national",
-             label = "Select an Area of Interest",
-             choices = c("Demographics", "Community Living", 
-                         "Community Participation", "Work/Economic"))
-
-# Restrict statistic breakdown based on type
-fact_sheet_national_selected <- reactive({
-  
-  if (input$fact_sheet_national == "Demographics"){
-    demographics_lu
-  } else if (input$fact_sheet_national == "Community Living"){
-    community_living_lu
-    # } else if (input$fact_sheet_national == "Community Living"){
-    #   community_participation_lu
-  } else {
-    NA
-  }
-  
-})
-
-# Statistics dropdown to given area
-renderUI({ 
-  
-  selectInput(inputId = "fact_sheet_stat", 
-              label = "Select a Statistic", 
-              choices = unique(fact_sheet_national_selected()$filter_label))
-  
-})
-
-# Restrict statistic breakdown based on type
-stat_base <- reactive({
-  
-  if (input$fact_sheet_national == "Demographics"){
-    national_demographics
-  } else if (input$fact_sheet_national == "Community Living"){
-    national_living
-    # } else if (input$fact_sheet_national == "Community Participation"){
-    #   national_participation
-  } else {
-    NA
-  }
-  
-})
-
-# Select columns based on input
-stat_subset <- reactive({
-  
-  stat_base() %>% 
-    select(state:abbrev,
-           all_of(fact_sheet_national_selected() %>% 
-                    filter(filter_label == input$fact_sheet_stat) %>% 
-                    pull(column_names)))
-  
-})
-
-
-```
 
 # Accessibility
 
-## Row
+<div role="main">
 
 ###  {.long-row}
 
-```{r accessibility page body}
+```{r accessibility-page-body}
 
 # Map palette
 access_map_palette_choices <- list(
@@ -1395,6 +1365,8 @@ ggplot_color_selected <- reactive({ access_ggplot_theme_choices[[input$access_gg
 
 ```
 
+</div>
+
 <!-- Custom Javascript  -->
 
 ```{=html}
@@ -1417,6 +1389,11 @@ Shiny.setInputValue("active_tab", $(e.target).parent().index());
 /* Headers */
 h2,h3,h4,h5 { 
 font-weight: bold;
+}
+
+/* Section title color */
+h3 { 
+color: black;
 }
 
 /* #################### */
