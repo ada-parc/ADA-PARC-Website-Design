@@ -72,11 +72,13 @@ source(here("national_import.R"), local = TRUE)
 
 <br>
 
-Use the **National** tab to examine the status of people with disabilities at the national and state level.
+Use the **National Data** tab to examine the status of people with disabilities at the national and state level.
 
-Use the **By Metro** tab to investigate people with disabilities statistics at the municipal level.
+Use the **City Data** tab to investigate people with disabilities statistics at the municipal level.
 
-Use the **Download** tab to get the raw data powering this dashboard and as well as pre-formatted fact sheets a specific area of interest.
+Use the **Download Data** tab to get the raw data powering this dashboard.
+
+Use the **Download Fact Sheets** tab to get pre-formatted fact sheets for a specific area of interest.
 
 Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.
 
