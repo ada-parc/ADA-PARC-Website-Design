@@ -97,8 +97,11 @@ render_tile_map <- function(data, selected, palette_selected) {
   
   no_classes <- 4
   
-  quartiles <- quantile(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1))
+  quartiles <- quantile(data %>% 
+                          filter(!is.na(!!sym(selected))) %>% 
+                          pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1),
+                        na.rm = TRUE)
   
   labels <- set_quartile_labels(quartiles, no_classes, selected)
   
@@ -180,8 +183,11 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
   
   no_classes <- 4
   
-  quartiles <- quantile(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1))
+  quartiles <- quantile(data %>% 
+                          filter(!is.na(!!sym(selected))) %>% 
+                          pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1),
+                        na.rm = TRUE)
   
   labels <- set_quartile_labels(quartiles, no_classes, selected)
   
@@ -234,7 +240,8 @@ render_geo_static_map <- function(data, selected, palette_selected) {
   no_classes <- 4
   labels <- c()
   quartiles <- quantile(data %>% pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1))
+                        probs = seq(0, 1, length.out = no_classes + 1),
+                        na.rm = TRUE)
   
   # Custom labels based on percent or value
   for(idx in 1:length(quartiles)){

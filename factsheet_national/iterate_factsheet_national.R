@@ -8,7 +8,7 @@ library(rmarkdown); library(tidyverse)
 library(pagedown);library(mongolite); library(here)
 
 # Set this to host_prod or host_dev
-host_name = "host_dev"
+host_name = "host_prod"
 
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
@@ -43,13 +43,13 @@ factsheet_national_params <- dict_vars %>%
   group_by(national_dropdown_label) %>% 
   slice(1) %>% 
   ungroup() %>%
-  arrange(row_number_temp) %>% 
-  mutate("row_number" = stringr::str_pad(as.character(row_number()), 3, 
-                                         side = "left", pad = "0")) %>% 
-  mutate("output_file" = stringr::str_c(here(), 
-                                        "/factsheet_national/output_files/",
-                                        row_number, "_",
-                                        national_dropdown_label, ".html"),
+  arrange(row_number_temp) %>%
+  mutate("row_number" = str_pad(as.character(row_number()), 3, 
+                                side = "left", pad = "0")) %>% 
+  mutate("output_file" = str_c(here(), 
+                               "/factsheet_national/output_files/",
+                               row_number, "_",
+                               national_dropdown_label, ".html"),
          "params" = pmap(list(national_category_selector,
                               national_variable_selector), 
                          ~list(national_category_selector = ..1,
@@ -60,34 +60,40 @@ factsheet_national_params <- dict_vars %>%
 # Restrict to subset for testing ------------------------------------------
 
 
-# Create 3 factsheets to make sure of formatting 
-factsheet_national_params <- factsheet_national_params %>% 
-  filter(national_variable_selector %in% c("pop_total",
-                                           "pwd_commute_car_alone_pct",
-                                           "pwd_commute_public_pct"))
+# # Create 3 factsheets to make sure of formatting 
+# factsheet_national_params <- factsheet_national_params %>% 
+#   filter(national_variable_selector %in% c("pop_total",
+#                                            "pwd_commute_car_alone_pct",
+#                                            "pwd_commute_public_pct"))
 
 
 # Create factsheets -------------------------------------------------------
 
 
+# ----- Rmd to HTML -----
+
+
 # Delete existing HTML and PDF files
-file.remove(list.files(stringr::str_c(here(), 
-                                      "/factsheet_national/output_files/"),
+file.remove(list.files(str_c(here(), 
+                             "/factsheet_national/output_files/"),
                        pattern = ".(html|pdf)$", 
                        full.names = TRUE)
-            )
+)
 
 # Walk through dataframe, create HTML documents
 factsheet_national_params %>%
   select(output_file, params) %>% 
   pwalk(rmarkdown::render, 
-        input = stringr::str_c(here(), 
-                               "/factsheet_national/factsheet_national.Rmd"))
+        input = str_c(here(), 
+                      "/factsheet_national/factsheet_national.Rmd"))
+
+
+# ----- HTML to PDF -----
 
 
 # Get a vector of all the filepaths for the newly-generated HTML files
-html_files <- list.files(stringr::str_c(here(), 
-                                        "/factsheet_national/output_files/"),
+html_files <- list.files(str_c(here(), 
+                               "/factsheet_national/output_files/"),
                          pattern = ".html$", 
                          full.names = TRUE)
 
@@ -96,9 +102,29 @@ map(.x = html_files,
     .f = ~chrome_print(input = .x))
 
 # Delete HTML files
-file.remove(list.files(stringr::str_c(here(), 
-                                      "/factsheet_national/output_files/"),
+file.remove(list.files(str_c(here(), 
+                             "/factsheet_national/output_files/"),
                        pattern = ".html$", 
                        full.names = TRUE)
-            )
+)
+
+
+# Write params to CSV for front-end table ----------------------------------
+
+
+# Update output_file to location in GitHub repository
+dashboard_factsheet_national <- factsheet_national_params %>% 
+  select(national_dropdown_label,
+         output_file) %>% 
+  mutate("output_file" = str_replace_all(output_file,
+                                         pattern = here(),
+                                         replacement = "https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master")) %>% 
+  mutate("output_file" = str_replace_all(output_file,
+                                         pattern = ".html$",
+                                         replacement = ".pdf"))
+
+# Write CSV to file for dashboard front-end
+write_csv(dashboard_factsheet_national,
+          file = str_c(here(),
+                       "/factsheet_national/dashboard_factsheet_national.csv"))
 

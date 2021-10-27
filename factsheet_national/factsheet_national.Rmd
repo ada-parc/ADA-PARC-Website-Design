@@ -31,7 +31,7 @@ opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
                fig.align = "center", out.width = "100%")
 
 # Set this to host_prod or host_dev
-host_name = "host_dev"
+host_name = "host_prod"
 
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
@@ -61,8 +61,10 @@ rmd_title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == p
 
 ```{r national-map-summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
-HTML(altText(national_data, 
-             params$national_variable_selector))
+HTML(paste0(altText(national_data, 
+             params$national_variable_selector),
+            " Detailed information is available below in the map and table below.",
+            "<br><i>Source: 2015-2019 American Community Survey 5-Year Estimates.</i>"))
 
 ```
 

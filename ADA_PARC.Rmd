@@ -44,6 +44,8 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 # Set this to host_prod or host_dev
 host_name = "host_dev"
 
+### ----- Functions import -----
+
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
 
@@ -1320,6 +1322,24 @@ output$download_data_national_button <- downloadHandler(
 </div>
 
 # Download Fact Sheets
+
+## Row
+
+<div role="main">
+
+###  
+
+```{r download-fact-sheets-body}
+
+### ----- Functions import -----
+
+# Load API keys and database connection information
+source(here("functions.R"), local = TRUE)
+
+
+```
+
+</div>
 
 # Accessibility
 

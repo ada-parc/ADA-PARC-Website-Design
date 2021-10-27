@@ -181,10 +181,20 @@ community_participation <- national_participation %>%
     pwod_grtoeq_65_insured_public = B18135_033_estimate,
     pwod_grtoeq_65_uninsured = B18135_034_estimate,
     
+    pwd_19_64_insured_pct = pwd_19_64_insured / pwd_19_64,
     pwd_19_64_uninsured_pct = pwd_19_64_uninsured / pwd_19_64,
+    pwod_19_64_insured_pct = pwod_19_64_insured / pwod_19_64 ,
     pwod_19_64_uninsured_pct = pwod_19_64_uninsured / pwod_19_64 ,
+    pwd_grtoeq_65_insured_pct = pwd_grtoeq_65_insured / pwd_grtoeq_65,
     pwd_grtoeq_65_uninsured_pct = pwd_grtoeq_65_uninsured / pwd_grtoeq_65,
-    pwod_groeq_65_uninsured_pct = pwod_grtoeq_65_uninsured / pwod_grtoeq_65,
+    pwod_grtoeq_65_insured_pct = pwod_grtoeq_65_insured / pwod_grtoeq_65,
+    pwod_grtoeq_65_uninsured_pct = pwod_grtoeq_65_uninsured / pwod_grtoeq_65,
+    # Public
+    pwd_19_64_insured_public_pct = pwd_19_64_insured_public / pwd_19_64,
+    pwod_19_64_insured_public_pct = pwod_19_64_insured_public / pwod_19_64,
+    pwd_grtoeq_65_insured_public_pct = pwd_grtoeq_65_insured_public / pwd_grtoeq_65,
+    pwod_grtoeq_65_insured_public_pct = pwod_grtoeq_65_insured_public / pwod_grtoeq_65,
+    # Private
     pwd_19_64_insured_private_pct = pwd_19_64_insured_private / pwd_19_64,
     pwod_19_64_insured_private_pct = pwod_19_64_insured_private / pwod_19_64,
     pwd_grtoeq_65_insured_private_pct = pwd_grtoeq_65_insured_private / pwd_grtoeq_65,
