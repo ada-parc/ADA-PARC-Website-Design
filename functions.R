@@ -670,11 +670,12 @@ altText <- function(data, variable) {
   df <- data %>%
     select(NAME, ABBR, sym(variable)) %>%
     filter(!is.na(sym(variable)))
-  
+
   # Min
   text_min <- data %>%
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(State, sym(variable)) %>%
+    filter(!is.na(!!sym(variable))) %>% 
     filter(!!sym(variable) == min(!!sym(variable))) %>% 
     slice(1) %>% 
     mutate(across(-State & -ends_with("_pct"),
@@ -692,6 +693,7 @@ altText <- function(data, variable) {
   text_max <- data %>%
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(State, sym(variable)) %>%
+    filter(!is.na(!!sym(variable))) %>% 
     filter(!!sym(variable) == max(!!sym(variable))) %>% 
     slice(1) %>% 
     mutate(across(-State & -ends_with("_pct"),

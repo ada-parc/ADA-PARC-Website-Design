@@ -3,6 +3,7 @@ title: ""
 output: 
   html_document:
     css: "style.css"
+    theme: paper
 always_allow_html: true
 tables: true
 params:
@@ -35,7 +36,8 @@ host_name = "host_dev"
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
 
-# Load variable dictionary for relating tables, variable codes, and readable values
+# Load variable dictionary for relating tables, variable codes,
+# and readable values
 dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
                                  host_name = host_name)
 
@@ -57,16 +59,16 @@ rmd_title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == p
 
 ### Summary
 
-```{r national map summary, fig.alt = "Descriptive summary of data for the selected topic."}
+```{r national-map-summary, fig.alt = "Descriptive summary of data for the selected topic."}
 
 HTML(altText(national_data, 
              params$national_variable_selector))
 
 ```
 
-### State-by-State Map of Selected Topic
+### State-by-State Map
 
-```{r national map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+```{r national-map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 render_geo_static_map(national_data, 
                       params$national_variable_selector, 
@@ -78,7 +80,7 @@ render_geo_static_map(national_data,
 
 ### Table of Selected Topic
 
-```{r national table, fig.alt = "State-level data for variables relevant to the selected topic."}
+```{r national-table, fig.alt = "State-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable
 national_vars_in_topic <- dict_vars %>% 
@@ -115,37 +117,40 @@ national_data_table_friendly <- national_data %>%
                       deframe()))
 
 # Summary table
-# Left side
-summary_1 <- kbl(x = national_data_table_friendly[1:26,],
-                 format = "html",
-                 row.names = FALSE,
-                 caption = table_caption) %>%
-  kable_paper("striped",
-              full_width = TRUE,
-              position = "left") %>% 
-  kable_styling(bootstrap_options = c("striped",
-                                      "condensed"),
-                full_width = TRUE,
-                position = "left") %>% 
-  column_spec(1, width = "1.5in")
-
-# Right side
-summary_2 <- kbl(x = national_data_table_friendly[27:52,],
-                 format = "html",
-                 row.names = FALSE,
-                 caption = table_caption) %>%
-  kable_paper("striped",
-              full_width = TRUE,
-              position = "left") %>% 
-  kable_styling(bootstrap_options = c("striped",
-                                      "condensed"),
-                full_width = TRUE,
-                position = "left") %>% 
-  column_spec(1, width = "1.5in")
+# # Left side
+# summary_1 <- kbl(x = national_data_table_friendly,
+#                  format = "html",
+#                  row.names = FALSE,
+#                  caption = table_caption) %>%
+#   kable_paper("striped",
+#               full_width = TRUE,
+#               position = "left") %>% 
+#   kable_styling(bootstrap_options = c("striped",
+#                                       "condensed"),
+#                 full_width = TRUE,
+#                 position = "left") %>% 
+#   column_spec(1, width = "1.5in")
+# 
+# # Right side
+# summary_2 <- kbl(x = national_data_table_friendly[27:52,],
+#                  format = "html",
+#                  row.names = FALSE,
+#                  caption = table_caption) %>%
+#   kable_paper("striped",
+#               full_width = TRUE,
+#               position = "left") %>% 
+#   kable_styling(bootstrap_options = c("striped",
+#                                       "condensed"),
+#                 full_width = TRUE,
+#                 position = "left") %>% 
+#   column_spec(1, width = "1.5in")
 
 # Full table
-national_topic_table <- knitr::kables(list(summary_1,
-                                           summary_2)) %>%
+national_topic_table <- 
+  kbl(x = national_data_table_friendly,
+      format = "html",
+      row.names = FALSE,
+      caption = table_caption) %>%
   kable_paper("striped",
               full_width = TRUE,
               position = "left") %>% 
@@ -153,7 +158,8 @@ national_topic_table <- knitr::kables(list(summary_1,
                                       "condensed"),
                 full_width = TRUE,
                 font_size = 11,
-                position = "left")
+                position = "left") %>% 
+  column_spec(1, width = "1.5in")
 
 # UI Output
 HTML(national_topic_table) 
