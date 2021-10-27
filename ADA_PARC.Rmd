@@ -1331,12 +1331,27 @@ output$download_data_national_button <- downloadHandler(
 
 ```{r download-fact-sheets-body}
 
-### ----- Functions import -----
+# Read in dataframe of national factsheets and links
+download_factsheet_national <- 
+  read_csv(str_c(here(),
+                 "/factsheet_national/dashboard_factsheet_national.csv"))
 
-# Load API keys and database connection information
-source(here("functions.R"), local = TRUE)
+# Create accessible hyperlinks
+download_factsheet_national <- download_factsheet_national %>% 
+  mutate("hyperlink" = str_c('<a href="',
+                             output_file,
+                             '" target="_blank">',
+                             national_dropdown_label,
+                             '</a>')) %>% 
+  select("Factsheets Available" = hyperlink)
 
-
+# Create kable table
+kbl(x = download_factsheet_national,
+    escape = FALSE,
+    caption = "Download National Factsheets") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                position = "left")
+  
 ```
 
 </div>
@@ -1468,12 +1483,6 @@ overflow-y: auto;
 
 /* Scroll overflow for tables */
 .table-wrapper {
-overflow-x: scroll;
-overflow-y: scroll;
-}
-
-/* Scroll overflow for Download */
-.download-DT {
 overflow-x: scroll;
 overflow-y: scroll;
 }
