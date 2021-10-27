@@ -5,9 +5,9 @@ account: ada-parc
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2554307
-bundleId: 5183881
+bundleId: 5184266
 url: https://ada-parc.shinyapps.io/ada_parc/
-when: 1635361378.65465
-lastSyncTime: 1635361378.65465
+when: 1635370886.41237
+lastSyncTime: 1635370886.41237
 asMultiple: FALSE
 asStatic: FALSE
