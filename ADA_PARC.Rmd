@@ -450,11 +450,15 @@ selectInput(inputId = "city_selector",
 
 # Place for selected city
 city_place <- reactive({
-  
-  city_place_full %>% 
+
+  city_place_full %>%
     filter(GEOID == input$city_selector)
-  
+
 })
+
+# Static check, Chicago
+# city_place <- city_place_full %>%
+#   filter(GEOID == "1714000")
 
 ### ----- Pull Census Tract data for selected city -----
 
@@ -502,122 +506,127 @@ city_tract <- reactive ({
 
 ```{r city-summary}
 
-output$city_overview <- renderUI({
+output$city_summary <- renderUI({
   
-  # Overview text
-  city_overview_text <- paste0(
+  # SUmmary text
+  city_summary_text <- paste0(
     "<h4>",  city_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h4>",
     "Based on ACS 2018 5-Year Estimates, <b>", city_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", city_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", city_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
-  # Summary tables side by side
-  city_overview_tables <- knitr::kables(list(
+  # Create individual summary tables
+  # Demographics
+  city_summary_demo <- city_place() %>%
+    mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
+             S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
+    select("White" = S1810_C02_011_estimate,
+           "Black" = S1810_C02_005_estimate,
+           "Hispanic" = S1810_C02_012_estimate,
+           "Asian" = S1810_C02_007_estimate,
+           Other,
+           "Total" = S1810_C02_001_estimate) %>% 
+    mutate(across(-Total,
+                  ~ paste0(comma(., accuracy = 1), 
+                           " (",  percent(. / Total, 
+                                          accuracy = 0.1), ")"))) %>%
+    mutate(Total = paste0(comma(Total, 
+                                accuracy = 1),
+                          "</b>")) %>%
+    rename("<b>Total" = Total) %>% 
+    pivot_longer(everything(),
+                 names_to = "Race/Ethnicity",
+                 values_to = "PWD (%)") %>% 
+    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
     
-    # Demographics
-    kbl(x = city_place() %>%
-          mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
-                   S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
-          select("White" = S1810_C02_011_estimate,
-                 "Black" = S1810_C02_005_estimate,
-                 "Hispanic" = S1810_C02_012_estimate,
-                 "Asian" = S1810_C02_007_estimate,
-                 Other,
-                 "Total" = S1810_C02_001_estimate) %>% 
-          mutate(across(-Total,
-                        ~ paste0(comma(., accuracy = 1), 
-                                 "<br>(",  percent(. / Total, 
-                                                   accuracy = 0.1), ")"))) %>%
-          mutate(Total = paste0(comma(Total, 
-                                      accuracy = 1),
-                                "</b>")) %>%
-          rename("<b>Total" = Total) %>% 
-          pivot_longer(everything(),
-                       names_to = "Race/Ethnicity",
-                       values_to = "PWD (%)"),
-        caption = "Race/Ethnicity",
-        escape = FALSE,
-        align = c("l", "r"),
-        table.attr = "scope=\'col\'"
-    ) %>% 
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left"),
+    pull(Bullets) %>% 
+    str_c(collapse = "")
+  
+  # Community Participation
+  city_summary_cp <- city_place() %>%
+    transmute("Car" = 
+                paste0(comma(S1811_C02_032_estimate * 
+                               ((S1811_C02_033_estimate +
+                                   S1811_C02_034_estimate) / 100),
+                             accuracy = 1),
+                       " (", comma((S1811_C02_033_estimate +
+                                      S1811_C02_034_estimate),
+                                   accuracy = 0.1), "%)"),
+              "Transit" = 
+                paste0(comma(S1811_C02_032_estimate * 
+                               (S1811_C02_035_estimate / 100),
+                             accuracy = 1),
+                       " (", comma(S1811_C02_035_estimate,
+                                   accuracy = 0.1), "%)"),
+              
+              "Walk or Bike" = 
+                paste0(comma(S1811_C02_032_estimate * 
+                               ((S1811_C02_036_estimate +
+                                  S1811_C02_037_estimate) / 100),
+                             accuracy = 1),
+                       " (", comma((S1811_C02_036_estimate +
+                                      S1811_C02_037_estimate),
+                                   accuracy = 0.1), "%)"),
+              "Work from Home" = 
+                paste0(comma(S1811_C02_032_estimate * 
+                               (S1811_C02_038_estimate / 100),
+                             accuracy = 1),
+                       " (", comma((S1811_C02_038_estimate),
+                                   accuracy = 0.1), "%)"),
+              "<b>Total" = 
+                paste0(comma(S1811_C02_032_estimate, 
+                             accuracy = 1),
+                       "</b>")) %>% 
+    pivot_longer(everything(),
+                 names_to = "Commute, Workers 16+",
+                 values_to = "PWD (%)") %>% 
+    mutate("Bullets" = paste0('<li>', `Commute, Workers 16+`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
     
-    # Community Participation
-    kbl(x = city_place() %>%
-          transmute("Car" = 
-                      paste0(comma(S1811_C02_032_estimate * 
-                                     (S1811_C02_033_estimate +
-                                        S1811_C02_034_estimate),
-                                   accuracy = 1),
-                             "<br>(", comma((S1811_C02_033_estimate +
-                                               S1811_C02_034_estimate),
-                                            accuracy = 0.1), "%)"),
-                    "Transit" = 
-                      paste0(comma(S1811_C02_032_estimate * 
-                                     (S1811_C02_035_estimate),
-                                   accuracy = 1),
-                             "<br>(", comma(S1811_C02_035_estimate,
-                                            accuracy = 0.1), "%)"),
-                    
-                    "Walk or<br>Bike" = 
-                      paste0(comma(S1811_C02_032_estimate * 
-                                     (S1811_C02_036_estimate +
-                                        S1811_C02_037_estimate),
-                                   accuracy = 1),
-                             "<br>(", comma((S1811_C02_036_estimate +
-                                               S1811_C02_037_estimate),
-                                            accuracy = 0.1), "%)"),
-                    "Work from<br>Home" = 
-                      paste0(comma(S1811_C02_032_estimate * 
-                                     (S1811_C02_038_estimate),
-                                   accuracy = 1),
-                             "<br>(", comma((S1811_C02_038_estimate),
-                                            accuracy = 0.1), "%)"),
-                    "<b>Total" = 
-                      paste0(comma(S1811_C02_032_estimate, 
-                                   accuracy = 1),
-                             "</b>")) %>% 
-          pivot_longer(everything(),
-                       names_to = "Commute",
-                       values_to = "PWD (%)"),
-        caption = "Commute, Workers 16+",
-        escape = FALSE,
-        align = c("l", "r") #,
-        # table.attr = "scope=\'col\'"
-    ) %>%
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left"),
-    # Work/Economic
-    kbl(x = city_place() %>%
-          transmute("Employed" = 
-                      paste0(comma(S1811_C02_004_estimate, accuracy = 1),
-                             "<br>(", S1811_C02_002_estimate, "%)"),
-                    "Not in<br>Labor Force" = 
-                      paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
-                             "<br>(", S1811_C02_003_estimate, "%)"),
-                    "<b>Total" = 
-                      paste0(comma(S1811_C02_001_estimate, accuracy = 1),
-                             "</b>")) %>%
-          pivot_longer(everything(),
-                       names_to = "Employment",
-                       values_to = "PWD (%)"),
-        caption = "Employment, 16+",
-        escape = FALSE,
-        align = c("l", "r") #,
-        # table.attr = "style='width:100%;'"
-    ) %>%
-      kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                    position = "left")
+    pull(Bullets) %>% 
+    str_c(collapse = "")
+  
+  # Work/Economic
+  city_summary_we <- city_place() %>%
+    transmute("Employed" = 
+                paste0(comma(S1811_C02_004_estimate, accuracy = 1),
+                       " (", S1811_C02_002_estimate, "%)"),
+              "Not in Labor Force" = 
+                paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
+                       " (", S1811_C02_003_estimate, "%)"),
+              "<b>Total" = 
+                paste0(comma(S1811_C02_001_estimate, accuracy = 1),
+                       "</b>")) %>%
+    pivot_longer(everything(),
+                 names_to = "Employment, 16+",
+                 values_to = "PWD (%)") %>% 
+    mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
     
-  )) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                  position = "left")
+    pull(Bullets) %>% 
+    str_c(collapse = "")
+  
+  # Place dataframes in 3 columns side-by-side
+  city_summary_tables <- paste0('<div class = "row">',
+                                '<div class = "col-md-4">',
+                                '<b>Race/Ethnicity</b><ul>',
+                                city_summary_demo,
+                                '</ul></div>',
+                                '<div class = "col-md-4">',
+                                '<b>Commute, Workers 16+</b><ul>',
+                                city_summary_cp,
+                                '</ul></div>',
+                                '<div class = "col-md-4">',
+                                '<b>Employment, 16+</b><ul>',
+                                city_summary_we,
+                                '</ul></div>',
+                                '</div>')
   
   # UI Output
-  HTML(paste(city_overview_text, city_overview_tables, sep = "<br>"))
+  HTML(paste(city_summary_text, city_summary_tables, sep = ""))
   
 })
 
-withSpinner(uiOutput("city_overview"))
+withSpinner(uiOutput("city_summary"))
 
 ```
 
@@ -1475,7 +1484,6 @@ caption {
 color: black;
 font-weight: bold;
 }
-
 
 /* #################### */
 /* Containers */
