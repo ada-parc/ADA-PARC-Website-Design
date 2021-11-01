@@ -1,0 +1,169 @@
+---
+title: ""
+output: 
+  html_document:
+    css: "style.css"
+    theme: paper
+always_allow_html: true
+tables: true
+params:
+  national_category_selector: "is_demographics"
+  national_variable_selector: "pop_total"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+
+### ----- Libraries and database connections ----- 
+
+# Packages
+library(tidyverse); library(sf); library(htmltools)
+library(colourpicker); library(gghighlight)
+library(knitr); library(kableExtra)
+library(tigris); library(urbnmapr); library(patchwork)
+library(scales); library(hrbrthemes); library(ggthemes)  
+library(extrafont); library(mongolite); library(here)
+
+options(scipen = 999999)
+opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+               fig.width = 12, fig.asp = 0.618,
+               fig.align = "center", out.width = "100%")
+
+# Set this to host_prod or host_dev
+host_name = "host_prod"
+
+# Load API keys and database connection information
+source(here("functions.R"), local = TRUE)
+
+# Load variable dictionary for relating tables, variable codes,
+# and readable values
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
+                                 host_name = host_name)
+
+### ----- National data import and clean ----- 
+
+# This script takes the national_* objects and transforms them
+# into the final datasets for mapping
+source(here("national_import.R"), local = TRUE)
+
+# Get the right combination of dataset and variable
+national_data <- eval(sym(str_remove(params$national_category_selector, "^is_")))
+
+# Markdown title
+rmd_title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == params$national_variable_selector)][1]
+
+```
+
+## `r rmd_title`
+
+### Summary
+
+```{r national-map-summary, fig.alt = "Descriptive summary of data for the selected topic."}
+
+HTML(paste0(altText(national_data, 
+             params$national_variable_selector),
+            " Detailed information is available below in the map and table below.",
+            "<br><i>Source: 2015-2019 American Community Survey 5-Year Estimates.</i>"))
+
+```
+
+### State-by-State Map
+
+```{r national-map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+
+render_geo_static_map(national_data, 
+                      params$national_variable_selector, 
+                      "YlOrBr")
+
+```
+
+\newpage
+
+### Table of Selected Topic
+
+```{r national-table, fig.alt = "State-level data for variables relevant to the selected topic."}
+
+# Get variable group based on selected variable
+national_vars_in_topic <- dict_vars %>% 
+    filter((!!sym(params$national_category_selector)) == TRUE,
+           var_topic ==
+             (dict_vars %>% 
+                filter((!!sym(params$national_category_selector)) == TRUE,
+                       var_readable == params$national_variable_selector) %>% 
+                pull(var_topic))) %>% 
+    select(var_pretty, var_readable)
+
+# Caption
+cap_choices <- c("Demographics" = "is_demographics", 
+                 "Community Participation" = "is_community_participation", 
+                 "Community Living" = "is_community_living", 
+                 "Work/Economic" = "is_work_economic")
+
+table_caption <- paste(names(cap_choices[cap_choices == params$national_category_selector]), "Table")
+
+# Reorganize dataframe, switch to pretty names
+national_data_table_friendly <- national_data %>%
+    arrange(GEOID) %>% 
+    mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
+    select(any_of(c("State",
+                    national_vars_in_topic %>% 
+                      pull(var_readable)))) %>% 
+    mutate(across(-State & -ends_with("_pct"),
+                  ~scales::comma(.x))) %>% 
+    mutate(across(ends_with("_pct"),
+                  ~scales::percent(.x, 
+                                   accuracy = 0.1,
+                                   scale = 1))) %>% 
+    rename(!!any_of(national_vars_in_topic %>% 
+                      deframe()))
+
+# Summary table
+# # Left side
+# summary_1 <- kbl(x = national_data_table_friendly,
+#                  format = "html",
+#                  row.names = FALSE,
+#                  caption = table_caption) %>%
+#   kable_paper("striped",
+#               full_width = TRUE,
+#               position = "left") %>% 
+#   kable_styling(bootstrap_options = c("striped",
+#                                       "condensed"),
+#                 full_width = TRUE,
+#                 position = "left") %>% 
+#   column_spec(1, width = "1.5in")
+# 
+# # Right side
+# summary_2 <- kbl(x = national_data_table_friendly[27:52,],
+#                  format = "html",
+#                  row.names = FALSE,
+#                  caption = table_caption) %>%
+#   kable_paper("striped",
+#               full_width = TRUE,
+#               position = "left") %>% 
+#   kable_styling(bootstrap_options = c("striped",
+#                                       "condensed"),
+#                 full_width = TRUE,
+#                 position = "left") %>% 
+#   column_spec(1, width = "1.5in")
+
+# Full table
+national_topic_table <- 
+  kbl(x = national_data_table_friendly,
+      format = "html",
+      row.names = FALSE,
+      caption = table_caption) %>%
+  kable_paper("striped",
+              full_width = TRUE,
+              position = "left") %>% 
+  kable_styling(bootstrap_options = c("striped",
+                                      "condensed"),
+                full_width = TRUE,
+                font_size = 11,
+                position = "left") %>% 
+  column_spec(1, width = "1.5in")
+
+# UI Output
+HTML(national_topic_table) 
+
+```

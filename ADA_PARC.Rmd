@@ -76,7 +76,7 @@ Use the **National Data** tab to examine the status of people with disabilities 
 
 Use the **City Data** tab to investigate people with disabilities statistics at the municipal level.
 
-Use the **Download Data** tab to get the raw data powering this dashboard.
+<!-- Use the **Download Data** tab to get the raw data powering this dashboard. -->
 
 Use the **Download Fact Sheets** tab to get pre-formatted fact sheets for a specific area of interest.
 
@@ -1278,59 +1278,59 @@ withSpinner(leafletOutput("snapshotmap"))
 
 <!-- ``` -->
 
-# Download Data
+<!-- # Download Data -->
 
-## Row
+<!-- ## Row -->
 
-<div role="main">
+<!-- <div role="main"> -->
 
-###  
+<!-- ###   -->
 
-```{r download-data-body}
+<!-- ```{r download-data-body} -->
 
-### ----- National Data -----
+<!-- ### ----- National Data ----- -->
 
-# Text
-h5("Download National Data:")
+<!-- # Text -->
+<!-- h5("Download National Data:") -->
 
-# Download button
-downloadButtonRmd(outputId = "download_data_national_button",
-                  label = "Download",
-                  style = "vertical-align: middle; height: 40px !important; width: 125px !important;")
+<!-- # Download button -->
+<!-- downloadButtonRmd(outputId = "download_data_national_button", -->
+<!--                   label = "Download", -->
+<!--                   style = "vertical-align: middle; height: 40px !important; width: 125px !important;") -->
 
-# Download file 
-output$download_data_national_button <- downloadHandler(
-  
-  filename = function() {
-    paste0("ADA-PARC_National_Data_Download_",
-           format(Sys.time(), "%Y-%m-%d_%I%M%p"),
-           ".xlsx")
-  },
-  content = function(file) {
-    openxlsx::write.xlsx(
-      list("Demographics" = demographics %>% 
-             arrange(GEOID), 
-           "Community Participation" = community_participation %>% 
-             arrange(GEOID), 
-           "Community Living" = community_living %>% 
-             arrange(GEOID), 
-           "Work-Economic" = work_economic %>% 
-             arrange(GEOID),
-           "Lookup" = dict_vars %>%
-             filter((is_demographics == TRUE | 
-                      is_community_living == TRUE |
-                      is_community_participation == TRUE |
-                      is_work_economic == TRUE)) %>% 
-             select("variable_key" = var_readable, 
-                    "variable_label" = var_pretty, 
-                    is_demographics:is_work_economic)),
-      file)
-  }
-)
+<!-- # Download file  -->
+<!-- output$download_data_national_button <- downloadHandler( -->
 
-```
+<!--   filename = function() { -->
+<!--     paste0("ADA-PARC_National_Data_Download_", -->
+<!--            format(Sys.time(), "%Y-%m-%d_%I%M%p"), -->
+<!--            ".xlsx") -->
+<!--   }, -->
+<!--   content = function(file) { -->
+<!--     openxlsx::write.xlsx( -->
+<!--       list("Demographics" = demographics %>%  -->
+<!--              arrange(GEOID),  -->
+<!--            "Community Participation" = community_participation %>%  -->
+<!--              arrange(GEOID),  -->
+<!--            "Community Living" = community_living %>%  -->
+<!--              arrange(GEOID),  -->
+<!--            "Work-Economic" = work_economic %>%  -->
+<!--              arrange(GEOID), -->
+<!--            "Lookup" = dict_vars %>% -->
+<!--              filter((is_demographics == TRUE |  -->
+<!--                       is_community_living == TRUE | -->
+<!--                       is_community_participation == TRUE | -->
+<!--                       is_work_economic == TRUE)) %>%  -->
+<!--              select("variable_key" = var_readable,  -->
+<!--                     "variable_label" = var_pretty,  -->
+<!--                     is_demographics:is_work_economic)), -->
+<!--       file) -->
+<!--   } -->
+<!-- ) -->
 
-</div>
+<!-- ``` -->
+
+<!-- </div> -->
 
 # Download Fact Sheets
 
