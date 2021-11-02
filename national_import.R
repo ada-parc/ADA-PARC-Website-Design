@@ -106,15 +106,27 @@ community_living <- national_living %>%
     pwd_total = round(pop_total * pwd_pct, 0),
     
     ### Group quarters
+    # ***NOTE: Group quarters sometimes uses a different universe for calculating percentages.
+    # E.g. pop_grpquarters_institution_pwd_pct (S2601A_C03_047_estimate)
+    # Universe is number of people living in institution, NOT PWD
+    pop_grpquarters_institution_pwd_pct = S2601A_C03_047_estimate / 100,
+    pop_grpquarters_noninstitution_pwd_pct = S2601A_C04_047_estimate / 100,
+    
+    # Front end group quarters variables
     pop_grpquarters = S2601A_C02_001_estimate,
     pwd_grpquarters_pct = S2601A_C02_047_estimate / 100,  # Percentages supplied by ACS are whole numbers
     grpquarters_pct = pop_grpquarters / pop_total,
+    # Institution
     pop_grpquarters_institution = S2601A_C03_001_estimate,
+    pwd_grpquarters_institution = round(pop_grpquarters_institution * pop_grpquarters_institution_pwd_pct,
+                                        0),
+    pwd_grpquarters_institution_pct = pwd_grpquarters_institution / pwd_total, 
+    # Non-Institution
     pop_grpquarters_noninstitution = S2601A_C04_001_estimate,
-    pwd_grpquarters_institution_pct = S2601A_C03_047_estimate / 100, 
-    pwd_grpquarters_institution = round(pop_grpquarters_institution * pwd_grpquarters_institution_pct, 0),
-    pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate / 100,
-    pwd_grpquarters_noninstitution = round(pop_grpquarters_noninstitution * pwd_grpquarters_noninstitution_pct, 0),
+    pwd_grpquarters_noninstitution = round(pop_grpquarters_noninstitution * pop_grpquarters_noninstitution_pwd_pct, 0),
+    pwd_grpquarters_noninstitution_pct = pwd_grpquarters_noninstitution / pwd_total,
+    
+    # Home
     pwd_home_pct = (pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution) / pwd_total,
     pwd_home = round((pwd_total * pwd_home_pct), 2),
     pwd_grpquarters_other_pct = round(pwd_grpquarters_noninstitution / pwd_total, 2),

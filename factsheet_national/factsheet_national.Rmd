@@ -167,5 +167,6 @@ national_topic_table <-
 HTML(national_topic_table) 
 
 openxlsx::write.xlsx(national_data_table_friendly,
-                file = "C:\\Users\\sconn\\Downloads\\pwd_institution_pct.xlsx")
+                file = "C:\\Users\\sconn\\Downloads\\pwd_institution_pct.xlsx",
+                overwrite = TRUE)
 ```
