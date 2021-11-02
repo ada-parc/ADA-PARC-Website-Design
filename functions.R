@@ -276,13 +276,7 @@ render_geo_static_map <- function(data, selected, palette_selected) {
                  filter(!is.na(!!sym(selected))),
                by = "ABBR") %>% 
     rowwise() %>% 
-    mutate("hover_text" := ifelse(grepl("_pct$", 
-                                        selected),
-                                  paste0(ABBR, ":\n", 
-                                         round(!!sym(selected), 1), "%"),
-                                  paste0(ABBR, ":\n", 
-                                         abbreviate_number(!!sym(selected)))),
-           "quartile_fill" = cut(!!sym(selected), 
+    mutate("quartile_fill" = cut(!!sym(selected), 
                                  breaks = quartiles, 
                                  labels = labels, 
                                  include.lowest = TRUE))
@@ -291,7 +285,8 @@ render_geo_static_map <- function(data, selected, palette_selected) {
   ggplot_object <- ggplot(states_sf) +
     geom_sf(aes(fill = quartile_fill),
             color = "black", size = 0.25) +
-    scale_fill_brewer(palette = palette_selected) +
+    scale_fill_brewer(palette = palette_selected,
+                      na.value = "grey") +
     # Text
     geom_sf_text(data = get_urbn_labels(map = "territories_states", 
                                         sf = TRUE) %>% 
