@@ -6,9 +6,6 @@ output:
     theme: paper
 always_allow_html: true
 tables: true
-params:
-  national_category_selector: "is_demographics"
-  national_variable_selector: "pop_total"
 editor_options: 
   chunk_output_type: console
 ---
@@ -36,35 +33,24 @@ host_name = "host_prod"
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
 
+
+### ----- Load CMS/HUD data ----- 
+
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
-dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
-                                 host_name = host_name)
+cms_hud_vars <- tibble(
+  var_readable = c("hcbs_ratio", "hcbs_spending_per",
+                   "hud_public_housing_pct", "hud_hcv_pct"),
+  var_pretty = c("Ratio of HCBS Expenditures to Total LTSS (2018 Mathematica)",
+                 "Spending per Participant for any HCBS Waiver Type",
+                 "Percent of Head of Households in Public Housing that are Disabled (18-61) (HUD Picture 2020)",
+                 "Percent of Head of Households with Housing Choice Vouchers who are disabled (18-61) (HUD Picture 2020)")) %>% 
+  mutate("national_dropdown_label" = var_pretty)
 
-### ----- National data import and clean ----- 
-
-# This script takes the national_* objects and transforms them
-# into the final datasets for mapping
-source(here("national_import.R"), local = TRUE)
 
 # Get the right combination of dataset and variable
-national_data <- eval(sym(str_remove(params$national_category_selector, "^is_")))
-
-# Markdown title
-rmd_title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == params$national_variable_selector)][1]
-
-```
-
-## `r rmd_title`
-
-### Summary
-
-```{r national-map-summary, fig.alt = "Descriptive summary of data for the selected topic."}
-
-HTML(paste0(altText(national_data, 
-             params$national_variable_selector),
-            " Detailed information is available below in the map and table below.",
-            "<br><i>Source: 2015-2019 American Community Survey 5-Year Estimates.</i>"))
+cms_hud_data <- openxlsx::read.xlsx("CMS_HUD_WebsiteData.xlsx",
+                                    rows = c(1:53))
 
 ```
 
@@ -72,98 +58,116 @@ HTML(paste0(altText(national_data,
 
 ```{r national-map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
-render_geo_static_map(national_data, 
-                      params$national_variable_selector, 
-                      "YlOrBr")
+# Geographic map function
+render_cms_hud_map <- function(data, selected, palette_selected) {
+  
+  # Set quartiles
+  no_classes <- 4
+  labels <- c()
+  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1),
+                        na.rm = TRUE)
+  
+  # Custom labels based on percent or value
+  for(idx in 1:length(quartiles)){
+    if(grepl("pct", selected)) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
+                                 "-", 
+                                 scales::percent(quartiles[idx + 1] / 100)))
+      
+    } else if(grepl("spending", selected)) {
+      
+      # Values
+      labels <- c(labels, paste0("$", scales::comma(quartiles[idx]), 
+                                 "-$", 
+                                 scales::comma(quartiles[idx + 1])))
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
+                                 "-", 
+                                 scales::comma(quartiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA
+  labels <- labels[1:length(labels)-1]
+  
+  # Set map title and legend
+  title <- cms_hud_vars$national_dropdown_label[which(cms_hud_vars$var_readable == selected)][1]
+  legend_title <- paste0(cms_hud_vars$var_pretty[which(cms_hud_vars$var_readable == selected)][1], ": ")
+  
+  # US State geography, remove territories, join data
+  states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
+    filter(!state_fips %in% c("60", "66", "69", "72", "78")) %>% 
+    select("ABBR" = state_abbv) %>% 
+    inner_join(data %>% 
+                 select(ABBR, !!sym(selected)),
+               by = "ABBR") %>% 
+    rowwise() %>% 
+    mutate("quartile_fill" = cut(!!sym(selected), 
+                                 breaks = quartiles, 
+                                 labels = labels, 
+                                 include.lowest = TRUE))
+  
+  # Plot geographic map
+  ggplot_object <- ggplot(states_sf) +
+    geom_sf(aes(fill = quartile_fill),
+            color = "black", size = 0.25) +
+    scale_fill_brewer(palette = palette_selected,
+                      na.value = "grey") +
+    # Text
+    geom_sf_text(data = get_urbn_labels(map = "territories_states", 
+                                        sf = TRUE) %>% 
+                   filter(!state_fips %in% c("60", "66", "69", "43", "78")),
+                 aes(label = state_abbv),
+                 size = 4, fontface = "bold", check_overlap = TRUE) +
+    # Labels
+    labs(x = "", y = "", 
+         # title = title,
+         fill = legend_title) +
+    theme_void() +
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "bottom",
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
+          strip.text.x = element_text(size = 9L),
+          text = element_text(size = 16)) +
+    guides(fill = guide_legend(label.position = "bottom"))
+  
+  ggplot_object
+  
+}
 
-```
+### ----- Run maps manually -----
 
-\newpage
+# hcbs_ratio
+render_cms_hud_map(cms_hud_data, 
+                   "hcbs_ratio", 
+                   "YlOrBr")
 
-### Table of Selected Topic
+# hcbs_spending_per
+render_cms_hud_map(cms_hud_data, 
+                   "hcbs_spending_per", 
+                   "YlOrBr")
 
-```{r national-table, fig.alt = "State-level data for variables relevant to the selected topic."}
+# hud_public_housing_pct 
+render_cms_hud_map(cms_hud_data, 
+                   "hud_public_housing_pct", 
+                   "YlOrBr")
 
-# Get variable group based on selected variable
-national_vars_in_topic <- dict_vars %>% 
-    filter((!!sym(params$national_category_selector)) == TRUE,
-           var_topic ==
-             (dict_vars %>% 
-                filter((!!sym(params$national_category_selector)) == TRUE,
-                       var_readable == params$national_variable_selector) %>% 
-                pull(var_topic))) %>% 
-    select(var_pretty, var_readable)
-
-# Caption
-cap_choices <- c("Demographics" = "is_demographics", 
-                 "Community Participation" = "is_community_participation", 
-                 "Community Living" = "is_community_living", 
-                 "Work/Economic" = "is_work_economic")
-
-table_caption <- paste(names(cap_choices[cap_choices == params$national_category_selector]), "Table")
-
-# Reorganize dataframe, switch to pretty names
-national_data_table_friendly <- national_data %>%
-    arrange(GEOID) %>% 
-    mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
-    select(any_of(c("State",
-                    national_vars_in_topic %>% 
-                      pull(var_readable)))) %>% 
-    mutate(across(-State & -ends_with("_pct"),
-                  ~scales::comma(.x))) %>% 
-    mutate(across(ends_with("_pct"),
-                  ~scales::percent(.x, 
-                                   accuracy = 0.1,
-                                   scale = 1))) %>% 
-    rename(!!any_of(national_vars_in_topic %>% 
-                      deframe()))
-
-# Summary table
-# # Left side
-# summary_1 <- kbl(x = national_data_table_friendly,
-#                  format = "html",
-#                  row.names = FALSE,
-#                  caption = table_caption) %>%
-#   kable_paper("striped",
-#               full_width = TRUE,
-#               position = "left") %>% 
-#   kable_styling(bootstrap_options = c("striped",
-#                                       "condensed"),
-#                 full_width = TRUE,
-#                 position = "left") %>% 
-#   column_spec(1, width = "1.5in")
-# 
-# # Right side
-# summary_2 <- kbl(x = national_data_table_friendly[27:52,],
-#                  format = "html",
-#                  row.names = FALSE,
-#                  caption = table_caption) %>%
-#   kable_paper("striped",
-#               full_width = TRUE,
-#               position = "left") %>% 
-#   kable_styling(bootstrap_options = c("striped",
-#                                       "condensed"),
-#                 full_width = TRUE,
-#                 position = "left") %>% 
-#   column_spec(1, width = "1.5in")
-
-# Full table
-national_topic_table <- 
-  kbl(x = national_data_table_friendly,
-      format = "html",
-      row.names = FALSE,
-      caption = table_caption) %>%
-  kable_paper("striped",
-              full_width = TRUE,
-              position = "left") %>% 
-  kable_styling(bootstrap_options = c("striped",
-                                      "condensed"),
-                full_width = TRUE,
-                font_size = 11,
-                position = "left") %>% 
-  column_spec(1, width = "1.5in")
-
-# UI Output
-HTML(national_topic_table) 
+# hud_hcv_pct
+render_cms_hud_map(cms_hud_data, 
+                   "hud_hcv_pct", 
+                   "YlOrBr")
 
 ```

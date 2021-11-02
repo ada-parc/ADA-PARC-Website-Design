@@ -7,8 +7,8 @@ output:
 always_allow_html: true
 tables: true
 params:
-  national_category_selector: "is_demographics"
-  national_variable_selector: "pop_total"
+  national_category_selector: "is_community_living"
+  national_variable_selector: "pwd_grpquarters_institution_pct"
 editor_options: 
   chunk_output_type: console
 ---
@@ -166,4 +166,6 @@ national_topic_table <-
 # UI Output
 HTML(national_topic_table) 
 
+openxlsx::write.xlsx(national_data_table_friendly,
+                file = "C:\\Users\\sconn\\Downloads\\pwd_institution_pct.xlsx")
 ```
