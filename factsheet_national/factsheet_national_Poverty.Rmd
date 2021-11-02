@@ -1,0 +1,173 @@
+---
+title: ""
+output: 
+  html_document:
+    css: "style.css"
+    theme: paper
+always_allow_html: true
+tables: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+
+### ----- Libraries and database connections ----- 
+
+# Packages
+library(tidyverse); library(sf); library(htmltools)
+library(colourpicker); library(gghighlight)
+library(knitr); library(kableExtra)
+library(tigris); library(urbnmapr); library(patchwork)
+library(scales); library(hrbrthemes); library(ggthemes)  
+library(extrafont); library(mongolite); library(here)
+
+options(scipen = 999999)
+opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+               fig.width = 12, fig.asp = 0.618,
+               fig.align = "center", out.width = "100%")
+
+# Set this to host_prod or host_dev
+host_name = "host_prod"
+
+# Load API keys and database connection information
+source(here("functions.R"), local = TRUE)
+
+
+### ----- Load CMS/HUD data ----- 
+
+# Load variable dictionary for relating tables, variable codes,
+# and readable values
+cms_hud_vars <- tibble(
+  var_readable = c("hcbs_ratio", "hcbs_spending_per",
+                   "hud_public_housing_pct", "hud_hcv_pct"),
+  var_pretty = c("Ratio of HCBS Expenditures to Total LTSS (2018 Mathematica)",
+                 "Spending per Participant for any HCBS Waiver Type",
+                 "Percent of Head of Households in Public Housing that are Disabled (18-61) (HUD Picture 2020)",
+                 "Percent of Head of Households with Housing Choice Vouchers who are disabled (18-61) (HUD Picture 2020)")) %>% 
+  mutate("national_dropdown_label" = var_pretty)
+
+
+# Get the right combination of dataset and variable
+cms_hud_data <- openxlsx::read.xlsx("CMS_HUD_WebsiteData.xlsx",
+                                    rows = c(1:53))
+
+```
+
+### State-by-State Map
+
+```{r national-map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+
+# Geographic map function
+render_cms_hud_map <- function(data, selected, palette_selected) {
+  
+  # Set quartiles
+  no_classes <- 4
+  labels <- c()
+  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+                        probs = seq(0, 1, length.out = no_classes + 1),
+                        na.rm = TRUE)
+  
+  # Custom labels based on percent or value
+  for(idx in 1:length(quartiles)){
+    if(grepl("pct", selected)) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
+                                 "-", 
+                                 scales::percent(quartiles[idx + 1] / 100)))
+      
+    } else if(grepl("spending", selected)) {
+      
+      # Values
+      labels <- c(labels, paste0("$", scales::comma(quartiles[idx]), 
+                                 "-$", 
+                                 scales::comma(quartiles[idx + 1])))
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
+                                 "-", 
+                                 scales::comma(quartiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA
+  labels <- labels[1:length(labels)-1]
+  
+  # Set map title and legend
+  title <- cms_hud_vars$national_dropdown_label[which(cms_hud_vars$var_readable == selected)][1]
+  legend_title <- paste0(cms_hud_vars$var_pretty[which(cms_hud_vars$var_readable == selected)][1], ": ")
+  
+  # US State geography, remove territories, join data
+  states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
+    filter(!state_fips %in% c("60", "66", "69", "72", "78")) %>% 
+    select("ABBR" = state_abbv) %>% 
+    inner_join(data %>% 
+                 select(ABBR, !!sym(selected)),
+               by = "ABBR") %>% 
+    rowwise() %>% 
+    mutate("quartile_fill" = cut(!!sym(selected), 
+                                 breaks = quartiles, 
+                                 labels = labels, 
+                                 include.lowest = TRUE))
+  
+  # Plot geographic map
+  ggplot_object <- ggplot(states_sf) +
+    geom_sf(aes(fill = quartile_fill),
+            color = "black", size = 0.25) +
+    scale_fill_brewer(palette = palette_selected,
+                      na.value = "grey") +
+    # Text
+    geom_sf_text(data = get_urbn_labels(map = "territories_states", 
+                                        sf = TRUE) %>% 
+                   filter(!state_fips %in% c("60", "66", "69", "43", "78")),
+                 aes(label = state_abbv),
+                 size = 4, fontface = "bold", check_overlap = TRUE) +
+    # Labels
+    labs(x = "", y = "", 
+         # title = title,
+         fill = legend_title) +
+    theme_void() +
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "bottom",
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
+          strip.text.x = element_text(size = 9L),
+          text = element_text(size = 16)) +
+    guides(fill = guide_legend(label.position = "bottom"))
+  
+  ggplot_object
+  
+}
+
+### ----- Run maps manually -----
+
+# hcbs_ratio
+render_cms_hud_map(cms_hud_data, 
+                   "hcbs_ratio", 
+                   "YlOrBr")
+
+# hcbs_spending_per
+render_cms_hud_map(cms_hud_data, 
+                   "hcbs_spending_per", 
+                   "YlOrBr")
+
+# hud_public_housing_pct 
+render_cms_hud_map(cms_hud_data, 
+                   "hud_public_housing_pct", 
+                   "YlOrBr")
+
+# hud_hcv_pct
+render_cms_hud_map(cms_hud_data, 
+                   "hud_hcv_pct", 
+                   "YlOrBr")
+
+```
