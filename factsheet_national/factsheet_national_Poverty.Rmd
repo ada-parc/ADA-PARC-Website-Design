@@ -33,24 +33,28 @@ host_name = "host_prod"
 # Load API keys and database connection information
 source(here("functions.R"), local = TRUE)
 
-
-### ----- Load CMS/HUD data ----- 
-
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
-cms_hud_vars <- tibble(
-  var_readable = c("hcbs_ratio", "hcbs_spending_per",
-                   "hud_public_housing_pct", "hud_hcv_pct"),
-  var_pretty = c("Ratio of HCBS Expenditures to Total LTSS (2018 Mathematica)",
-                 "Spending per Participant for any HCBS Waiver Type",
-                 "Percent of Head of Households in Public Housing that are Disabled (18-61) (HUD Picture 2020)",
-                 "Percent of Head of Households with Housing Choice Vouchers who are disabled (18-61) (HUD Picture 2020)")) %>% 
-  mutate("national_dropdown_label" = var_pretty)
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
+                                 host_name = host_name)
 
+### ----- National data import and clean ----- 
+
+# This script takes the national_* objects and transforms them
+# into the final datasets for mapping
+source(here("national_import.R"), local = TRUE)
 
 # Get the right combination of dataset and variable
-cms_hud_data <- openxlsx::read.xlsx("CMS_HUD_WebsiteData.xlsx",
-                                    rows = c(1:53))
+poverty_total <- openxlsx::read.xlsx("2021-11-02_SOSPovertyLevelData.xlsx") %>% 
+  select(ABBR, pop_below_poverty_pct)
+
+# Get the right combination of dataset and variable
+national_data <- work_economic %>% 
+  select(GEOID:ABBR, 
+         pwd_below_poverty_pct, pwod_below_poverty_pct) %>% 
+  left_join(poverty_total,
+            by = "ABBR") %>% 
+  filter(GEOID != 72)
 
 ```
 
@@ -59,18 +63,25 @@ cms_hud_data <- openxlsx::read.xlsx("CMS_HUD_WebsiteData.xlsx",
 ```{r national-map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 # Geographic map function
-render_cms_hud_map <- function(data, selected, palette_selected) {
+render_poverty_map <- function(data, selected, palette_selected) {
   
   # Set quartiles
   no_classes <- 4
   labels <- c()
-  quartiles <- quantile(data %>% pull(!!sym(selected)), 
+  
+  # Combine PWD and PWOD
+  quartiles <- quantile(vctrs::vec_c(national_data$pwd_below_poverty_pct,
+                                     national_data$pwod_below_poverty_pct), 
                         probs = seq(0, 1, length.out = no_classes + 1),
                         na.rm = TRUE)
+  # Overall PWD and PWOD
+  # quartiles <- quantile(national_data$pop_below_poverty_pct, 
+  #                       probs = seq(0, 1, length.out = no_classes + 1),
+  #                       na.rm = TRUE)
   
   # Custom labels based on percent or value
   for(idx in 1:length(quartiles)){
-    if(grepl("pct", selected)) {
+    if(grepl("pct", "pop_below_poverty_pct")) {
       
       # Percent, add divide by 100, add symbol to text
       labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
@@ -95,8 +106,8 @@ render_cms_hud_map <- function(data, selected, palette_selected) {
   labels <- labels[1:length(labels)-1]
   
   # Set map title and legend
-  title <- cms_hud_vars$national_dropdown_label[which(cms_hud_vars$var_readable == selected)][1]
-  legend_title <- paste0(cms_hud_vars$var_pretty[which(cms_hud_vars$var_readable == selected)][1], ": ")
+  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
+  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
   
   # US State geography, remove territories, join data
   states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
@@ -111,11 +122,17 @@ render_cms_hud_map <- function(data, selected, palette_selected) {
                                  labels = labels, 
                                  include.lowest = TRUE))
   
+  brks_scale <- levels(states_sf$quartile_fill)
+  # labels_scale <- rev(brks_scale)
+  
   # Plot geographic map
   ggplot_object <- ggplot(states_sf) +
     geom_sf(aes(fill = quartile_fill),
             color = "black", size = 0.25) +
-    scale_fill_brewer(palette = palette_selected,
+    scale_fill_manual(values = RColorBrewer::brewer.pal(4, palette_selected),
+                      breaks = brks_scale,
+                      labels = brks_scale,
+                      drop = FALSE,
                       na.value = "grey") +
     # Text
     geom_sf_text(data = get_urbn_labels(map = "territories_states", 
@@ -150,24 +167,23 @@ render_cms_hud_map <- function(data, selected, palette_selected) {
 
 ### ----- Run maps manually -----
 
-# hcbs_ratio
-render_cms_hud_map(cms_hud_data, 
-                   "hcbs_ratio", 
+# Percent of People with Disabilities, Age 18 - 64 Living Below Poverty Level
+render_poverty_map(national_data, 
+                   "pwd_below_poverty_pct", 
                    "YlOrBr")
 
-# hcbs_spending_per
-render_cms_hud_map(cms_hud_data, 
-                   "hcbs_spending_per", 
+# Percent of People without Disabilities, Age 18 - 64 Living Below Poverty Level
+render_poverty_map(national_data, 
+                   "pwod_below_poverty_pct", 
                    "YlOrBr")
 
-# hud_public_housing_pct 
-render_cms_hud_map(cms_hud_data, 
-                   "hud_public_housing_pct", 
-                   "YlOrBr")
-
-# hud_hcv_pct
-render_cms_hud_map(cms_hud_data, 
-                   "hud_hcv_pct", 
-                   "YlOrBr")
-
+# test <- national_data %>% 
+#   mutate("quartile_fill" = cut(pwd_below_poverty_pct, 
+#                                breaks = quartiles, 
+#                                labels = labels, 
+#                                include.lowest = TRUE)) %>% 
+#   mutate("quartile_fill" = case_when(pwd_below_poverty_pct < 7.572995 ~
+#                                        "0%-8%"))
+# 
+# test$quartile_fill
 ```
