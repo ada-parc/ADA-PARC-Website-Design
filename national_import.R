@@ -111,13 +111,13 @@ community_living <- national_living %>%
     grpquarters_pct = pop_grpquarters / pop_total,
     pop_grpquarters_institution = S2601A_C03_001_estimate,
     pop_grpquarters_noninstitution = S2601A_C04_001_estimate,
-    pwd_grpquarters_institution_pct = ((S2601A_C03_047_estimate / 100) * S2601A_C03_001_estimate) / pwd_total, 
-    pwd_grpquarters_institution = round(pop_grpquarters * (pwd_grpquarters_institution_pct/100), 0),
+    pwd_grpquarters_institution_pct = S2601A_C03_047_estimate / 100, 
+    pwd_grpquarters_institution = round(pop_grpquarters_institution * pwd_grpquarters_institution_pct, 0),
     pwd_grpquarters_noninstitution_pct = S2601A_C04_047_estimate / 100,
-    pwd_grpquarters_noninstitution = round(pop_grpquarters * (pwd_grpquarters_noninstitution_pct/100), 0),
-    pwd_home_pct = (pwd_grpquarters_pct - pwd_grpquarters_institution_pct - pwd_grpquarters_noninstitution_pct),
+    pwd_grpquarters_noninstitution = round(pop_grpquarters_noninstitution * pwd_grpquarters_noninstitution_pct, 0),
+    pwd_home_pct = (pwd_total - pwd_grpquarters_institution - pwd_grpquarters_noninstitution) / pwd_total,
     pwd_home = round((pwd_total * pwd_home_pct), 2),
-    pwd_grpquarters_other_pct = round((pwd_grpquarters_noninstitution / pwd_total) * 100, 2),
+    pwd_grpquarters_other_pct = round(pwd_grpquarters_noninstitution / pwd_total, 2),
     
     ### Nursing homes
     pop_nursing = S2602_C04_001_estimate,
