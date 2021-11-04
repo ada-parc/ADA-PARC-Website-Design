@@ -1,1 +1,0 @@
-1.16.20 Database, updated HUD household data, checked HUD resident data and was up to date 
