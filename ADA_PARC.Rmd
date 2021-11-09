@@ -148,7 +148,7 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%">
+<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="85%">
 
 <br>
 
