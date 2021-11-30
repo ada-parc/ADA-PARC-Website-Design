@@ -748,3 +748,30 @@ altText <- function(data, variable) {
   )
   
 }
+
+# Pull the name of the variable for comparison 
+# feeds into render_geo_static_map
+determineCompVar <- function(comp_var,
+                             national_category_selector) {
+  if(!exists("dict_vars")) {
+    stop("dict_vars not loaded")
+  }
+  
+  display_type <- dict_vars %>% 
+    filter(var_readable == comp_var, !!sym(national_category_selector)) %>% 
+    pull(display_type)
+  
+  if(display_type != "comp") 
+  {
+    return(NA)
+  } else {
+    base_var <- dict_vars %>% 
+      filter(var_readable == comp_var, !!sym(national_category_selector)) %>% 
+      pull(var_base)
+    
+    dict_vars %>%
+      filter(var_base == base_var, var_readable != comp_var) %>%
+      pull(var_readable)
+  }
+  
+}
