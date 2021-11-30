@@ -227,7 +227,7 @@ render_geo_interactive_map <- function(data, selected, palette_selected) {
     tm_borders(col = "black", lwd = 0.3)
   
   tmap_object +
-    tm_view(set.view = 3.75,
+    tm_view(set.view = 3.5,
             leaflet.options = list(zoomSnap = 0.5,
                                    zoomDelta = 0.5))
   
@@ -740,10 +740,11 @@ altText <- function(data, variable) {
     pull(national_summary_text)
   
   # Text for summary
-  paste0("<b>", title, "</b><br>",
-         summary_text, " ",
-         # Min/Max
-         text_min, text_max
-         )
+  paste0(
+    # "<b>", title, "</b><br>",
+    summary_text, " ",
+    # Min/Max
+    text_min, text_max
+  )
   
 }
