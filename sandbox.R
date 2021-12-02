@@ -1,59 +1,128 @@
-determineCompVar <- function(comp_var,
-                              national_category_selector) {
-  if(!exists("dict_vars")) {
-    stop("dict_vars not loaded")
-    }
-  
-  display_type <- dict_vars %>% 
-    filter(var_readable == comp_var, !!sym(national_category_selector)) %>% 
-    pull(display_type)
-  
-  if(display_type != "comp") 
-  {
-    return(NA)
-  } else {
-    base_var <- dict_vars %>% 
-      filter(var_readable == comp_var, !!sym(national_category_selector)) %>% 
-      pull(var_base)
-    
-    dict_vars %>%
-      filter(var_base == base_var, var_readable != comp_var) %>%
-      pull(var_readable)
-  }
-
-}
-
 dict_vars <- read_csv(here("dictionaries", "dict_vars_edits.csv"))
 
-# Test configs
-# comp_var <- "pwd_18_64"
-# national_category_selector <- "is_demographics"
+# # Test configs
+# # comp_var <- "pwd_18_64"
+# # national_category_selector <- "is_demographics"
+# 
+# comp_var <- "pwod_19_64_insured_pct"
+# national_category_selector <- "is_community_participation"
+# 
+# # comp_var <- ""
+# # national_category_selector <- ""
+# 
+# 
+# base_var <- str_extract(comp_var, "((?<=pwd_)|(?<=pwod_)).*$")
 
-comp_var <- "pwod_19_64_insured_pct"
-national_category_selector <- "is_community_participation"
-
-# comp_var <- ""
-# national_category_selector <- ""
-
-
-base_var <- str_extract(comp_var, "((?<=pwd_)|(?<=pwod_)).*$")
-# base_var
-
-# Logic to find the display type given a var and category
-dict_vars %>%
-  filter(
-    var_readable == comp_var, 
-    !!sym(national_category_selector)
-         ) %>%
-  pull(display_type)
-
-# Logic to return the other variable
-dict_vars %>%
-  filter(var_base == base_var, var_readable != comp_var) %>%
-  pull(var_readable)
 
 # Create a var_base value
 # dict_vars <- dict_vars %>%
 #   mutate(var_base = ifelse(display_type == "comp", str_extract(var_readable, "((?<=pwd_)|(?<=pwod_)).*$"), NA))
 
-# write_csv(dict_vars, here("dictionaries", "dict_vars_edits.csv"))
+getCompVar <- function(category, topic) {
+  if(!exists("dict_vars")) {
+    stop("dict_vars not loaded")
+  }
+  
+  # Idea is to go away from data, selected in this use case and just ensure it's passed strings to symbolize
+  national_category_selector <- paste0("is_", category)
+
+  if(!isCompVar(category, topic)) 
+  {
+    return(NA)
+  } else {
+    base_var <- dict_vars %>% 
+      filter(var_readable == topic, !!sym(national_category_selector)) %>% 
+      pull(var_base)
+    
+    dict_vars %>%
+      filter(var_base == base_var, var_readable != topic) %>%
+      pull(var_readable)
+  }
+  
+}
+
+isCompVar <- function(category, topic) {
+  national_category_selector <- paste0("is_", category)
+  
+  display_type <- dict_vars %>% 
+    filter(var_readable == topic, !!sym(national_category_selector)) %>% 
+    pull(display_type)
+  
+  ifelse(
+    display_type == "comp",
+    T,
+    F
+  )
+}
+
+getUrbnGeo <- function(data, selected) {
+  return( 
+    get_urbn_map("territories_states", sf = TRUE) %>% 
+      filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
+      select("ABBR" = state_abbv) %>% 
+      inner_join(data %>% 
+                   select(ABBR, !!sym(selected)) %>%
+                   filter(!is.na(!!sym(selected))),
+                 by = "ABBR") %>% 
+      rowwise() %>% 
+      mutate("hover_text" := ifelse(grepl("_pct$", 
+                                          selected),
+                                    paste0(round(!!sym(selected), 1), "%"),
+                                    abbreviate_number(!!sym(selected))))
+  )
+}
+
+makeTmapObject <- function(states_sf, selected, palette_selected) {
+  tmap_object <- tm_shape(states_sf) +
+    tm_basemap(NULL) +
+    tm_polygons(col = selected,
+                style = "quantile",
+                n = 4,
+                palette = palette_selected,
+                popup.vars = c("Selected variable: " = "hover_text"),
+                title = "",
+                legend.format = list(fun = function(x) 
+                  if(grepl("_pct$", selected)) {
+                    paste0(round(x, 1), "%") }
+                  else { scales::comma(x) } )) +
+    tm_shape(states_sf) +
+    tm_borders(col = "black", lwd = 0.3)
+}
+
+# Geographic map function
+render_geo_interactive_map <- function(data, selected, 
+                                       palette_selected = "YlOrBr") {
+  
+  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
+  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
+  
+  tmap_mode("view")
+
+  category <- deparse(substitute(data))
+  is_comp <- isCompVar(category, selected)
+
+  if(!is_comp){
+    states_sf <- getUrbnGeo(data, selected)
+    
+    p1 <- makeTmapObject(states_sf, selected, palette_selected)
+    
+    p1 + 
+      tm_view(set.view = 3.5,
+              leaflet.options = list(zoomSnap = 0.5,
+                                     zoomDelta = 0.5))
+  } else {
+
+    comp_var <- getCompVar(category, selected)
+    
+    states_sf <- getUrbnGeo(data, selected)
+    p1 <- makeTmapObject(states_sf, selected, palette_selected)
+    
+    states_sf <- getUrbnGeo(data, comp_var)
+    p2 <- makeTmapObject(states_sf, comp_var, palette_selected)
+    
+    tmap_arrange(p1, p2, ncol = 2)
+  }
+  
+}
+render_geo_interactive_map(community_participation, "pwd_19_64")
+render_geo_interactive_map(demographics, "pop_total")

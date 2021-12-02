@@ -751,8 +751,8 @@ altText <- function(data, variable) {
 
 # Pull the name of the variable for comparison 
 # feeds into render_geo_static_map
-determineCompVar <- function(comp_var,
-                             national_category_selector) {
+getCompVar <- function(comp_var,
+                       national_category_selector) {
   if(!exists("dict_vars")) {
     stop("dict_vars not loaded")
   }
