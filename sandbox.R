@@ -73,21 +73,28 @@ getUrbnGeo <- function(data, selected) {
   )
 }
 
-makeTmapObject <- function(states_sf, selected, palette_selected) {
+makeTmapObject <- function(states_sf, selected, title = "", palette_selected) {
   tmap_object <- tm_shape(states_sf) +
     tm_basemap(NULL) +
-    tm_polygons(col = selected,
-                style = "quantile",
-                n = 4,
-                palette = palette_selected,
-                popup.vars = c("Selected variable: " = "hover_text"),
-                title = "",
-                legend.format = list(fun = function(x) 
-                  if(grepl("_pct$", selected)) {
-                    paste0(round(x, 1), "%") }
-                  else { scales::comma(x) } )) +
+    tm_polygons(
+      col = selected,
+      style = "quantile",
+      n = 4,
+      palette = palette_selected,
+      popup.vars = c("Selected variable: " = "hover_text"),
+      title = title,
+      legend.format = list(fun = function(x) 
+        if(grepl("_pct$", selected)) {
+          paste0(round(x, 1), "%") }
+        else { scales::comma(x) } )
+    ) +
     tm_shape(states_sf) +
-    tm_borders(col = "black", lwd = 0.3)
+    tm_borders(col = "black", lwd = 0.3) + 
+    tm_layout(legend.stack = "horizontal") +
+    tm_view(set.view = 3.5,
+            leaflet.options = list(zoomSnap = 0.5,
+                                   zoomDelta = 0.5),
+            view.legend.position = c("left", "bottom"))
 }
 
 render_geo_interactive_map <- function(data, selected, 
@@ -102,25 +109,25 @@ render_geo_interactive_map <- function(data, selected,
   }
   
   category <- deparse(substitute(data)) # Need to ensure data is passed as a string of the object name
+  
+  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
 
   if(!isCompVar(category, selected)){
     states_sf <- getUrbnGeo(data, selected)
     
-    p1 <- makeTmapObject(states_sf, selected, palette_selected)
+    makeTmapObject(states_sf, selected, legend_title, palette_selected)
     
-    p1 + 
-      tm_view(set.view = 3.5,
-              leaflet.options = list(zoomSnap = 0.5,
-                                     zoomDelta = 0.5))
   } else {
 
     comp_var <- getCompVar(category, selected)
     
+    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
+    
     states_sf <- getUrbnGeo(data, selected)
-    p1 <- makeTmapObject(states_sf, selected, palette_selected)
+    p1 <- makeTmapObject(states_sf, selected, legend_title, palette_selected)
     
     states_sf <- getUrbnGeo(data, comp_var)
-    p2 <- makeTmapObject(states_sf, comp_var, palette_selected)
+    p2 <- makeTmapObject(states_sf, comp_var, legend_title_comp, palette_selected)
     
     tmap_arrange(p1, p2, ncol = 2, sync = T)
   }

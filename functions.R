@@ -89,147 +89,131 @@ abbreviate_number <- function(x)
   }
 }
 
-abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to provide correct values in text generation
+abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to perform operation row-wise
 
-# Tile map function
-render_tile_map <- function(data, selected, palette_selected) {
-
-  
-  no_classes <- 4
-  
-  quartiles <- quantile(data %>% 
-                          filter(!is.na(!!sym(selected))) %>% 
-                          pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1),
-                        na.rm = TRUE)
-  
-  labels <- set_quartile_labels(quartiles, no_classes, selected)
-  
-  # Set tile text fill based on contrast
-  hcl <- farver::decode_colour(RColorBrewer::brewer.pal(no_classes, 
-                                                        palette_selected), 
-                               "rgb", "hcl")
-  
-  label_col <- ifelse(hcl[, "l"] > 50, "black", "white")
-  
-  # Tile text fill
-  if(grepl("pct", selected)) {
-    
-    # Percents, adds symbol to text
-    fill_text <- geom_text(aes(
-      label = paste0(round(!!sym(selected), 1), "%"),
-      color = quartile_fill),
-      size = 4,
-      show.legend = FALSE)
-    
-  } else {
-    
-    # Values, rounds to nearest 100k
-    fill_text <- geom_text(aes(
-      label = abbreviate_number(!!sym(selected)),
-      color = quartile_fill),
-      size = 4,
-      show.legend = FALSE)
-    
+# Geographic map functions
+getCompVar <- function(category, topic) {
+  if(!exists("dict_vars")) {
+    stop("dict_vars not loaded")
   }
   
-  # Set map title and legend
-  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
-  legend_title <- dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1]
+  # national_category_selector <- paste0("is_", category)
   
-  # Plot tile map
-  data %>%
-    filter(!is.na(!!sym(selected))) %>%
-    mutate("quartile_fill" = cut(data %>% filter(!is.na(!!sym(selected))) %>% pull(!!sym(selected)), 
-                                 breaks = quartiles, 
-                                 labels = labels, 
-                                 include.lowest = TRUE)) %>% 
-    ggplot(aes(x = 1, y = 1, # A tile map without x or y axis changes will fill out the tile for the state
-               fill = quartile_fill)) + # Selected variable
-    geom_tile() + # Imports x and y values
-    # Fill
-    scale_fill_brewer(palette = palette_selected) +
-    # Text
-    fill_text +
-    scale_color_manual(values = label_col) +
-    # Labels
-    labs(x = "", y = "", 
-         # title = title,
-         fill = legend_title) +
-    # Facet
-    facet_geo(facets = ~ ABBR, grid = "us_state_with_DC_PR_grid2") +
-    # Theme, removes all of the grid elements that we don't need
-    theme(
-      plot.background = element_rect(colour = "white"), 
-      panel.grid = element_blank(),
-      panel.grid.major = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.line = element_blank(),
-      panel.spacing = unit(0L, "pt"),
-      legend.position = "bottom",
-      legend.title = element_text(face = "bold", vjust = 0.75),
-      legend.text = element_text(vjust = .5),
-      legend.key = element_rect(color = "black"),
-      plot.margin = unit(c(0,0,2,0), "cm"),
-      strip.text.x = element_text(size = 9L)
-    ) +
-    guides(fill = guide_legend(label.position = "bottom"))
+  if(!isCompVar(category, topic)) 
+  {
+    stop("Topic variable passed has no comparable")
+  } else {
+    base_var <- dict_vars %>% 
+      filter(var_readable == topic, !!sym(category)) %>% 
+      pull(var_base)
+    
+    dict_vars %>%
+      filter(var_base == base_var, var_readable != topic) %>%
+      pull(var_readable)
+  }
   
 }
 
-# Geographic map function
-render_geo_interactive_map <- function(data, selected, palette_selected) {
+isCompVar <- function(category, topic) {
+  # national_category_selector <- paste0("is_", category)
   
-  no_classes <- 4
+  display_type <- dict_vars %>% 
+    filter(var_readable == topic, !!sym(category)) %>% 
+    pull(display_type)
   
-  quartiles <- quantile(data %>% 
-                          filter(!is.na(!!sym(selected))) %>% 
-                          pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1),
-                        na.rm = TRUE)
-  
-  labels <- set_quartile_labels(quartiles, no_classes, selected)
-  
-  # Set map title and legend
-  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
-  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
-  
-  # US State geography, remove territories, join data
-  states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
-    filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
-    select("ABBR" = state_abbv) %>% 
-    inner_join(data %>% 
-                 select(ABBR, !!sym(selected)) %>%
-                 filter(!is.na(!!sym(selected))),
-               by = "ABBR") %>% 
-    rowwise() %>% 
-    mutate("hover_text" := ifelse(grepl("_pct$", 
-                                        selected),
-                                  paste0(round(!!sym(selected), 1), "%"),
-                                  abbreviate_number(!!sym(selected))))
-  
-  # Plot geographic map
-  tmap_mode("view")
+  ifelse(
+    display_type == "comp",
+    T,
+    F
+  )
+}
+
+getUrbnGeo <- function(data, selected) {
+  return( 
+    get_urbn_map("territories_states", sf = TRUE) %>% 
+      filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
+      select("ABBR" = state_abbv) %>% 
+      inner_join(data %>% 
+                   select(ABBR, !!sym(selected)) %>%
+                   filter(!is.na(!!sym(selected))),
+                 by = "ABBR") %>% 
+      rowwise() %>% 
+      mutate("hover_text" := ifelse(grepl("_pct$", 
+                                          selected),
+                                    paste0(round(!!sym(selected), 1), "%"),
+                                    abbreviate_number(!!sym(selected))))
+  )
+}
+
+makeTmapObject <- function(states_sf, selected, title = "", palette_selected) {
   tmap_object <- tm_shape(states_sf) +
     tm_basemap(NULL) +
-    tm_polygons(col = selected,
-                style = "quantile",
-                n = 4,
-                palette = palette_selected,
-                popup.vars = c("Selected variable: " = "hover_text"),
-                title = "",
-                legend.format = list(fun = function(x) 
-                  if(grepl("_pct$", selected)) {
-                    paste0(round(x, 1), "%") }
-                  else { scales::comma(x) } )) +
+    tm_polygons(
+      col = selected,
+      style = "quantile",
+      n = 4,
+      palette = palette_selected,
+      popup.vars = c("Selected variable: " = "hover_text"),
+      title = title,
+      legend.format = list(fun = function(x) 
+        if(grepl("_pct$", selected)) {
+          paste0(round(x, 1), "%") }
+        else { scales::comma(x) } )
+    ) +
     tm_shape(states_sf) +
-    tm_borders(col = "black", lwd = 0.3)
+    tm_borders(col = "black", lwd = 0.3) + 
+    tm_layout(legend.stack = "horizontal")
+
   
-  tmap_object +
-    tm_view(set.view = 3.5,
-            leaflet.options = list(zoomSnap = 0.5,
-                                   zoomDelta = 0.5))
+}
+
+render_geo_interactive_map <- function(data, category, variable, 
+                                       palette_selected = "YlOrBr") {
+  
+  if(!is.data.frame(data) & !is_tibble(data)) {
+    stop("data must be a dataframe or tibble object")
+  }
+  
+  if(!is.character(category)) {
+    stop("selected category must be a character string")
+  }
+  
+  if(!is.character(variable)) {
+    stop("selected variable must be a character string")
+  }
+  
+  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == variable)][1])
+  print(isCompVar(category, variable))
+  
+  if(!isCompVar(category, variable)){
+    tmap_mode("view")
+    
+    states_sf <- getUrbnGeo(data, variable)
+    
+    makeTmapObject(states_sf, variable, legend_title, palette_selected) +
+      tm_view(set.view = 3.5,
+              leaflet.options = list(zoomSnap = 0.5,
+                                     zoomDelta = 0.5),
+              view.legend.position = c("left", "bottom"))
+    
+  } else {
+    tmap_mode("view")
+    print("else branch")
+    comp_var <- getCompVar(category, variable)
+    
+    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
+    
+    states_sf <- getUrbnGeo(data, variable) %>%
+      mutate(facet = 1)
+    p1 <- makeTmapObject(states_sf, variable, legend_title, palette_selected)
+    print("p1 made")
+    states_sf_comp <- getUrbnGeo(data, comp_var) %>%
+      mutate(facet = 2)
+    p2 <- makeTmapObject(states_sf_comp, comp_var, legend_title_comp, palette_selected)
+    print("p2 made")
+    
+    tmap_arrange(p1, p2, ncol = 2)
+  }
   
 }
 
@@ -671,7 +655,7 @@ altText <- function(data, variable) {
   # Selected data, format min/max for summary
   df <- data %>%
     select(NAME, ABBR, sym(variable)) %>%
-    filter(!is.na(sym(variable)))
+    filter(!is.na(!!sym(variable)))
 
   # Min
   text_min <- data %>%
@@ -746,32 +730,5 @@ altText <- function(data, variable) {
     # Min/Max
     text_min, text_max
   )
-  
-}
-
-# Pull the name of the variable for comparison 
-# feeds into render_geo_static_map
-getCompVar <- function(comp_var,
-                       national_category_selector) {
-  if(!exists("dict_vars")) {
-    stop("dict_vars not loaded")
-  }
-  
-  display_type <- dict_vars %>% 
-    filter(var_readable == comp_var, !!sym(national_category_selector)) %>% 
-    pull(display_type)
-  
-  if(display_type != "comp") 
-  {
-    return(NA)
-  } else {
-    base_var <- dict_vars %>% 
-      filter(var_readable == comp_var, !!sym(national_category_selector)) %>% 
-      pull(var_base)
-    
-    dict_vars %>%
-      filter(var_base == base_var, var_readable != comp_var) %>%
-      pull(var_readable)
-  }
   
 }
