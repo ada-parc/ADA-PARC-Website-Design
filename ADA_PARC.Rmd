@@ -185,12 +185,11 @@ selectInput(inputId = "national_category_selector",
 
 national_category_selected <- reactive({ # Output looks like "is_demographics"
   getElement(national_category_choices, input$national_category_selector)
-  # national_category_choices[[input$national_category_selector]]
 })
 
 # National variable selection widget
 national_variable_choices <- reactive({
-  
+  req(national_category_selected())
   tibble::deframe(
     dict_vars %>% 
       filter(!!sym(national_category_selected()) == TRUE,
@@ -291,51 +290,19 @@ withSpinner(uiOutput("national_map_summary"))
 
 ```{r national-map, fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
-# # Button to choose map type
-# radioButtons(inputId = "national_map_toggle",
-#              label = "Select a map type to display:",
-#              choices = c("Geographic" = "geographic",
-#                          "Tile" = "tile"),
-#              selected = "geographic",
-#              inline = TRUE)
 
-# Conditional UI depending on button selection
 output$national_map <- renderUI({
-  
-  # if(input$national_map_toggle == "geographic") {
-    withSpinner(tmapOutput("geographic_map") #%>%
-  #                 # Adding the `alt` attribute to our plot
-                  # tagAppendAttributes(alt = "A map of the United States, with each state shaded according to the quartiles described in the summary.")
-                  )
-  # } else {
-  #   withSpinner(plotOutput("tile_map", height = "300px"))
-  # }
+
+    withSpinner(tmapOutput("geographic_map")) 
   
 })
 
 uiOutput("national_map")
 
-# 
-# # Tile map
-# output$tile_map <-
-#   renderPlot({
-#     
-#     # req(input$national_variable_selector)
-#     
-#     render_tile_map(national_data(), 
-#                     national_variable_selected(), 
-#                     access_map_palette_selected())
-#     
-#   })
-
-
-
-# Geographic map
 output$geographic_map <- renderTmap({
   
-  # req(input$national_variable_selector)
-  
   render_geo_interactive_map(national_data(), 
+                             national_category_selected(),
                              national_variable_selected(), 
                              access_map_palette_selected())
   
