@@ -1,4 +1,5 @@
 dict_vars <- read_csv(here("dictionaries", "dict_vars_edits.csv"))
+tmap_mode("view")
 
 # # Test configs
 # # comp_var <- "pwd_18_64"
@@ -28,7 +29,7 @@ getCompVar <- function(category, topic) {
 
   if(!isCompVar(category, topic)) 
   {
-    return(NA)
+    stop("Topic variable passed has no comparable")
   } else {
     base_var <- dict_vars %>% 
       filter(var_readable == topic, !!sym(national_category_selector)) %>% 
@@ -89,19 +90,20 @@ makeTmapObject <- function(states_sf, selected, palette_selected) {
     tm_borders(col = "black", lwd = 0.3)
 }
 
-# Geographic map function
 render_geo_interactive_map <- function(data, selected, 
                                        palette_selected = "YlOrBr") {
   
-  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
-  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
+  if(!is.data.frame(data) & !is_tibble(data)) {
+    stop("data must be a dataframe or tibble object")
+  }
   
-  tmap_mode("view")
+  if(!is.character(selected)) {
+    stop("selected must be a character string")
+  }
+  
+  category <- deparse(substitute(data)) # Need to ensure data is passed as a string of the object name
 
-  category <- deparse(substitute(data))
-  is_comp <- isCompVar(category, selected)
-
-  if(!is_comp){
+  if(!isCompVar(category, selected)){
     states_sf <- getUrbnGeo(data, selected)
     
     p1 <- makeTmapObject(states_sf, selected, palette_selected)
@@ -120,9 +122,9 @@ render_geo_interactive_map <- function(data, selected,
     states_sf <- getUrbnGeo(data, comp_var)
     p2 <- makeTmapObject(states_sf, comp_var, palette_selected)
     
-    tmap_arrange(p1, p2, ncol = 2)
+    tmap_arrange(p1, p2, ncol = 2, sync = T)
   }
   
 }
-render_geo_interactive_map(community_participation, "pwd_19_64")
+render_geo_interactive_map(community_participation, "pwod_19_64_insured_pct")
 render_geo_interactive_map(demographics, "pop_total")
