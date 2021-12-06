@@ -1,4 +1,4 @@
-dict_vars <- read_csv(here("dictionaries", "dict_vars_edits.csv"))
+# dict_vars <- read_csv(here("dictionaries", "dict_vars_edits.csv"))
 tmap_mode("view")
 
 # # Test configs
@@ -56,21 +56,34 @@ isCompVar <- function(category, topic) {
   )
 }
 
-getUrbnGeo <- function(data, selected) {
-  return( 
-    get_urbn_map("territories_states", sf = TRUE) %>% 
-      filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
-      select("ABBR" = state_abbv) %>% 
-      inner_join(data %>% 
-                   select(ABBR, !!sym(selected)) %>%
-                   filter(!is.na(!!sym(selected))),
-                 by = "ABBR") %>% 
+getUrbnGeo <- function(data, selected, quartiles = NULL, labels = NULL, interactive = T) {
+  
+  df <- get_urbn_map("territories_states", sf = TRUE) %>% 
+    filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
+    select("ABBR" = state_abbv) %>% 
+    inner_join(data %>% 
+                 select(ABBR, !!sym(selected)) %>%
+                 filter(!is.na(!!sym(selected))),
+               by = "ABBR")
+  
+  if(interactive) {
+    df %>%
       rowwise() %>% 
       mutate("hover_text" := ifelse(grepl("_pct$", 
                                           selected),
                                     paste0(round(!!sym(selected), 1), "%"),
                                     abbreviate_number(!!sym(selected))))
-  )
+  } else if(!is.null(quartiles) & !is.null(labels)) {
+    df %>%
+      rowwise() %>% 
+      mutate("quartile_fill" = cut(!!sym(selected), 
+                                   breaks = quartiles, 
+                                   labels = labels, 
+                                   include.lowest = TRUE))
+  } else {
+    stop("Static plots require quartile and label values")
+  }
+  
 }
 
 makeTmapObject <- function(states_sf, selected, title = "", palette_selected) {
@@ -88,15 +101,53 @@ makeTmapObject <- function(states_sf, selected, title = "", palette_selected) {
           paste0(round(x, 1), "%") }
         else { scales::comma(x) } )
     ) +
-    tm_shape(states_sf) +
+    # tm_shape(states_sf) +
     tm_borders(col = "black", lwd = 0.3) + 
     tm_layout(legend.stack = "horizontal") +
     tm_view(set.view = 3.5,
             leaflet.options = list(zoomSnap = 0.5,
                                    zoomDelta = 0.5),
             view.legend.position = c("left", "bottom"))
+  
+  tmap_object
 }
 
+makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
+  ggplot(states_sf) +
+    geom_sf(aes(fill = quartile_fill),
+            color = "black", size = 0.25) +
+    scale_fill_brewer(palette = palette_selected,
+                      na.value = "grey") +
+    # Text
+    geom_sf_text(data = get_urbn_labels(map = "territories_states", 
+                                        sf = TRUE) %>% 
+                   filter(!state_fips %in% c("60", "66", "69", "78")),
+                 aes(label = state_abbv),
+                 size = 4, fontface = "bold", check_overlap = TRUE) +
+    # Labels
+    labs(x = "", y = "", 
+         # title = title,
+         fill = legend_title) +
+    theme_void() +
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "bottom",
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
+          strip.text.x = element_text(size = 9L),
+          text = element_text(size = 16)) +
+    guides(fill = guide_legend(label.position = "bottom"))
+}
+
+# rename, since this isn't exclusively for interactive maps
+# probably renderNationalMap()
 render_geo_interactive_map <- function(data, selected, 
                                        palette_selected = "YlOrBr") {
   
@@ -114,7 +165,7 @@ render_geo_interactive_map <- function(data, selected,
 
   if(!isCompVar(category, selected)){
     states_sf <- getUrbnGeo(data, selected)
-    
+    print("states_sf")
     makeTmapObject(states_sf, selected, legend_title, palette_selected)
     
   } else {
@@ -123,15 +174,31 @@ render_geo_interactive_map <- function(data, selected,
     
     legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
     
-    states_sf <- getUrbnGeo(data, selected)
-    p1 <- makeTmapObject(states_sf, selected, legend_title, palette_selected)
+    no_classes <- 4
     
-    states_sf <- getUrbnGeo(data, comp_var)
-    p2 <- makeTmapObject(states_sf, comp_var, legend_title_comp, palette_selected)
+    quartiles <- quantile(data %>% pull(!!sym(selected)), 
+                          probs = seq(0, 1, length.out = no_classes + 1),
+                          na.rm = TRUE)
     
-    tmap_arrange(p1, p2, ncol = 2, sync = T)
+    labels <- set_quartile_labels(quartiles, 4, selected)
+    
+    states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
+    p1 <- makeGgplotObject(states_sf, legend_title, palette_selected)
+    # print("p1")
+    
+    quartiles <- quantile(data %>% pull(!!sym(comp_var)), 
+                          probs = seq(0, 1, length.out = no_classes + 1),
+                          na.rm = TRUE)
+    
+    labels <- set_quartile_labels(quartiles, 4, comp_var)
+    
+    states_sf <- getUrbnGeo(data, comp_var, quartiles, labels, interactive = F)
+    p2 <- makeGgplotObject(states_sf, legend_title_comp, palette_selected)
+    # print("p2")
+    
+    grid.arrange(p1, p2, ncol = 2)
   }
   
 }
 render_geo_interactive_map(community_participation, "pwod_19_64_insured_pct")
-render_geo_interactive_map(demographics, "pop_total")
+# render_geo_interactive_map(demographics, "pop_total")

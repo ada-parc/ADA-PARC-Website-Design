@@ -19,8 +19,10 @@ resource_files:
 
 # Packages
 library(tidyverse)
+library(gridExtra)
 library(tigris); library(sf)
-library(geofacet); library(urbnmapr)
+# library(geofacet)
+library(urbnmapr)
 library(leaflet); library(leaflet.extras)
 library(tmap); library(tmaptools)
 library(htmltools)
