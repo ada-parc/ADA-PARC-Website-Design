@@ -294,14 +294,25 @@ withSpinner(uiOutput("national_map_summary"))
 
 
 output$national_map <- renderUI({
-
-    withSpinner(tmapOutput("geographic_map")) 
+  
+  if(isCompVar(national_category_selected(), national_variable_selected())) {
+    withSpinner(plotOutput("national_ggmap"))
+  } else {  
+    withSpinner(tmapOutput("national_tmap")) 
+  }  
   
 })
 
 uiOutput("national_map")
 
-output$geographic_map <- renderTmap({
+output$national_ggmap <- renderPlot({
+  render_geo_interactive_map(national_data(), 
+                             national_category_selected(),
+                             national_variable_selected(), 
+                             access_map_palette_selected())
+})
+
+output$national_tmap <- renderTmap({
   
   render_geo_interactive_map(national_data(), 
                              national_category_selected(),

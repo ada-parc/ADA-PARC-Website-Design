@@ -97,14 +97,14 @@ getCompVar <- function(category, topic) {
     stop("dict_vars not loaded")
   }
   
-  national_category_selector <- paste0("is_", category)
+  # national_category_selector <- paste0("is_", category)
   
   if(!isCompVar(category, topic)) 
   {
     stop("Topic variable passed has no comparable")
   } else {
     base_var <- dict_vars %>% 
-      filter(var_readable == topic, !!sym(national_category_selector)) %>% 
+      filter(var_readable == topic, !!sym(category)) %>% 
       pull(var_base)
     
     dict_vars %>%
@@ -115,10 +115,10 @@ getCompVar <- function(category, topic) {
 }
 
 isCompVar <- function(category, topic) {
-  national_category_selector <- paste0("is_", category)
+  # national_category_selector <- paste0("is_", category)
   
   display_type <- dict_vars %>% 
-    filter(var_readable == topic, !!sym(national_category_selector)) %>% 
+    filter(var_readable == topic, !!sym(category)) %>% 
     pull(display_type)
   
   ifelse(
@@ -220,7 +220,7 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
 
 # rename, since this isn't exclusively for interactive maps
 # probably renderNationalMap()
-render_geo_interactive_map <- function(data, selected, 
+render_geo_interactive_map <- function(data, category, selected, 
                                        palette_selected = "YlOrBr") {
   
   if(!is.data.frame(data) & !is_tibble(data)) {
@@ -231,23 +231,20 @@ render_geo_interactive_map <- function(data, selected,
     stop("selected must be a character string")
   }
   
-  category <- deparse(substitute(data)) # Need to ensure data is passed as a string of the object name
+  # category <- deparse(substitute(data)) # Need to ensure data is passed as a string of the object name
   
   legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
   
   if(!isCompVar(category, selected)){
-    states_sf <- getUrbnGeo(data, selected)
+    states_sf <- getUrbnGeo(data, selected, interactive = T)
     print("states_sf")
     makeTmapObject(states_sf, selected, legend_title, palette_selected)
     
   } else {
     
-    comp_var <- getCompVar(category, selected)
-    
-    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
-    
     no_classes <- 4
     
+    # p1
     quartiles <- quantile(data %>% pull(!!sym(selected)), 
                           probs = seq(0, 1, length.out = no_classes + 1),
                           na.rm = TRUE)
@@ -257,6 +254,11 @@ render_geo_interactive_map <- function(data, selected,
     states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
     p1 <- makeGgplotObject(states_sf, legend_title, palette_selected)
     # print("p1")
+    
+    # p2
+    comp_var <- getCompVar(category, selected)
+    
+    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
     
     quartiles <- quantile(data %>% pull(!!sym(comp_var)), 
                           probs = seq(0, 1, length.out = no_classes + 1),
