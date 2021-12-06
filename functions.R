@@ -97,8 +97,6 @@ getCompVar <- function(category, topic) {
     stop("dict_vars not loaded")
   }
   
-  # national_category_selector <- paste0("is_", category)
-  
   if(!isCompVar(category, topic)) 
   {
     stop("Topic variable passed has no comparable")
@@ -116,7 +114,7 @@ getCompVar <- function(category, topic) {
 
 isCompVar <- function(category, topic) {
   # national_category_selector <- paste0("is_", category)
-  
+  print("isComp")
   display_type <- dict_vars %>% 
     filter(var_readable == topic, !!sym(category)) %>% 
     pull(display_type)
@@ -220,7 +218,7 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
 
 # rename, since this isn't exclusively for interactive maps
 # probably renderNationalMap()
-render_geo_interactive_map <- function(data, category, selected, 
+render_national_map <- function(data, category, selected, 
                                        palette_selected = "YlOrBr") {
   
   if(!is.data.frame(data) & !is_tibble(data)) {
@@ -237,7 +235,6 @@ render_geo_interactive_map <- function(data, category, selected,
   
   if(!isCompVar(category, selected)){
     states_sf <- getUrbnGeo(data, selected, interactive = T)
-    print("states_sf")
     makeTmapObject(states_sf, selected, legend_title, palette_selected)
     
   } else {
@@ -253,8 +250,7 @@ render_geo_interactive_map <- function(data, category, selected,
     
     states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
     p1 <- makeGgplotObject(states_sf, legend_title, palette_selected)
-    # print("p1")
-    
+
     # p2
     comp_var <- getCompVar(category, selected)
     
@@ -268,8 +264,7 @@ render_geo_interactive_map <- function(data, category, selected,
     
     states_sf <- getUrbnGeo(data, comp_var, quartiles, labels, interactive = F)
     p2 <- makeGgplotObject(states_sf, legend_title_comp, palette_selected)
-    # print("p2")
-    
+
     grid.arrange(p1, p2, ncol = 2)
   }
   

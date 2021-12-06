@@ -174,9 +174,9 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 ### National category selection widget
 national_category_choices <- c("Demographics" = "is_demographics", 
-                        "Community Participation" = "is_community_participation", 
-                        "Community Living" = "is_community_living", 
-                        "Work/Economic" = "is_work_economic")
+                               "Community Participation" = "is_community_participation", 
+                               "Community Living" = "is_community_living", 
+                               "Work/Economic" = "is_work_economic")
 
 # Select the dataset to use
 selectInput(inputId = "national_category_selector", 
@@ -191,7 +191,7 @@ national_category_selected <- reactive({ # Output looks like "is_demographics"
 
 # National variable selection widget
 national_variable_choices <- reactive({
-  req(national_category_selected())
+
   tibble::deframe(
     dict_vars %>% 
       filter(!!sym(national_category_selected()) == TRUE,
@@ -212,11 +212,14 @@ selectInput(inputId = "national_variable_selector",
             multiple = F)
 
 observeEvent(input$national_category_selector, {
-    choices <- names(national_variable_choices())
-    updateSelectInput(session, "national_variable_selector", choices = choices)
-  })
+
+  choices <- names(national_variable_choices())
+  updateSelectInput(session, "national_variable_selector", choices = choices)
+  
+})
 
 national_variable_selected <- reactive({ # Output looks like "is_demographics"
+  req(national_category_selected())
   getElement(national_variable_choices(), input$national_variable_selector)
 })
 
@@ -295,9 +298,12 @@ withSpinner(uiOutput("national_map_summary"))
 
 output$national_map <- renderUI({
   
-  if(isCompVar(national_category_selected(), national_variable_selected())) {
+  comp_test <- isCompVar(national_category_selected(), national_variable_selected())
+  if(comp_test) {
+    print("ggmap")
     withSpinner(plotOutput("national_ggmap"))
-  } else {  
+  } else if(!comp_test) {  
+    print("tmap")
     withSpinner(tmapOutput("national_tmap")) 
   }  
   
@@ -306,15 +312,20 @@ output$national_map <- renderUI({
 uiOutput("national_map")
 
 output$national_ggmap <- renderPlot({
-  render_geo_interactive_map(national_data(), 
+  req(national_variable_selected(), national_category_selected(), national_data())
+  print("reqs filled")
+  print("run ggmap")
+  render_national_map(national_data(), 
                              national_category_selected(),
                              national_variable_selected(), 
                              access_map_palette_selected())
 })
 
 output$national_tmap <- renderTmap({
-  
-  render_geo_interactive_map(national_data(), 
+  req(national_variable_selected(), national_category_selected(), national_data())
+  print("reqs filled")
+  print("run tmap")
+  render_national_map(national_data(), 
                              national_category_selected(),
                              national_variable_selected(), 
                              access_map_palette_selected())
@@ -1315,9 +1326,9 @@ output$download_data_national_button <- downloadHandler(
              arrange(GEOID),
            "Lookup" = dict_vars %>%
              filter((is_demographics == TRUE | 
-                      is_community_living == TRUE |
-                      is_community_participation == TRUE |
-                      is_work_economic == TRUE)) %>% 
+                       is_community_living == TRUE |
+                       is_community_participation == TRUE |
+                       is_work_economic == TRUE)) %>% 
              select("variable_key" = var_readable, 
                     "variable_label" = var_pretty, 
                     is_demographics:is_work_economic)),
@@ -1359,7 +1370,7 @@ kbl(x = download_factsheet_national,
     caption = "Download National Fact Sheets") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 position = "left")
-  
+
 ```
 
 </div>
@@ -1385,7 +1396,7 @@ selectInput(inputId = "access_map_palette",
 
 access_map_palette_selected <- reactive({
   access_map_palette_choices[[input$access_map_palette]] })
-  
+
 # GGplot themes and colors
 access_ggplot_theme_choices <- list(
   "The Economist" = list(theme_economist(), scale_fill_economist(), scale_color_economist()),
