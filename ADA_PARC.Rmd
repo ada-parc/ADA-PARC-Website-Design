@@ -18,6 +18,7 @@ resource_files:
 ### ----- Libraries -----
 
 # Packages
+library(reactlog)
 library(tidyverse)
 library(gridExtra)
 library(tigris); library(sf)
@@ -38,7 +39,8 @@ library(extrafont); library(plotly)
 library(mongolite); library(here)
 
 options(scipen = 999999,
-        tigris_use_cache = TRUE)
+        tigris_use_cache = TRUE,
+        shiny.reactlog = TRUE)
 knitr::opts_chunk$set(fig.cap = TRUE)
 
 ### ----- Database connections -----
@@ -61,6 +63,8 @@ dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
 source(here("national_import.R"), local = TRUE)
+
+# reactlog::reactlog_enable()
 
 ```
 
@@ -215,11 +219,13 @@ observeEvent(input$national_category_selector, {
 
   choices <- names(national_variable_choices())
   updateSelectInput(session, "national_variable_selector", choices = choices)
+  # message(national_category_selected())
+  # message(national_variable_selected())
   
 })
 
 national_variable_selected <- reactive({ # Output looks like "is_demographics"
-  req(national_category_selected())
+  req(national_variable_choices())
   getElement(national_variable_choices(), input$national_variable_selector)
 })
 
@@ -242,6 +248,7 @@ output$national_map_summary <- renderUI({
       altText(national_data(), 
               national_variable_selected()),
       " Detailed information is available below in the interactive map (top) and table (bottom)."
+      
     )
     # # Static check
     # altText(demographics, 
@@ -298,39 +305,39 @@ withSpinner(uiOutput("national_map_summary"))
 
 output$national_map <- renderUI({
   
-  comp_test <- isCompVar(national_category_selected(), national_variable_selected())
-  if(comp_test) {
-    print("ggmap")
+  # comp_test <- isCompVar(national_category_selected(), national_variable_selected())
+  # if(comp_test) {
+    # print("ggmap")
     withSpinner(plotOutput("national_ggmap"))
-  } else if(!comp_test) {  
-    print("tmap")
-    withSpinner(tmapOutput("national_tmap")) 
-  }  
+  # } else if(!comp_test) {
+  #   # print("tmap")
+  #   withSpinner(tmapOutput("national_tmap"))
+  # }
   
 })
 
 uiOutput("national_map")
 
 output$national_ggmap <- renderPlot({
-  req(national_variable_selected(), national_category_selected(), national_data())
-  print("reqs filled")
-  print("run ggmap")
-  render_national_map(national_data(), 
-                             national_category_selected(),
-                             national_variable_selected(), 
-                             access_map_palette_selected())
+  # req(national_variable_selected(), national_category_selected(), national_data())
+  # print("reqs filled")
+  # print("run ggmap")
+  render_national_map(                          
+    national_category_selected(),
+    national_variable_selected(), 
+    access_map_palette_selected()
+  )
 })
 
-output$national_tmap <- renderTmap({
-  req(national_variable_selected(), national_category_selected(), national_data())
-  print("reqs filled")
-  print("run tmap")
-  render_national_map(national_data(), 
-                             national_category_selected(),
-                             national_variable_selected(), 
-                             access_map_palette_selected())
-  
-})
+# output$national_tmap <- renderPlot({
+#   #   # req(national_variable_selected(), national_category_selected(), national_data())
+#   #   print("reqs filled")
+#   #   print("run tmap")
+#   render_national_map(national_category_selected(),
+#                       national_variable_selected(),
+#                       access_map_palette_selected())
+#   #   
+# })
 
 ```
 
