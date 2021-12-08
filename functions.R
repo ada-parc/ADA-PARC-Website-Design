@@ -250,19 +250,12 @@ render_national_map <- function(category, selected,
 
   if(!is_comp){
     # p1
-    states_sf <- getUrbnGeo(data, selected, interactive = T)
-    makeTmapObject(states_sf, selected, legend_title, palette_selected)
+    states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
+    makeGgplotObject(states_sf, legend_title, palette_selected)
     # states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
     # makeGgplotObject(states_sf, legend_title, palette_selected)
 
   } else {
-
-    # p1
-    states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
-    p1 <- makeGgplotObject(states_sf, legend_title, palette_selected)
-
-    # p2
-    # getCompVar 
     base_var <- dict_vars %>% 
       filter(var_readable == selected, !!sym(category)) %>% 
       pull(var_base)
@@ -270,14 +263,24 @@ render_national_map <- function(category, selected,
     comp_var <-dict_vars %>%
       filter(var_base == base_var, var_readable != selected) %>%
       pull(var_readable)
-
-    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
-
-    quartiles <- quantile(data %>% pull(!!sym(comp_var)),
+    
+    combined_var <- vctrs::vec_c(data %>% pull(!!sym(selected)),
+                      data %>% pull(!!sym(comp_var)))
+    
+    # Combine PWD and PWOD
+    quartiles <- quantile(combined_var, 
                           probs = seq(0, 1, length.out = no_classes + 1),
                           na.rm = TRUE)
+    
+    labels <- set_quartile_labels(quartiles, 4, base_var)
 
-    labels <- set_quartile_labels(quartiles, 4, comp_var)
+    # p1
+    states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
+    p1 <- makeGgplotObject(states_sf, legend_title, palette_selected)
+
+    # p2
+    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
+
 
     states_sf <- getUrbnGeo(data, comp_var, quartiles, labels, interactive = F)
     p2 <- makeGgplotObject(states_sf, legend_title_comp, palette_selected)

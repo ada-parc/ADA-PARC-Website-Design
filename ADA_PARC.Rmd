@@ -197,7 +197,7 @@ national_category_selected <- reactive({ # Output looks like "is_demographics"
 national_variable_choices <- reactive({
 
   tibble::deframe(
-    dict_vars %>% 
+    dict_vars %>%
       filter(!!sym(national_category_selected()) == TRUE,
              var_readable %in% (
                national_data() %>%
@@ -207,7 +207,7 @@ national_variable_choices <- reactive({
              !is.na(national_dropdown_label)) %>%
       select(national_dropdown_label, var_readable)
   )
-  
+
 })
 
 selectInput(inputId = "national_variable_selector",
@@ -215,10 +215,11 @@ selectInput(inputId = "national_variable_selector",
             choices = "Population",
             multiple = F)
 
+
 observeEvent(input$national_category_selector, {
 
   choices <- names(national_variable_choices())
-  updateSelectInput(session, "national_variable_selector", choices = choices)
+  updateSelectInput(session, "national_variable_selector", choices = choices, selected = national_variable_choices())
   # message(national_category_selected())
   # message(national_variable_selected())
   
