@@ -175,26 +175,51 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 ```{r national-sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
-### National category selection widget
-national_category_choices <- c("Demographics" = "is_demographics", 
-                               "Community Participation" = "is_community_participation", 
-                               "Community Living" = "is_community_living", 
-                               "Work/Economic" = "is_work_economic")
 
-# Select the dataset to use
+### ----- Category selector ------
+
+
+# National category selection widget
+national_category_choices <- c(
+  "Demographics" = "is_demographics", 
+  "Community Participation" = "is_community_participation", 
+  "Community Living" = "is_community_living", 
+  "Work/Economic" = "is_work_economic"
+)
+
+# Select the data frame to use
 selectInput(inputId = "national_category_selector", 
             label = "Select a category", 
             choices = names(national_category_choices),
             selected = "is_demographics",
             multiple = FALSE)
 
-national_category_selected <- reactive({ # Output looks like "is_demographics"
+# Selected category for function inputs
+# Output looks like "is_demographics"
+national_category_selected <- reactive({ 
+  
   getElement(national_category_choices, input$national_category_selector)
+  
 })
 
-# National variable selection widget
-national_variable_choices <- reactive({
 
+### ----- National data  ------
+
+
+# Select dataframe for national data tab
+national_data <- reactive({
+  
+  eval(sym(str_remove(national_category_selected(), "^is_")))
+  
+})
+
+
+### ----- Variable selector  ------
+
+
+# National variable selection choices, based on category
+national_variable_choices <- reactive({
+  
   tibble::deframe(
     dict_vars %>%
       filter(!!sym(national_category_selected()) == TRUE,
@@ -206,27 +231,39 @@ national_variable_choices <- reactive({
              !is.na(national_dropdown_label)) %>%
       select(national_dropdown_label, var_readable)
   )
-
+  
 })
-
+  
+# National variable selection widget, default options
 selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
-            choices = "Population",
-            multiple = F)
+            choices = tibble::deframe(c("Population", "pop_total")),
+            selected = "pop_total",
+            multiple = FALSE)
 
-
+# Update variable selections when category changes
 observeEvent(input$national_category_selector, {
-
+  
   choices <- names(national_variable_choices())
-  updateSelectInput(session, "national_variable_selector", choices = choices, selected = national_variable_choices())
-  # message(national_category_selected())
-  # message(national_variable_selected())
+  
+  updateSelectInput(session, "national_variable_selector",
+                    choices = choices, 
+                    selected = choices[1])
   
 })
 
-national_variable_selected <- reactive({ # Output looks like "is_demographics"
-  req(national_variable_choices())
+# Try debouncing, didn't fire early enough
+# national_variable_selector_db <- debounce(reactive({input$national_variable_selector}), 2000)
+
+# Selected variable for function inputs
+# Output looks like "pop_total"
+national_variable_selected <- reactive({ 
+  
+  # req(national_variable_selector_db())
+  req(national_category_selected())
+  
   getElement(national_variable_choices(), input$national_variable_selector)
+  
 })
 
 ### For debugging
@@ -236,9 +273,9 @@ national_variable_selected <- reactive({ # Output looks like "is_demographics"
 # renderText({ national_variable_selected() })
 # renderText({ national_variable_choices() })
 
-national_data <- reactive({
-  eval(sym(str_remove(national_category_selected(), "^is_")))
-})
+
+### ----- Summary text  ------
+
 
 # Summary text
 output$national_map_summary <- renderUI({
@@ -247,13 +284,7 @@ output$national_map_summary <- renderUI({
     paste0(
       altText(national_data(), 
               national_variable_selected()),
-      " Detailed information is available below in the interactive map (top) and table (bottom)."
-      
-    )
-    # # Static check
-    # altText(demographics, 
-    #         national_variable_selector_static)
-    
+      " Detailed information is available to the right in the interactive map (top) and table (bottom).")
   )
   
 })
@@ -302,31 +333,20 @@ withSpinner(uiOutput("national_map_summary"))
 
 ```{r national-map, out.width = "100%", fig.align = "center", fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
-
 output$national_map <- renderUI({
   
-  # comp_test <- isCompVar(national_category_selected(), national_variable_selected())
-  # if(comp_test) {
-    # print("ggmap")
     withSpinner(plotOutput("national_ggmap"))
-  # } else if(!comp_test) {
-  #   # print("tmap")
-  #   withSpinner(tmapOutput("national_tmap"))
-  # }
   
 })
 
 uiOutput("national_map")
 
 output$national_ggmap <- renderPlot({
-  # req(national_variable_selected(), national_category_selected(), national_data())
-  # print("reqs filled")
-  # print("run ggmap")
-  render_national_map(                          
-    national_category_selected(),
-    national_variable_selected(), 
-    access_map_palette_selected()
-  )
+  
+  render_national_map(national_category_selected(),
+                      national_variable_selected(), 
+                      access_map_palette_selected())
+  
 })
 
 # For debugging
@@ -442,7 +462,11 @@ national_topic_table <- reactive({
 })
 
 # UI Output
-output$national_table <- renderUI({ HTML(national_topic_table()) })
+output$national_table <- renderUI({ 
+  
+  HTML(national_topic_table())
+  
+})
 
 withSpinner(uiOutput("national_table"))
 
