@@ -193,7 +193,7 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
                                         sf = TRUE) %>% 
                    filter(!state_fips %in% c("60", "66", "69", "78")),
                  aes(label = state_abbv),
-                 size = 4, fontface = "bold", check_overlap = TRUE) +
+                 size = 3, fontface = "bold", check_overlap = TRUE) +
     # Labels
     labs(x = "", y = "", 
          # title = title,
@@ -212,15 +212,16 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
           legend.text = element_text(vjust = .5),
           legend.key = element_rect(color = "black"),
           strip.text.x = element_text(size = 9L),
-          text = element_text(size = 16)) +
+          text = element_text(size = 12)) +
     guides(fill = guide_legend(label.position = "bottom"))
+  
 }
 
 # rename, since this isn't exclusively for interactive maps
 # probably renderNationalMap()
 render_national_map <- function(category, selected, 
                                 palette_selected = "YlOrBr") {
-  
+
   if(!is.character(category)) {
     stop("category must be a character string")
   }
@@ -230,7 +231,6 @@ render_national_map <- function(category, selected,
   
   data <- eval(sym(str_remove(category, "^is_")))
   no_classes <- 4
-
 
   # p1
   legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
@@ -246,16 +246,40 @@ render_national_map <- function(category, selected,
     filter(var_readable == selected, !!sym(category)) %>% 
     pull(display_type)
   
-  is_comp <- ifelse(display_type == "comp", T, F)
+  is_comp <- ifelse(display_type == "comp", 
+                    TRUE, FALSE)
 
   if(!is_comp){
-    # p1
-    states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
-    makeGgplotObject(states_sf, legend_title, palette_selected)
-    # states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
-    # makeGgplotObject(states_sf, legend_title, palette_selected)
+    
+    # single plot/standalone (plot_1)
+    states_sf <- getUrbnGeo(data, selected, quartiles, 
+                            labels, interactive = FALSE)
+    makeGgplotObject(states_sf, legend_title, palette_selected) +
+      theme(plot.background = element_rect(colour = "white"), 
+            plot.title = element_text(face = "bold", 
+                                      size = 10),
+            panel.grid = element_blank(),
+            panel.grid.major = element_blank(),
+            plot.margin = margin(t = 0, b = 0, 
+                                 l = 2, r = 2, "cm"),
+            aspect.ratio = 0.45,
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.line = element_blank(),
+            panel.spacing = unit(0L, "pt"),
+            legend.position = "bottom",
+            legend.title = element_text(face = "bold", 
+                                        vjust = 0.75),
+            legend.text = element_text(vjust = .5),
+            legend.key = element_rect(color = "black"),
+            strip.text.x = element_text(size = 9L),
+            text = element_text(size = 12))
+
 
   } else {
+    
+    # side-by-side plots/comp (plot_1, plot_2)
+    # Define variables
     base_var <- dict_vars %>% 
       filter(var_readable == selected, !!sym(category)) %>% 
       pull(var_base)
@@ -265,7 +289,7 @@ render_national_map <- function(category, selected,
       pull(var_readable)
     
     combined_var <- vctrs::vec_c(data %>% pull(!!sym(selected)),
-                      data %>% pull(!!sym(comp_var)))
+                                 data %>% pull(!!sym(comp_var)))
     
     # Combine PWD and PWOD
     quartiles <- quantile(combined_var, 
@@ -273,47 +297,64 @@ render_national_map <- function(category, selected,
                           na.rm = TRUE)
     
     labels <- set_quartile_labels(quartiles, 4, base_var)
+    
+    # Map title reworking
+    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
+    
+    plot_1_title <- ifelse(str_detect(legend_title_comp,
+                                      "People with Disabilities"),
+                           "PWD", "PWOD")
+    
+    plot_2_title <- ifelse(plot_1_title == "PWD",
+                           "PWOD", "PWD")
+    
+    legend_title_comp <- str_replace_all(legend_title_comp,
+                                         "People (with|without) Disabilities",
+                                         "People with/without Disabilities")
+    
+    # plot_1
+    states_sf <- getUrbnGeo(data, selected, quartiles, 
+                            labels, interactive = FALSE)
+    plot_1 <- makeGgplotObject(states_sf, 
+                               legend_title_comp, 
+                               palette_selected) +
+      ggtitle(plot_1_title)
 
-    # p1
-    states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
-    p1 <- makeGgplotObject(states_sf, legend_title, palette_selected)
-
-    # p2
-    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == comp_var)][1])
-
-
-    states_sf <- getUrbnGeo(data, comp_var, quartiles, labels, interactive = F)
-    p2 <- makeGgplotObject(states_sf, legend_title_comp, palette_selected)
-
-    grid.arrange(p1, p2, ncol = 2)
+    # plot_2
+    states_sf <- getUrbnGeo(data, comp_var, quartiles, 
+                            labels, interactive = FALSE)
+    plot_2 <- makeGgplotObject(states_sf, 
+                               legend_title_comp, 
+                               palette_selected) +
+      ggtitle(plot_2_title)
+    
+    # Combine plots, legend elements
+    plot_1 +
+      plot_2 +
+      plot_layout(ncol = 2, widths = 1,
+                  guides = "collect") &
+      theme(plot.background = element_rect(colour = "white"), 
+            plot.title = element_text(face = "bold", 
+                                      size = 10),
+            panel.grid = element_blank(),
+            panel.grid.major = element_blank(),
+            plot.margin = margin(t = 0, b = 0, 
+                                 l = 2, r = 2, "cm"),
+            aspect.ratio = 0.45,
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.line = element_blank(),
+            panel.spacing = unit(0L, "pt"),
+            legend.position = "bottom",
+            legend.title = element_text(face = "bold", 
+                                        vjust = 0.75),
+            legend.text = element_text(vjust = .5),
+            legend.key = element_rect(color = "black"),
+            strip.text.x = element_text(size = 9L),
+            text = element_text(size = 12))
+    
   }
 
-}
-
-# Geographic map function
-render_geo_static_map <- function(data, selected, palette_selected) {
-  
-  # Set quartiles
-  no_classes <- 4
-  labels <- c()
-  quartiles <- quantile(data %>% pull(!!sym(selected)), 
-                        probs = seq(0, 1, length.out = no_classes + 1),
-                        na.rm = TRUE)
-  
-  labels <- set_quartile_labels(quartiles, no_classes, selected)
-  
-  # Set map title and legend
-  title <- dict_vars$national_dropdown_label[which(dict_vars$var_readable == selected)][1]
-  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1], ": ")
-  
-  # US State geography, remove territories, join data
-  states_sf <- getUrbnGeo(data, selected, quartiles, labels, interactive = F)
-  
-  # Plot geographic map
-  ggplot_object <- makeGgplotObject(states_sf, legend_title, palette_selected)
-  
-  ggplot_object
-  
 }
 
 

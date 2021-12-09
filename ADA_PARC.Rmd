@@ -20,15 +20,14 @@ resource_files:
 # Packages
 library(reactlog)
 library(tidyverse)
-library(gridExtra)
+library(gridExtra); library(patchwork)
 library(tigris); library(sf)
 # library(geofacet)
 library(urbnmapr)
 library(leaflet); library(leaflet.extras)
 library(tmap); library(tmaptools)
 library(htmltools)
-library(shiny)
-library(shinycssloaders)
+library(shiny); library(shinycssloaders)
 # devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
 library(shinyWidgets); library(flexdashboard)
 library(colourpicker); library(gghighlight)
@@ -301,7 +300,7 @@ withSpinner(uiOutput("national_map_summary"))
 
 ### State-by-State Map of Selected Topic
 
-```{r national-map, fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+```{r national-map, out.width = "100%", fig.align = "center", fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
 
 
 output$national_map <- renderUI({
@@ -329,6 +328,14 @@ output$national_ggmap <- renderPlot({
     access_map_palette_selected()
   )
 })
+
+# For debugging
+# Static version of comparison map
+# render_national_map(                          
+#   "is_demographics",
+#   "pwd_pct",
+#   "YlOrBr"
+# )
 
 # output$national_tmap <- renderPlot({
 #   #   # req(national_variable_selected(), national_category_selected(), national_data())
