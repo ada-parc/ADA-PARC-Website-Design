@@ -45,7 +45,7 @@ dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
 source(here("national_import.R"), local = TRUE)
 
 # Get the right combination of dataset and variable
-poverty_total <- openxlsx::read.xlsx("2021-11-02_SOSPovertyLevelData.xlsx") %>% 
+poverty_total <- openxlsx::read.xlsx("2021-11-02_SOS_PovertyLevel_Data.xlsx") %>% 
   select(ABBR, pop_below_poverty_pct)
 
 # Get the right combination of dataset and variable
