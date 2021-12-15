@@ -220,7 +220,8 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
 # rename, since this isn't exclusively for interactive maps
 # probably renderNationalMap()
 render_national_map <- function(category, selected, 
-                                palette_selected = "YlOrBr") {
+                                palette_selected = "YlOrBr",
+                                output_asp_ratio = 0.45) {
 
   if(!is.character(category)) {
     stop("category must be a character string")
@@ -262,7 +263,7 @@ render_national_map <- function(category, selected,
             panel.grid.major = element_blank(),
             plot.margin = margin(t = 0, b = 0, 
                                  l = 2, r = 2, "cm"),
-            aspect.ratio = 0.45,
+            aspect.ratio = output_asp_ratio,
             axis.text = element_blank(),
             axis.ticks = element_blank(),
             axis.line = element_blank(),
@@ -284,14 +285,14 @@ render_national_map <- function(category, selected,
       filter(var_readable == selected, !!sym(category)) %>% 
       pull(var_base)
     
-    comp_var <-dict_vars %>%
+    comp_var <- dict_vars %>%
       filter(var_base == base_var, var_readable != selected) %>%
       pull(var_readable)
     
+    # Combine PWD and PWOD
     combined_var <- vctrs::vec_c(data %>% pull(!!sym(selected)),
                                  data %>% pull(!!sym(comp_var)))
     
-    # Combine PWD and PWOD
     quartiles <- quantile(combined_var, 
                           probs = seq(0, 1, length.out = no_classes + 1),
                           na.rm = TRUE)
@@ -340,7 +341,7 @@ render_national_map <- function(category, selected,
             panel.grid.major = element_blank(),
             plot.margin = margin(t = 0, b = 0, 
                                  l = 2, r = 2, "cm"),
-            aspect.ratio = 0.45,
+            aspect.ratio = output_asp_ratio,
             axis.text = element_blank(),
             axis.ticks = element_blank(),
             axis.line = element_blank(),
