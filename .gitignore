@@ -43,5 +43,8 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
+# Local storage of old files
+old/
+
 # Project specific files
 config.yml

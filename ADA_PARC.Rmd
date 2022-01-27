@@ -6,7 +6,7 @@ output:
     vertical_layout: fill
     theme: cosmo
     includes: 
-      in_header: "cssloaders_in_header.html"
+      in_header: "www/cssloaders.html"
 runtime: shiny
 resource_files:
 - www/participant_logos.png
@@ -50,7 +50,7 @@ host_name = "host_dev"
 ### ----- Functions import -----
 
 # Load API keys and database connection information
-source(here("functions.R"), local = TRUE)
+source(here("scripts", "functions.R"), local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
@@ -61,7 +61,7 @@ dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
 
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
-source(here("national_import.R"), local = TRUE)
+source(here("scripts", "national_import.R"), local = TRUE)
 
 # reactlog::reactlog_enable()
 
