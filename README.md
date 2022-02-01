@@ -14,4 +14,4 @@ The scripts folder contains two R scripts: `functions.R` contains the functions 
 
 ## Dictionaries
 
-The dictionaries folder holds `dict_vars.csv`, which is used to translate the national tables across the various functions used within the project. It also provides all of the front-end text describing, associating, and displaying the variables on maps, charts, and tables. 
+The dictionaries folder holds `dict_vars.csv`, which is used to translate the national tables across the various functions used within the project. It also provides all of the front-end text describing, associating, and displaying the variables on maps, charts, and tables.

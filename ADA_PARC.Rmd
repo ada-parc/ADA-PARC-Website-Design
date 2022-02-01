@@ -5,34 +5,34 @@ output:
     orientation: rows
     vertical_layout: fill
     theme: cosmo
-    includes: 
-      in_header: "www/cssloaders.html"
+    includes:
+      in_header: www/cssloaders.html
 runtime: shiny
 resource_files:
 - www/participant_logos.png
 - config.yml
+- scripts/functions.R
+- scripts/national_import.R
 ---
 
 ```{r setup, include=FALSE}
 
 ### ----- Libraries -----
-
+# devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
 # Packages
 library(reactlog)
 library(tidyverse)
 library(gridExtra); library(patchwork)
 library(tigris); library(sf)
-# library(geofacet)
 library(urbnmapr)
 library(leaflet); library(leaflet.extras)
 library(tmap); library(tmaptools)
 library(htmltools)
 library(shiny); library(shinycssloaders)
-# devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
 library(shinyWidgets); library(flexdashboard)
 library(colourpicker); library(gghighlight)
 library(knitr); library(kableExtra)
-library(openxlsx); library(scales)
+library(scales)
 library(hrbrthemes); library(ggthemes)
 library(extrafont); library(plotly)
 library(mongolite); library(here)
@@ -45,7 +45,7 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 ### ----- Database connections -----
 
 # Set this to host_prod or host_dev
-host_name = "host_dev"
+host_name = "host_prod"
 
 ### ----- Functions import -----
 
