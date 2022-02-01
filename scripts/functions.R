@@ -304,10 +304,12 @@ render_national_map <- function(category, selected,
     
     plot_1_title <- ifelse(str_detect(legend_title_comp,
                                       "People with Disabilities"),
-                           "PWD", "PWOD")
+                           "People with Disabilities",
+                           "People without Disabilities")
     
-    plot_2_title <- ifelse(plot_1_title == "PWD",
-                           "PWOD", "PWD")
+    plot_2_title <- ifelse(plot_1_title == "People with Disabilities",
+                           "People without Disabilities", 
+                           "People with Disabilities")
     
     legend_title_comp <- str_replace_all(legend_title_comp,
                                          "People (with|without) Disabilities",

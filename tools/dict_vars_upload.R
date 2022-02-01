@@ -4,7 +4,7 @@ library(tidyverse);library(here)
 library(mongolite)
 
 # Load API keys and database connection information
-source(here("functions.R"), local = TRUE)
+source(here("scripts", "functions.R"), local = TRUE)
 
 # Load dictionary
 dict_vars <- read_csv(here("dictionaries", "dict_vars.csv"))
