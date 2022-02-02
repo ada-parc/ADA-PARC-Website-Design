@@ -8,7 +8,7 @@ always_allow_html: true
 tables: true
 params:
   national_category_selector: "is_community_participation"
-  national_variable_selector: "pwd_19_64_uninsured_pct"
+  national_variable_selector: "pwd_19_64_insured_public_pct"
   access_map_palette_selected: "YlOrBr"
 editor_options: 
   chunk_output_type: console
@@ -53,7 +53,7 @@ host_name = "host_prod"
 
 
 # Load API keys and database connection information
-source(here("functions.R"), local = TRUE)
+source(here("scripts", "functions.R"), local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
@@ -66,7 +66,7 @@ dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
 
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
-source(here("national_import.R"), local = TRUE)
+source(here("scripts", "national_import.R"), local = TRUE)
 
 # Get the right combination of dataset and variable
 national_data <- eval(sym(str_remove(params$national_category_selector, "^is_")))

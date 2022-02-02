@@ -187,6 +187,7 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
     geom_sf(aes(fill = quartile_fill),
             color = "black", size = 0.25) +
     scale_fill_brewer(palette = palette_selected,
+                      limits = levels(states_sf$quartile_fill),
                       na.value = "grey") +
     # Text
     geom_sf_text(data = get_urbn_labels(map = "territories_states", 
@@ -222,7 +223,13 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
 render_national_map <- function(category, selected, 
                                 palette_selected = "YlOrBr",
                                 output_asp_ratio = 0.45) {
-
+  
+  # Static check
+  # category <- "is_community_participation"
+  # selected <- "pwd_19_64_insured_public_pct"
+  # palette_selected <- "YlOrBr"
+  # output_asp_ratio <- 0.45
+    
   if(!is.character(category)) {
     stop("category must be a character string")
   }
