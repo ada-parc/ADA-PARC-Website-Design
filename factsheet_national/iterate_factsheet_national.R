@@ -11,7 +11,7 @@ library(pagedown);library(mongolite); library(here)
 host_name = "host_prod"
 
 # Load API keys and database connection information
-source(here("functions.R"), local = TRUE)
+source(here("scripts", "functions.R"), local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
@@ -118,7 +118,7 @@ dashboard_factsheet_national <- factsheet_national_params %>%
          output_file) %>% 
   mutate("output_file" = str_replace_all(output_file,
                                          pattern = here(),
-                                         replacement = "https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master")) %>% 
+                                         replacement = "https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master")) %>% 
   mutate("output_file" = str_replace_all(output_file,
                                          pattern = ".html$",
                                          replacement = ".pdf"))
