@@ -173,11 +173,12 @@ The ADA-PARC website is a collection of public data sets that can help shed ligh
 
 <br>
 
+To explore the data first select a category and then a topic. You can navigate the boxes below using the mouse or keyboard. For keyboard users, once the box is highlighted you can press backspace and begin typing the selection into the box.
+
 ```{r national-sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
 
 ### ----- Category selector ------
-
 
 # National category selection widget
 national_category_choices <- c(
@@ -482,17 +483,20 @@ withSpinner(uiOutput("national_table"))
 
 ## Sidebar {.sidebar}
 
-<br>
+To explore the data select a city below. You can navigate the box using the mouse or keyboard. For keyboard users, once the box is highlighted you can press backspace and begin typing the selection into the box.
+
 
 ```{r city-sidebar}
 
 # Pull location crosswalk dictionary from GitHub repo
-dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
+dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
 
 # Full data for cities in database
 city_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
                                        host_name, 
                                        "place")
+
+# uiOutput("navigation_instructions")
 
 # Define inputs, restrict to cities in database
 selectInput(inputId = "city_selector", 
