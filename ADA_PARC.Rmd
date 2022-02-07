@@ -33,6 +33,7 @@ library(shinyWidgets); library(flexdashboard)
 library(colourpicker); library(gghighlight)
 library(knitr); library(kableExtra)
 library(scales)
+library(tableHTML)
 library(hrbrthemes); library(ggthemes)
 library(extrafont); library(plotly)
 library(mongolite); library(here)
@@ -422,7 +423,10 @@ national_data_table_friendly <- reactive({
   
   national_data() %>%
     arrange(GEOID) %>% 
-    mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
+    mutate("State" = paste0(NAME
+                            # , " (", ABBR, ")"
+                            )
+           ) %>% 
     select(any_of(c("State",
                     national_vars_in_topic() %>% 
                       pull(var_readable)))) %>% 
@@ -435,11 +439,13 @@ national_data_table_friendly <- reactive({
     rename(!!any_of(national_vars_in_topic() %>% 
                       deframe()))
   
-  # # Static check
-  # demographics %>%
-  #   mutate("State" = paste0(NAME, " (", ABBR, ")")) %>%
-  #   select(any_of(c("State", 
-  #                   national_vars_in_topic_static %>% 
+  # # # Static check
+  # table_friendly <- demographics %>%
+  #   mutate("State" = paste0(NAME
+  #                           # " (", ABBR, ")"
+  #                           )) %>%
+  #   select(any_of(c("State",
+  #                   national_vars_in_topic_static %>%
   #                     pull(var_readable)))) %>%
   #   mutate(across(-State & -ends_with("_pct"),
   #                 ~scales::comma(.x))) %>%
@@ -447,25 +453,33 @@ national_data_table_friendly <- reactive({
   #                 ~scales::percent(.x,
   #                                  accuracy = 0.1,
   #                                  scale = 1))) %>%
-  #   rename(!!any_of(national_vars_in_topic_static %>% 
+  #   rename(!!any_of(national_vars_in_topic_static %>%
   #                     deframe()))
-  
-})
 
-# Summary table
-national_topic_table <- reactive({
-  
-  kbl(x = national_data_table_friendly(),
-      caption = table_caption()) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                  position = "left")
-  
 })
 
 # UI Output
 output$national_table <- renderUI({ 
   
-  HTML(national_topic_table())
+  # This is incredibly hacky
+  # But I can't find a better way to make these
+  # tables accessible at this point in time
+  HTML(
+    tableHTML(national_data_table_friendly() %>% 
+                mutate(State = paste0(State, "a")), rownames = F) %>% 
+      # Essentially, this respecifies the first column as a column of table headers. See link below
+      # https://www.w3.org/WAI/tutorials/tables/two-headers/
+      replace_html('<td id="tableHTML_column_1">', '<th scope="row">', replace_all = T) %>% 
+      replace_html('[a-z]</td>', '</th>', replace_all = T)
+    )
+  
+  # # # Static check
+  # HTML(
+  #   tableHTML(table_friendly %>% 
+  #               mutate(State = paste0(State, "a")), rownames = F) %>% 
+  #     replace_html('<td id="tableHTML_column_1">', '<th scope="row">', replace_all = T) %>% 
+  #     replace_html('[a-z]</td>', '</th>', replace_all = T)
+  #   )
   
 })
 
