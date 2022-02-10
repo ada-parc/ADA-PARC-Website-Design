@@ -1,0 +1,31 @@
+table {
+  border-spacing: 1;
+  border-collapse: collapse;
+  background: white;
+  overflow: hidden;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.chart-shim {
+      overflow: auto;
+    }
+
+table td, table th {
+  padding-left: 8px;
+}
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+table thead tr {
+  height: 60px;
+  background: #8799FF;
+  font-size: 16px;
+}
+
+table tbody tr:last-child {
+  border: 0;
+}
+table td, table th {
+  text-align: left;
+}

@@ -7,6 +7,7 @@ output:
     theme: cosmo
     includes:
       in_header: www/cssloaders.html
+    css: www/styles.css
 runtime: shiny
 resource_files:
 - www/participant_logos.png
@@ -466,20 +467,22 @@ output$national_table <- renderUI({
   # tables accessible at this point in time
   HTML(
     tableHTML(national_data_table_friendly() %>% 
-                mutate(State = paste0(State, "a")), rownames = F) %>% 
+                mutate(State = paste0(State, "a")), rownames = F, class = "table_national") %>% 
       # Essentially, this respecifies the first column as a column of table headers. See link below
       # https://www.w3.org/WAI/tutorials/tables/two-headers/
-      replace_html('<td id="tableHTML_column_1">', '<th scope="row">', replace_all = T) %>% 
+      replace_html('<td id="tableHTML_column_1">', '<th scope="row" id="tableHTML_column_1">', replace_all = T) %>% 
       replace_html('[a-z]</td>', '</th>', replace_all = T)
     )
   
   # # # Static check
   # HTML(
-  #   tableHTML(table_friendly %>% 
-  #               mutate(State = paste0(State, "a")), rownames = F) %>% 
-  #     replace_html('<td id="tableHTML_column_1">', '<th scope="row">', replace_all = T) %>% 
+  #   tableHTML(table_friendly %>%
+  #               mutate(State = paste0(State, "a")), rownames = F, class = "table_national") %>%
+  #     # Essentially, this respecifies the first column as a column of table headers. See link below
+  #     # https://www.w3.org/WAI/tutorials/tables/two-headers/
+  #     replace_html('<td id="tableHTML_column_1">', '<th scope="row" id="tableHTML_column_1">', replace_all = T) %>%
   #     replace_html('[a-z]</td>', '</th>', replace_all = T)
-  #   )
+  # )
   
 })
 
