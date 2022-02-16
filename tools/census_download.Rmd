@@ -20,17 +20,20 @@ library(tidycensus);library(viridis);library(tmap)
 library(RPostgres);library(RPostgreSQL);library(DBI)
 library(geojsonsf);library(mongolite);library(config)
 library(shiny);library(shinyjs);library(shinyWidgets)
+library(here)
 
-# Set working dictionary, options
+# Set working dictionary, options, increase memory limit
 setwd(here::here())
 options(stringsAsFactors = FALSE, scipen = 999, 
         dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
 knitr::opts_chunk$set(echo = FALSE)
+memory.limit(size = 10000)
 
 host_name <- "host_dev" # or "host_dev"
 
 # Load API keys and database connection information
-source("functions.R", local = TRUE)
+source(here("scripts", "functions.R"), local = TRUE)
+census_api_key(config::get("api_key_census"))
 
 ```
 
@@ -420,7 +423,7 @@ The US Census Bureau defines a "Place" as a concentration of population. This in
 ```{r cities-acs-places-input, warning=FALSE, message=FALSE}
 
 # Pull Census places dictionary from GitHub repo
-cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_places.txt") %>% 
+cities_acs_places_ref <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_places.txt") %>% 
   filter(!is.na(POP))
 
 # Text for either/or option below
@@ -506,8 +509,11 @@ cities_acs_places_selected <- reactive({
   })
 
 # Static check
-# cities_acs_places_selected <- read_csv("example_cities_geoid_upload.csv") %>% 
-#   rename("GEOID" = 1) %>% 
+# cities_acs_places_selected <- read_csv(
+#   here("dictionaries",
+#        "baseline_places_geoid_upload.csv")
+#   ) %>%
+#   rename("GEOID" = 1) %>%
 #   mutate("GEOID" = as.character(GEOID))
 
 
@@ -779,7 +785,7 @@ Census Tracts are available by state and county. To access tract data, please en
 # Set minimum overlap threshold, default units [m^2]
 tracts_places_counties <- reactive({ 
   
-  read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
+  read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
     filter(county_place_overlap_pct > 0,
            place_GEOID %in% c(cities_acs_places_selected()$GEOID))
     
