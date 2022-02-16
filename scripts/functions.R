@@ -385,7 +385,7 @@ fun_download_acs_data <- function(geo) {
                 as.numeric(input$states_acs_year),
               geo == "place" ~
                 as.numeric(input$cities_acs_year),
-              TRUE ~ 2019)
+              TRUE ~ max_year)
     
   })
   
@@ -570,7 +570,7 @@ fun_download_acs_data <- function(geo) {
     tempd <- tempdir()
     
     # Download and unzip shapefile
-    download.file("https://github.com/sean-connelly/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip", # TODO: Host this on MongoDb instead of github
+    download.file("https://github.com/ada-parc/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip", # TODO: Host this on MongoDb instead of github
                   destfile = temp,
                   mode = "wb")
     unzip(temp, exdir = tempd)
@@ -587,7 +587,7 @@ fun_download_acs_data <- function(geo) {
     # tempd <- tempdir()
     # 
     # # Download and unzip shapefile
-    # download.file("https://github.com/sean-connelly/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip",
+    # download.file("https://github.com/ada-parc/ADA-PARC-Website-Design/raw/national-tile-map/dictionaries/geo_tract.zip",
     #               destfile = temp,
     #               mode = "wb")
     # unzip(temp, exdir = tempd)

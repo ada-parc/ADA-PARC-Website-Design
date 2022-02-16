@@ -27,10 +27,12 @@ options(stringsAsFactors = FALSE, scipen = 999,
         dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
 knitr::opts_chunk$set(echo = FALSE)
 
-host_name <- "host_dev" # or "host_dev"
+host_name <- "host_dev"
+
+max_year <- 2019
 
 # Load API keys and database connection information
-source("functions.R", local = TRUE)
+source(here::here("scripts", "functions.R"), local = TRUE)
 
 ```
 
@@ -65,8 +67,8 @@ selectInput(inputId = "states_acs_dataset",
 # Year
 selectInput(inputId = "states_acs_year",
             label = "Select a data endpoint year:",
-            choices = c(2005:2019),
-            selected = 2019)
+            choices = c(2005:max_year),
+            selected = max_year)
 
 # Variables for selection
 states_acs_vars_ref <- reactive({
@@ -312,8 +314,8 @@ selectInput(inputId = "cities_acs_dataset",
 # Year
 selectInput(inputId = "cities_acs_year",
             label = "Select a data endpoint year:",
-            choices = c(2005:2019),
-            selected = 2019)
+            choices = c(2005:max_year),
+            selected = max_year)
 
 # Variables for selection
 cities_acs_vars_ref <- reactive({
@@ -665,8 +667,8 @@ selectInput(inputId = "tracts_acs_dataset",
 # Year
 selectInput(inputId = "tracts_acs_year",
             label = "Select a data endpoint year:",
-            choices = c(2005:2019),
-            selected = 2019)
+            choices = c(2005:max_year),
+            selected = max_year)
 
 # Variables for selection
 tracts_acs_vars_ref <- reactive({
@@ -779,7 +781,7 @@ Census Tracts are available by state and county. To access tract data, please en
 # Set minimum overlap threshold, default units [m^2]
 tracts_places_counties <- reactive({ 
   
-  read_csv("https://raw.githubusercontent.com/sean-connelly/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
+  read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
     filter(county_place_overlap_pct > 0,
            place_GEOID %in% c(cities_acs_places_selected()$GEOID))
     

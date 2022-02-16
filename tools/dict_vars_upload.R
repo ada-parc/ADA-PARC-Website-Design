@@ -24,7 +24,7 @@ dict_vars <- dict_vars %>%
 # spec_char_check
 
 # Write to database
-mongo_conn <- fun_mongo_connect(host_name = "host_dev",
+mongo_conn <- fun_mongo_connect(host_name = host_name,
                                 collection_name = "dict_vars",
                                 database_name = "ADA-PARC")
 
