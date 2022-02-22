@@ -44,10 +44,13 @@ options(scipen = 999999,
         shiny.reactlog = TRUE)
 knitr::opts_chunk$set(fig.cap = TRUE)
 
+load(here::here("data", "all.rda"))
+
+
 ### ----- Database connections -----
 
 # Set this to host_prod or host_dev
-host_name <- "host_dev"
+host_name <- "host_prod"
 
 ### ----- Functions import -----
 
@@ -56,20 +59,20 @@ source(here("scripts", "functions.R"), local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
-dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
+dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
                                  host_name = host_name)
 
 ### ----- Data import and clean -----
 
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
-source(here("scripts", "national_import.R"), local = TRUE)
+# source(here("scripts", "national_import.R"), local = TRUE)
 
 # City-level data
 
-city_place_full <- read_csv(here::here("data", "city_place.csv"))
-
-tracts_sf <- sf::st_read(here::here("data", "tracts_export_geography.shp"))
+# city_place_full <- read_csv(here::here("data", "city_place.csv"))
+# 
+# tracts_sf <- sf::st_read(here::here("data", "tracts_export_geography.shp"))
 
 # tracts_data <- read_csv(here::here("data", "tracts_export_data.csv")) %>%
 #   pivot_wider(
@@ -79,14 +82,13 @@ tracts_sf <- sf::st_read(here::here("data", "tracts_export_geography.shp"))
 #     names_glue = "{variable}_{.value}"
 #   )
 
-load(here::here("data", "tracts_data.RData"))
+# load(here::here("data", "tracts_data.RData"))
 
 # Pull location crosswalk dictionary from GitHub repo
-dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
-  filter(tract_GEOID %in% tracts_sf$t_GEOID)
+# dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
+#   filter(tract_GEOID %in% tracts_sf$t_GEOID)
 
 # tracts_lu <- read_csv(here::here("data", "tracts_export_lookup.csv"))
-
 ```
 
 # Home
