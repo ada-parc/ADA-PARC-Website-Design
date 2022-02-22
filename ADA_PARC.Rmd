@@ -47,7 +47,7 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 ### ----- Database connections -----
 
 # Set this to host_prod or host_dev
-host_name = "host_prod"
+host_name <- "host_dev"
 
 ### ----- Functions import -----
 
@@ -59,13 +59,33 @@ source(here("scripts", "functions.R"), local = TRUE)
 dict_vars <- fun_pull_mongo_data(tables = "dict_vars", 
                                  host_name = host_name)
 
-### ----- National Data import and clean -----
+### ----- Data import and clean -----
 
 # This script takes the national_* objects and transforms them
 # into the final datasets for mapping
 source(here("scripts", "national_import.R"), local = TRUE)
 
-# reactlog::reactlog_enable()
+# City-level data
+
+city_place_full <- read_csv(here::here("data", "city_place.csv"))
+
+tracts_sf <- sf::st_read(here::here("data", "tracts_export_geography.shp"))
+
+# tracts_data <- read_csv(here::here("data", "tracts_export_data.csv")) %>%
+#   pivot_wider(
+#     id_cols = c(GEOID, NAME),
+#     names_from = c(variable),
+#     values_from = c(estimate, moe),
+#     names_glue = "{variable}_{.value}"
+#   ) 
+
+tracts_data <- load(here::here("data", "tracts_data.RData"))
+
+# Pull location crosswalk dictionary from GitHub repo
+dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
+  filter(tract_GEOID %in% tracts_sf$t_GEOID)
+
+# tracts_lu <- read_csv(here::here("data", "tracts_export_lookup.csv"))
 
 ```
 
@@ -236,7 +256,7 @@ national_variable_choices <- reactive({
   )
   
 })
-  
+
 # National variable selection widget, default options
 selectInput(inputId = "national_variable_selector",
             label = "Select a topic",
@@ -338,7 +358,7 @@ withSpinner(uiOutput("national_map_summary"))
 
 output$national_map <- renderUI({
   
-    withSpinner(plotOutput("national_ggmap"))
+  withSpinner(plotOutput("national_ggmap"))
   
 })
 
@@ -426,8 +446,8 @@ national_data_table_friendly <- reactive({
     arrange(GEOID) %>% 
     mutate("State" = paste0(NAME
                             # , " (", ABBR, ")"
-                            )
-           ) %>% 
+    )
+    ) %>% 
     select(any_of(c("State",
                     national_vars_in_topic() %>% 
                       pull(var_readable)))) %>% 
@@ -456,7 +476,7 @@ national_data_table_friendly <- reactive({
   #                                  scale = 1))) %>%
   #   rename(!!any_of(national_vars_in_topic_static %>%
   #                     deframe()))
-
+  
 })
 
 # UI Output
@@ -472,7 +492,7 @@ output$national_table <- renderUI({
       # https://www.w3.org/WAI/tutorials/tables/two-headers/
       replace_html('<td id="tableHTML_column_1">', '<th scope="row" id="tableHTML_column_1">', replace_all = T) %>% 
       replace_html('[a-z]</td>', '</th>', replace_all = T)
-    )
+  )
   
   # # # Static check
   # HTML(
@@ -505,15 +525,10 @@ To explore the data select a city below. You can navigate the box using the mous
 
 ```{r city-sidebar}
 
-# Pull location crosswalk dictionary from GitHub repo
-dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt")
-
 # Full data for cities in database
-city_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
-                                       host_name, 
-                                       "place")
-
-# uiOutput("navigation_instructions")
+# city_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
+#                                        host_name, 
+#                                        "place")
 
 # Define inputs, restrict to cities in database
 selectInput(inputId = "city_selector", 
@@ -543,14 +558,9 @@ city_tract_sf <- reactive({
     filter(place_GEOID %in% c(input$city_selector)) %>% 
     pull(tract_GEOID)
   
-  # Connect and pull
-  temp_mongo_conn <- fun_mongo_connect(host_name,
-                                       collection_name = "geo_tract",
-                                       database_name = "ADA-PARC")
-  temp_geo <- temp_mongo_conn$iterate(
-    query = sprintf('{ "properties.GEOID" : { "$in" : [  "%s" ] } }' ,
-                    str_c(temp_city, collapse = '", "')))
-  temp_sf <- geojsonsf::geojson_sf(temp_geo$json(size = 100000))
+  temp_sf <- tracts_sf %>%
+    filter(t_GEOID %in% temp_city)
+  
   return(temp_sf)
   
 })
@@ -558,13 +568,19 @@ city_tract_sf <- reactive({
 # Tabular
 city_tract <- reactive ({
   
-  # Connect and pull
-  temp_mongo_conn <- fun_mongo_connect(host_name,
-                                       collection_name = "acs_tract_S1810",
-                                       database_name = "ADA-PARC")
-  temp <- temp_mongo_conn$find(
-    query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
-                    str_c(city_tract_sf()$GEOID, collapse = '", "')))
+  temp_city <- dict_location_crosswalk %>%
+    filter(place_GEOID %in% c(input$city_selector)) %>%
+    pull(tract_GEOID)
+  
+  temp <- tracts_data %>%
+    filter(GEOID %in% temp_city) 
+  # # Connect and pull
+  # temp_mongo_conn <- fun_mongo_connect(host_name,
+  #                                      collection_name = "acs_tract_S1810",
+  #                                      database_name = "ADA-PARC")
+  # temp <- temp_mongo_conn$find(
+  #   query = sprintf('{ "GEOID" : { "$in" : [  "%s" ] } }' ,
+  #                   str_c(city_tract_sf()$t_GEOID, collapse = '", "')))
   return(temp)
   
 })
@@ -583,8 +599,18 @@ output$city_summary <- renderUI({
   
   # Overview text
   city_summary_text <- paste0(
-    "<h4>",  city_place() %>% mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% pull(NAME), "</h4>",
-    "Based on ACS 2018 5-Year Estimates, <b>", city_place() %>% pull(S1810_C02_001_estimate) %>% scales::comma(.), "</b> of the city's <b>", city_place() %>% pull(S1810_C01_001_estimate) %>% scales::comma(.), "</b> residents (<b>", city_place() %>% pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
+    "<h4>",  
+    city_place() %>% 
+      mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
+      pull(NAME), "</h4>",
+    "Based on ACS 2019 5-Year Estimates, <b>", city_place() %>% 
+      pull(S1810_C02_001_estimate) %>% 
+      scales::comma(.), "</b> of the city's <b>", 
+    city_place() %>% 
+      pull(S1810_C01_001_estimate) %>% 
+      scales::comma(.), "</b> residents (<b>", 
+    city_place() %>% 
+      pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
   # Summary tables side by side
   # Create individual summary tables
@@ -635,7 +661,7 @@ output$city_summary <- renderUI({
               "Walk or Bike" = 
                 paste0(comma(S1811_C02_032_estimate * 
                                ((S1811_C02_036_estimate +
-                                  S1811_C02_037_estimate) / 100),
+                                   S1811_C02_037_estimate) / 100),
                              accuracy = 1),
                        " (", comma((S1811_C02_036_estimate +
                                       S1811_C02_037_estimate),
@@ -694,8 +720,8 @@ output$city_summary <- renderUI({
                                 city_summary_we,
                                 '</ul></div>',
                                 '</div>')
-    
-    
+  
+  
   
   # UI Output
   HTML(paste(city_summary_text, city_summary_tables, sep = ""))
@@ -718,36 +744,41 @@ withSpinner(uiOutput("city_summary"))
 
 # Palette
 pal_city <- reactive ({
-  
-  colorQuantile(palette = access_map_palette_selected(),
-                domain = pull(city_tract(), S1810_C02_001_estimate),
-                n = 4)
+  if(length(pull(city_tract(), S1810_C02_001_estimate)) < 4) {
+    colorNumeric(palette = access_map_palette_selected(),
+                 domain = pull(city_tract(), S1810_C02_001_estimate))
+  } else {
+    colorQuantile(palette = access_map_palette_selected(),
+                  domain = pull(city_tract(), S1810_C02_001_estimate),
+                  n = 4)
+  }
   
 })
 
 # Tract map
 output$snapshotmap <- renderLeaflet({
   
-  left_join(city_tract_sf(),
-            city_tract() %>% select(GEOID, S1810_C02_001_estimate),
-            by = "GEOID") %>%
-    leaflet() %>%
+  data <- left_join(city_tract_sf(),
+                    city_tract() %>% select(GEOID, S1810_C02_001_estimate),
+                    by = c("t_GEOID" = "GEOID")) 
+  
+  leaflet(data) %>%
     clearShapes() %>%
     addProviderTiles(providers$Esri, group = "Esri") %>%
     addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
     addResetMapButton() %>%
-    addPolygons(stroke = TRUE, color = "#444444", 
+    addPolygons(stroke = TRUE, color = "#444444",
                 weight = 1, smoothFactor = 0,
                 fillColor = ~pal_city()(S1810_C02_001_estimate),
                 fillOpacity = 0.5,
-                layerId = ~GEOID) %>%
+                layerId = ~t_GEOID) %>%
     addLegend(position = "topright", pal = pal_city(),
               values = ~S1810_C02_001_estimate,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
               },
-              title = "PWD") %>% 
+              title = "PWD") %>%
     addLayersControl(position = "bottomright",
                      baseGroups = c("Esri", "CartoDB"),
                      options = layersControlOptions(collapsed = FALSE)) %>%
@@ -782,6 +813,7 @@ output$snapshotmap <- renderLeaflet({
 # })
 
 withSpinner(leafletOutput("snapshotmap"))
+
 
 ```
 

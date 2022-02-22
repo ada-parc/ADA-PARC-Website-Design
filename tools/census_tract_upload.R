@@ -4,27 +4,18 @@
 
 
 # Libraries
-library(tidyverse);library(readxl);library(openxlsx)
-library(tigris);library(sf);library(janitor)
-library(tidycensus);library(viridis);library(tmap)
-library(RPostgres);library(RPostgreSQL);library(DBI)
+library(tidyverse)
+library(tigris);library(sf)
+library(tidycensus)
 library(geojsonsf);library(mongolite);library(config)
-library(shiny);library(shinyjs);library(shinyWidgets)
-library(here)
 
 # Set working dictionary, options, increase memory limit
-setwd(here::here())
-options(stringsAsFactors = FALSE, scipen = 999, 
-        dplyr.summarise.inform = FALSE, tigris_use_cache = TRUE)
-knitr::opts_chunk$set(echo = FALSE)
 memory.limit(size = 10000)
 
 host_name <- "host_dev" # or "host_dev"
 
 # Load API keys and database connection information
-source(here("scripts", "functions.R"), local = TRUE)
-census_api_key(config::get("api_key_census"))
-
+source(here::here("scripts", "functions.R"), local = TRUE)
 
 # Parameters for ACS call -------------------------------------------------
 
@@ -34,7 +25,7 @@ census_api_key(config::get("api_key_census"))
 
 # Load baseline dictionary of places 
 cities_acs_places_selected <- read_csv(
-  here("dictionaries",
+  here::here("dictionaries",
        "baseline_places_geoid_upload.csv")
   ) %>%
   rename("GEOID" = 1) %>%
@@ -58,7 +49,7 @@ tracts_acs_vars_ref <-
 
 # Load baseline dictionary of variables for tracts 
 file_upload <- read_csv(
-  here("dictionaries",
+  here::here("dictionaries",
        "baseline_tract_vars_upload.csv")
 ) %>% 
   rename("var_name" = 1)
@@ -110,7 +101,7 @@ acs_raw <- pmap_df(
 
 # Tracts simple features df
 # Use dictionary and filter to selected tracts
-tracts_geography <- st_read(here(
+tracts_geography <- st_read(here::here(
   "dictionaries",
   "/geo_tract/geo_tract.shp")) %>%
 select("tract_GEOID" = t_GEOID,
