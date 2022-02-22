@@ -77,9 +77,9 @@ tracts_sf <- sf::st_read(here::here("data", "tracts_export_geography.shp"))
 #     names_from = c(variable),
 #     values_from = c(estimate, moe),
 #     names_glue = "{variable}_{.value}"
-#   ) 
+#   )
 
-tracts_data <- load(here::here("data", "tracts_data.RData"))
+load(here::here("data", "tracts_data.RData"))
 
 # Pull location crosswalk dictionary from GitHub repo
 dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
