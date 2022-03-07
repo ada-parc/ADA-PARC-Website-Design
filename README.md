@@ -1,8 +1,6 @@
 # ADA-PARC Website
 
-This repository contains the code for the ADA-PARC website and research data dashboard. The website uses MongoDB as the back-end database for storing geospatial and tabular data and is programmed in R. The website code is hosted and run using (ShinyApps)[https://www.shinyapps.io].
-
-In order to run the website locally (by sourcing the `ADA_PARC.Rmd` file in R Studio) you must have a `config.yml` file with the credentials to access the MongoDB connection.
+This repository contains the code for the ADA-PARC website and research data dashboard. The website is programmed in R. The website code is hosted and run using [ShinyApps](https://www.shinyapps.io).
 
 ## Tools
 
