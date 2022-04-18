@@ -14,6 +14,7 @@ resource_files:
 - config.yml
 - scripts/functions.R
 - scripts/national_import.R
+- data/all.rda
 ---
 
 ```{r setup, include=FALSE}
@@ -23,21 +24,19 @@ resource_files:
 # Packages
 library(reactlog)
 library(tidyverse)
-library(gridExtra); library(patchwork)
+library(patchwork)
+library(kableExtra)
 library(tigris); library(sf)
 library(urbnmapr)
 library(leaflet); library(leaflet.extras)
-library(tmap); library(tmaptools)
 library(htmltools)
 library(shiny); library(shinycssloaders)
 library(shinyWidgets); library(flexdashboard)
-library(colourpicker); library(gghighlight)
-library(knitr); library(kableExtra)
+library(colourpicker)
 library(scales)
 library(tableHTML)
 library(hrbrthemes); library(ggthemes)
-library(extrafont); library(plotly)
-library(mongolite); library(here)
+library(extrafont)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE,
@@ -46,21 +45,21 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 
 load(here::here("data", "all.rda"))
 
-
+# save(city_place_full, community_living, community_participation, demographics, dict_location_crosswalk, dict_vars, tracts_data, tracts_sf, work_economic, file = here::here("data", "all.rda"))
 ### ----- Database connections -----
 
 # Set this to host_prod or host_dev
-host_name <- "host_prod"
+# host_name <- "host_prod"
 
 ### ----- Functions import -----
 
 # Load API keys and database connection information
-source(here("scripts", "functions.R"), local = TRUE)
+source(here::here("scripts", "functions.R"), local = TRUE)
 
 # Load variable dictionary for relating tables, variable codes,
 # and readable values
-dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
-                                 host_name = host_name)
+# dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
+#                                  host_name = host_name)
 
 ### ----- Data import and clean -----
 
@@ -538,7 +537,8 @@ selectInput(inputId = "city_selector",
             choices = tibble::deframe(
               dict_location_crosswalk %>% 
                 filter(place_GEOID %in% city_place_full$GEOID) %>% 
-                distinct("GEOID" = place_GEOID, metro_state)))
+                distinct("GEOID" = place_GEOID, metro_state)),
+            selected = "1714000")
 
 ### ----- Pull Census Place data for selected city -----
 
@@ -1454,7 +1454,7 @@ output$download_data_national_button <- downloadHandler(
 
 # Read in dataframe of national factsheets and links
 download_factsheet_national <- 
-  read_csv(str_c(here(),
+  read_csv(str_c(here::here(),
                  "/factsheet_national/dashboard_factsheet_national.csv"))
 
 # Create accessible hyperlinks
