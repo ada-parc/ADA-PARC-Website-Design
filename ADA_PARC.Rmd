@@ -45,6 +45,10 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 
 load(here::here("data", "all.rda"))
 
+dict_location_crosswalk <- dict_location_crosswalk %>%
+  mutate(city = str_remove(metro_state, ", [A-Z]{2}$"),
+         state = str_extract(metro_state, "[A-Z]{2}$"))
+
 # save(city_place_full, community_living, community_participation, demographics, dict_location_crosswalk, dict_vars, tracts_data, tracts_sf, work_economic, file = here::here("data", "all.rda"))
 ### ----- Database connections -----
 
@@ -163,7 +167,7 @@ The ten participating ADA-Regional Centers in the ADA-PARC are:
 -   Region 7 Great Plains ADA Center
 -   Region 8 Rocky Mountain ADA Center
 -   Region 9 Pacific ADA Center
--   Region 10 Great Northwest ADA Center
+-   Region 10 Northwest ADA Center
 
 Other institutions collaborating in the ADA-PARC are:
 
@@ -459,7 +463,8 @@ national_data_table_friendly <- reactive({
                                    accuracy = 0.1,
                                    scale = 1))) %>% 
     rename(!!any_of(national_vars_in_topic() %>% 
-                      deframe()))
+                      deframe())) %>%
+    select(State, starts_with("Population"), starts_with("Percent"), everything())
   
   # # # Static check
   # table_friendly <- demographics %>%
@@ -521,24 +526,68 @@ withSpinner(uiOutput("national_table"))
 
 ## Sidebar {.sidebar}
 
-To explore the data select a city below. You can navigate the box using the mouse or keyboard. For keyboard users, once the box is highlighted you can press backspace and begin typing the selection into the box.
+To explore the data select a city below. You can navigate the selection boxes using the mouse or keyboard. For keyboard users, once the box is highlighted you can press backspace and begin typing the selection into the box. A state must be selected first.
 
 
 ```{r city-sidebar}
 
-# Full data for cities in database
-# city_place_full <- fun_pull_mongo_data(c("S1810", "S1811"), 
-#                                        host_name, 
-#                                        "place")
-
 # Define inputs, restrict to cities in database
+
+state_choices <- tibble(NAME = state.name, ABB =  state.abb) %>%
+  add_row(NAME = c("District of Columbia", "Puerto Rico"), ABB = c("DC", "PR")) %>%
+  deframe()
+
+selectInput(inputId = "state_selector",
+            label = "Select a state",
+            choices = state_choices,
+            selected = state_choices[13])
+
+state_selected <- reactive({
+  state_choices[which(state_choices == input$state_selector)]
+})
+
+# City choices, based on state
+city_choices <- reactive({
+  
+  tibble::deframe(
+    dict_location_crosswalk %>%
+      filter(state == state_selected()) %>%
+      select(city, state, place_GEOID) %>%
+      distinct(city, place_GEOID)
+  ) %>%
+    sort()
+  
+})
+
 selectInput(inputId = "city_selector", 
-            label = "Select a City or Town", 
-            choices = tibble::deframe(
-              dict_location_crosswalk %>% 
-                filter(place_GEOID %in% city_place_full$GEOID) %>% 
-                distinct("GEOID" = place_GEOID, metro_state)),
+            label = "Select a city", 
+            choices =   tibble::deframe(
+    dict_location_crosswalk %>%
+      filter(state == "IL") %>%
+      select(city, state, place_GEOID) %>%
+      distinct(city, place_GEOID)
+  ),
             selected = "1714000")
+
+# Update variable selections when category changes
+observeEvent(input$state_selector, {
+  
+  choices <- names(city_choices())
+  
+  updateSelectInput(session, "city_selector",
+                    choices = choices, 
+                    selected = choices[2])
+  
+})
+
+city_selected <- reactive({ 
+  
+  # req(national_variable_selector_db())
+  req(state_selected())
+  
+  getElement(city_choices(), input$city_selector)
+  
+})
 
 ### ----- Pull Census Place data for selected city -----
 
@@ -546,7 +595,7 @@ selectInput(inputId = "city_selector",
 city_place <- reactive({
   
   city_place_full %>% 
-    filter(GEOID == input$city_selector)
+    filter(GEOID == city_selected())
   
 })
 
@@ -557,7 +606,7 @@ city_tract_sf <- reactive({
   
   # Restrict tract call to selected city
   temp_city <- dict_location_crosswalk %>% 
-    filter(place_GEOID %in% c(input$city_selector)) %>% 
+    filter(place_GEOID %in% city_selected()) %>% 
     pull(tract_GEOID)
   
   temp_sf <- tracts_sf %>%
@@ -571,7 +620,7 @@ city_tract_sf <- reactive({
 city_tract <- reactive ({
   
   temp_city <- dict_location_crosswalk %>%
-    filter(place_GEOID %in% c(input$city_selector)) %>%
+    filter(place_GEOID %in% city_selected()) %>%
     pull(tract_GEOID)
   
   temp <- tracts_data %>%

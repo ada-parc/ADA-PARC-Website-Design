@@ -1,50 +1,50 @@
-
-
-# MongoDB functions ------------------------------------------------
-
-
-# MongoDB connection using config.yml values
-fun_mongo_connect <- function(host_name, collection_name, database_name){
-  
-  url <- sprintf("mongodb+srv://%s:%s@%s/%s",
-                 config::get("user"),
-                 config::get("password"),
-                 config::get(host_name),
-                 database_name)
-  
-  mongolite::mongo(collection = collection_name,
-                   url = url,
-                   options = ssl_options(weak_cert_validation = TRUE))
-  
-}
-
-# MongoDB download table 
-# TODO: Change these for loops into map/apply function calls
-fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) { 
-  
-  if (geo != F) { # Generally this function will be used to pull data from geographic tables
-    for (t in seq_along(tables)) {
-      # print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
-      temp_mongo_conn <- fun_mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
-                                           database_name = "ADA-PARC",
-                                           host_name = host_name)
-      
-      # Creates one temp_df object per value in tables
-      assign(paste0("temp_df", t), temp_mongo_conn$find())
-    }
-    # joins all of the temp_dfs into one large table
-    df <- reduce(mget(ls(pattern = "temp_df")), 
-                 left_join, by = c("GEOID", "NAME"))
-  } else { # But sometimes it needs to be used to pull dictionaries or other data
-    temp_mongo_conn <- fun_mongo_connect(collection_name = tables, # tables should be something like "vars_dict" or "variable_lu"
-                                         database_name = "ADA-PARC",
-                                         host_name = host_name)
-    
-    df <- temp_mongo_conn$find()
-    
-    return(df)
-  }
-}
+# 
+# 
+# # MongoDB functions ------------------------------------------------
+# 
+# 
+# # MongoDB connection using config.yml values
+# fun_mongo_connect <- function(host_name, collection_name, database_name){
+#   
+#   url <- sprintf("mongodb+srv://%s:%s@%s/%s",
+#                  config::get("user"),
+#                  config::get("password"),
+#                  config::get(host_name),
+#                  database_name)
+#   
+#   mongolite::mongo(collection = collection_name,
+#                    url = url,
+#                    options = ssl_options(weak_cert_validation = TRUE))
+#   
+# }
+# 
+# # MongoDB download table 
+# # TODO: Change these for loops into map/apply function calls
+# fun_pull_mongo_data <- function(tables, host_name = "host_prod", geo = F) { 
+#   
+#   if (geo != F) { # Generally this function will be used to pull data from geographic tables
+#     for (t in seq_along(tables)) {
+#       # print(paste("Connection to:", paste0("acs_", geo, "_", tables[t])))
+#       temp_mongo_conn <- fun_mongo_connect(collection_name = paste0("acs_", geo, "_", tables[t]),
+#                                            database_name = "ADA-PARC",
+#                                            host_name = host_name)
+#       
+#       # Creates one temp_df object per value in tables
+#       assign(paste0("temp_df", t), temp_mongo_conn$find())
+#     }
+#     # joins all of the temp_dfs into one large table
+#     df <- reduce(mget(ls(pattern = "temp_df")), 
+#                  left_join, by = c("GEOID", "NAME"))
+#   } else { # But sometimes it needs to be used to pull dictionaries or other data
+#     temp_mongo_conn <- fun_mongo_connect(collection_name = tables, # tables should be something like "vars_dict" or "variable_lu"
+#                                          database_name = "ADA-PARC",
+#                                          host_name = host_name)
+#     
+#     df <- temp_mongo_conn$find()
+#     
+#     return(df)
+#   }
+# }
 
 
 # Dashboard functions -----------------------------------------------------
@@ -720,10 +720,10 @@ altText <- function(data, variable) {
   # Selected data, format min/max for summary
   df <- data %>%
     select(NAME, ABBR, sym(variable)) %>%
-    filter(!is.na(!!sym(variable)))
+    filter(ABBR != "USA")
 
   # Min
-  text_min <- data %>%
+  text_min <- df %>%
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(State, sym(variable)) %>%
     filter(!is.na(!!sym(variable))) %>% 
@@ -741,7 +741,7 @@ altText <- function(data, variable) {
     pull(summary_text)
     
   # Max
-  text_max <- data %>%
+  text_max <- df %>%
     mutate("State" = paste0(NAME, " (", ABBR, ")")) %>% 
     select(State, sym(variable)) %>%
     filter(!is.na(!!sym(variable))) %>% 
