@@ -237,7 +237,8 @@ render_national_map <- function(category, selected,
     stop("selected must be a character string")
   }
   
-  data <- eval(sym(str_remove(category, "^is_")))
+  data <- eval(sym(str_remove(category, "^is_"))) %>%
+    filter(ABBR != "USA")
   no_classes <- 4
 
   # p1

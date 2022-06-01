@@ -43,7 +43,7 @@ options(scipen = 999999,
         shiny.reactlog = TRUE)
 knitr::opts_chunk$set(fig.cap = TRUE)
 
-load(here::here("data", "all.rda"))
+load(here::here("data", "all_2020N_2019C.rda"))
 
 dict_location_crosswalk <- dict_location_crosswalk %>%
   mutate(city = str_remove(metro_state, ", [A-Z]{2}$"),
