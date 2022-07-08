@@ -46,8 +46,11 @@ options(scipen = 999999,
         shiny.reactlog = TRUE)
 knitr::opts_chunk$set(fig.cap = TRUE)
 
-# load(here::here("data", "all_2020N_2019C.rda"))
-# load(here::here("data", "ADA-Website_data.Rda"))
+
+### ----- Data import and clean -----
+
+
+# Load in environment variables from "Data-Update" process
 load(here::here("data", "ADA-Website_tables.Rda"))
 load(here::here("data", "ADA-Website_tracts.Rda"))
 read.csv(here::here("data", "dict_vars.csv"))
@@ -56,49 +59,24 @@ dict_location_crosswalk <- dict_location_crosswalk %>%
   mutate(city = str_remove(metro_state, ", [A-Z]{2}$"),
          state = str_extract(metro_state, "[A-Z]{2}$"))
 
-# save(city_place_full, community_living, community_participation, demographics, dict_location_crosswalk, dict_vars, tracts_data, tracts_sf, work_economic, file = here::here("data", "all.rda"))
-### ----- Database connections -----
+# Export as needed
+# # Tables
+# save(city_place_full, community_living, community_participation,
+#      demographics, dict_location_crosswalk, work_economic,
+#      tracts_data,
+#      file = here::here("data", "ADA-Website_tables_copy.Rda"))
+# 
+# # Tracts spatial data
+# save(tracts_sf,
+#      file = here::here("data", "ADA-Website_tracts_copy.Rda"))
 
-# Set this to host_prod or host_dev
-# host_name <- "host_prod"
 
 ### ----- Functions import -----
+
 
 # Load API keys and database connection information
 source(here::here("scripts", "functions.R"), local = TRUE)
 
-# Load variable dictionary for relating tables, variable codes,
-# and readable values
-# dict_vars <- fun_pull_mongo_data(tables = "dict_vars",
-#                                  host_name = host_name)
-
-### ----- Data import and clean -----
-
-# This script takes the national_* objects and transforms them
-# into the final datasets for mapping
-# source(here("scripts", "national_import.R"), local = TRUE)
-
-# City-level data
-
-# city_place_full <- read_csv(here::here("data", "city_place.csv"))
-# 
-# tracts_sf <- sf::st_read(here::here("data", "tracts_export_geography.shp"))
-
-# tracts_data <- read_csv(here::here("data", "tracts_export_data.csv")) %>%
-#   pivot_wider(
-#     id_cols = c(GEOID, NAME),
-#     names_from = c(variable),
-#     values_from = c(estimate, moe),
-#     names_glue = "{variable}_{.value}"
-#   )
-
-# load(here::here("data", "tracts_data.RData"))
-
-# Pull location crosswalk dictionary from GitHub repo
-# dict_location_crosswalk <- read_csv("https://raw.githubusercontent.com/ada-parc/ADA-PARC-Website-Design/master/dictionaries/dict_location_crosswalk.txt") %>%
-#   filter(tract_GEOID %in% tracts_sf$t_GEOID)
-
-# tracts_lu <- read_csv(here::here("data", "tracts_export_lookup.csv"))
 ```
 
 # Home
