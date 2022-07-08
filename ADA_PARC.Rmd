@@ -15,6 +15,9 @@ resource_files:
 - scripts/functions.R
 - scripts/national_import.R
 - data/all_2020N_2019C.rda
+- data/ADA-Website_tables.Rda
+- data/ADA-Website_tracts.Rda
+- data/dict_vars.csv
 ---
 
 ```{r setup, include=FALSE}
