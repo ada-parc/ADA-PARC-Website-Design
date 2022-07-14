@@ -66,6 +66,19 @@ dict_location_crosswalk <- dict_location_crosswalk %>%
 #      tracts_data,
 #      file = here::here("data", "ADA-Website_tables_copy.Rda"))
 # 
+# Tables for scorecard work
+# openxlsx::write.xlsx(
+#   list("National - Demo" = demographics,
+#        "National - Comm Part" = community_participation,
+#        "National - Comm Living" = community_living,
+#        "National - Economic" = work_economic,
+#        "City" = city_place_full,
+#        "Tract" = tracts_data,
+#        "Dict - Geo Crosswalk" = dict_location_crosswalk,
+#        "Dict - Variables" = dict_vars),
+#   here::here("data",
+#              "ADA-PARC_Website_Data.xlsx"))
+#
 # # Tracts spatial data
 # save(tracts_sf,
 #      file = here::here("data", "ADA-Website_tracts_copy.Rda"))
