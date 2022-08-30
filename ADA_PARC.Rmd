@@ -11,10 +11,7 @@ output:
 runtime: shiny
 resource_files:
 - www/participant_logos.png
-- config.yml
 - scripts/functions.R
-- scripts/national_import.R
-- data/all_2020N_2019C.rda
 - data/ADA-Website_tables.Rda
 - data/ADA-Website_tracts.Rda
 - data/dict_vars.csv
@@ -53,11 +50,17 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 # Load in environment variables from "Data-Update" process
 load(here::here("data", "ADA-Website_tables.Rda"))
 load(here::here("data", "ADA-Website_tracts.Rda"))
-read.csv(here::here("data", "dict_vars.csv"))
+
+# Read in variable dictionary manually
+dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
+# dict_vars_old <- read_csv(here::here("data", "dict_vars_2022-08-22.csv"))
 
 dict_location_crosswalk <- dict_location_crosswalk %>%
   mutate(city = str_remove(metro_state, ", [A-Z]{2}$"),
          state = str_extract(metro_state, "[A-Z]{2}$"))
+
+
+# dict_vars_old <- dict_vars
 
 # Export as needed
 # # Tables
@@ -99,9 +102,7 @@ source(here::here("scripts", "functions.R"), local = TRUE)
 <br>
 
 #### How to Navigate<br>this Website
-
 <br>
-
 Use the **National Data** tab to examine the status of people with disabilities at the national and state level.
 
 Use the **City Data** tab to investigate people with disabilities statistics at the municipal level.
@@ -114,9 +115,14 @@ Use the **Accessibility** tab to set color palettes for the visualizations in th
 
 <br>
 
-Application authors:
+**Questions?** <br>
+[Contact Joy Hammel (email)](mailto:hammel@uic.edu) <br>
+Director of Graduate Studies <br>
+UIC College of Applied Health Sciences
 
-Sean Connelly and Ethan Jantz <br> [UIC Voorhees Center](https://voorheescenter.uic.edu/)
+Application authors: <br>
+Ethan Jantz and Sean Connelly <br>
+[UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
 <div role="main">
 
