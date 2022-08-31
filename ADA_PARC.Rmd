@@ -12,7 +12,8 @@ runtime: shiny
 resource_files:
 - www/participant_logos.png
 - scripts/functions.R
-- data/ADA-Website_tables.Rda
+- data/ADA-Website_tables_national.Rda
+- data/ADA-Website_tables_city.Rda
 - data/ADA-Website_tracts.Rda
 - data/dict_vars.csv
 ---
@@ -48,7 +49,12 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 
 
 # Load in environment variables from "Data-Update" process
-load(here::here("data", "ADA-Website_tables.Rda"))
+# National tables
+# load(here::here("data", "ADA-Website_tables.Rda"))
+load(here::here("data", "ADA-Website_tables_national.Rda"))
+# City tables
+load(here::here("data", "ADA-Website_tables_city.Rda"))
+# City tracts sf
 load(here::here("data", "ADA-Website_tracts.Rda"))
 
 # Read in variable dictionary manually
