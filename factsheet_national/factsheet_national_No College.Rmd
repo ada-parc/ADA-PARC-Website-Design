@@ -1,0 +1,201 @@
+---
+title: ""
+output: 
+  html_document:
+    css: "style.css"
+    theme: paper
+always_allow_html: true
+tables: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+
+### ----- Libraries and database connections ----- 
+
+# Packages
+library(tidyverse); library(sf); library(htmltools)
+library(colourpicker); library(gghighlight)
+library(knitr); library(kableExtra)
+library(tigris); library(urbnmapr); library(patchwork)
+library(scales); library(hrbrthemes); library(ggthemes)  
+library(extrafont); library(here)
+
+options(scipen = 999999)
+opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+               fig.width = 12, fig.asp = 0.618,
+               fig.align = "center", out.width = "100%")
+
+### ----- Data import and clean -----
+
+
+# Load in environment variables from "Data-Update" process
+# National tables
+# load(here::here("data", "ADA-Website_tables.Rda"))
+load(here::here("data", "ADA-Website_tables_national.Rda"))
+
+# Read in variable dictionary manually
+dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
+
+
+### ----- Functions import -----
+
+
+# Load API keys and database connection information
+source(here::here("scripts", "functions.R"), local = TRUE)
+
+
+### ----- Create no college variable -----
+
+
+# Sum attainment levels below bachelors
+community_participation <- community_participation %>% 
+  select(GEOID:ABBR,
+         pwd_lessthan_highschool_pct:pwod_degree_grtoeq_ba) %>% 
+  mutate("pwd_belowcollege_pct" = pwd_lessthan_highschool_pct + pwd_highschoolequiv_pct + pwd_degree_aa_pct,
+         "pwod_belowcollege_pct" = pwod_lessthan_highschool_pct + pwod_highschoolequiv_pct + pwod_degree_aa_pct) %>% 
+  relocate(pwd_belowcollege_pct, pwod_belowcollege_pct,
+           .after = ABBR)
+
+```
+
+### State-by-State Map
+
+```{r national-map, fig.alt = "A map of the United States, with each state shaded according to the quartiles described in the summary."}
+
+# Geographic map function
+render_belowcollege_map <- function(data, selected, palette_selected) {
+  
+  # Set quartiles
+  no_classes <- 4
+  labels <- c()
+  
+  # Combine PWD and PWOD
+  quartiles <- quantile(vctrs::vec_c(
+    community_participation$pwd_belowcollege_pct,
+    community_participation$pwod_belowcollege_pct), 
+    probs = seq(0, 1, length.out = no_classes + 1),
+    na.rm = TRUE)
+  
+  # Overall PWD and PWOD
+  # quartiles <- quantile(national_data$pop_below_belowcollege_pct, 
+  #                       probs = seq(0, 1, length.out = no_classes + 1),
+  #                       na.rm = TRUE)
+  
+  # Custom labels based on percent or value
+  for(idx in 1:length(quartiles)){
+    if(grepl("pct", "pwd_belowcollege_pct")) {
+      
+      # Percent, add divide by 100, add symbol to text
+      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
+                                 "-", 
+                                 scales::percent(quartiles[idx + 1] / 100)))
+      
+    } else if(grepl("spending", selected)) {
+      
+      # Values
+      labels <- c(labels, paste0("$", scales::comma(quartiles[idx]), 
+                                 "-$", 
+                                 scales::comma(quartiles[idx + 1])))
+    } else {
+      
+      # Values
+      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
+                                 "-", 
+                                 scales::comma(quartiles[idx + 1])))
+    }
+  }
+  # Remove last label which will have NA
+  labels <- labels[1:length(labels)-1]
+  
+  # Set map title and legend
+  title <-  if(grepl("^pwd_", selected)) {
+      "People with Disabilities"
+    } else if(grepl("^pwod_", selected)) {
+     "People without Disabilities"
+    } else { NA_character_ }
+  legend_title <- "People with/without Disabilities with Less Than a Bachelor's Degree"
+  
+  # US State geography, remove territories, join data
+  states_sf <- get_urbn_map("territories_states", sf = TRUE) %>% 
+    filter(!state_fips %in% c("60", "66", "69", "72", "78")) %>% 
+    select("ABBR" = state_abbv) %>% 
+    inner_join(data %>% 
+                 select(ABBR, !!sym(selected)),
+               by = "ABBR") %>% 
+    rowwise() %>% 
+    mutate("quartile_fill" = cut(!!sym(selected), 
+                                 breaks = quartiles, 
+                                 labels = labels, 
+                                 include.lowest = TRUE))
+  
+  brks_scale <- levels(states_sf$quartile_fill)
+  # labels_scale <- rev(brks_scale)
+  
+  # Plot geographic map
+  ggplot_object <- ggplot(states_sf) +
+    geom_sf(aes(fill = quartile_fill),
+            color = "black", size = 0.25) +
+    scale_fill_manual(values = RColorBrewer::brewer.pal(4, palette_selected),
+                      breaks = brks_scale,
+                      labels = brks_scale,
+                      drop = FALSE,
+                      na.value = "grey") +
+    # Text
+    geom_sf_text(data = get_urbn_labels(map = "territories_states", 
+                                        sf = TRUE) %>% 
+                   filter(!state_fips %in% c("60", "66", "69", "43", "78")),
+                 aes(label = state_abbv),
+                 size = 4, fontface = "bold", check_overlap = TRUE) +
+    # Labels
+    labs(x = "", y = "", 
+         title = title,
+         fill = legend_title) +
+    theme_void() +
+    # Theme, removes all of the grid elements that we don't need
+    theme(plot.background = element_rect(colour = "white"), 
+          panel.grid = element_blank(),
+          panel.grid.major = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          panel.spacing = unit(0L, "pt"),
+          legend.position = "bottom",
+          legend.title = element_text(face = "bold", vjust = 0.75),
+          legend.text = element_text(vjust = .5),
+          legend.key = element_rect(color = "black"),
+          strip.text.x = element_text(size = 9L),
+          text = element_text(size = 16)) +
+    guides(fill = guide_legend(label.position = "bottom"))
+  
+  ggplot_object
+  
+}
+
+### ----- Run maps manually -----
+
+
+# Percent of People with Disabilities, Age 18 - 64 Living Below Poverty Level
+render_belowcollege_map(community_participation, 
+                        "pwd_belowcollege_pct", 
+                        "YlOrBr")
+
+# Percent of People without Disabilities, Age 18 - 64 Living Below Poverty Level
+render_belowcollege_map(community_participation, 
+                        "pwod_belowcollege_pct", 
+                        "YlOrBr")
+
+
+### ----- Run table for disparities -----
+
+
+# Table for export
+export_table <- community_participation %>%
+  select(1:pwod_belowcollege_pct) %>% 
+  mutate(across(ends_with("pct"),
+                ~ . / 100))
+  
+clipr::write_clip(export_table) 
+    
+```
