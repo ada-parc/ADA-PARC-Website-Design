@@ -328,7 +328,7 @@ output$national_map_summary <- renderUI({
     paste0(
       altText(national_data(), 
               national_variable_selected()),
-      " Detailed information is available to the right in the interactive map (top) and table (bottom).")
+      " Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: 2016-2020 American Community Survey five-year estimates")
   )
   
 })
@@ -337,35 +337,32 @@ withSpinner(uiOutput("national_map_summary"))
 
 ```
 
-<!-- ## Row {data-height=100} -->
+</div>
 
-<!-- <div role="region" aria-labelledby="section-national-summary"> -->
+## Row {data-height=100}
 
-<!-- ### National Summary -->
+<div role="region" aria-labelledby="section-national-title">
 
-<!-- ```{r national-map-summary, fig.alt = "Descriptive summary of data for the selected topic."} -->
+### National Map Title
 
-<!-- # output$national_map_summary <- renderUI({ -->
-<!-- #    -->
-<!-- #   HTML( -->
-<!-- #     paste0( -->
-<!-- #       altText(national_data(),  -->
-<!-- #               national_variable_selected()), -->
-<!-- #       " Detailed information is available below in the interactive map (left) and table (right)." -->
-<!-- #     ) -->
-<!-- #     # # Static check -->
-<!-- #     # altText(demographics,  -->
-<!-- #     #         national_variable_selector_static) -->
-<!-- #      -->
-<!-- #   ) -->
-<!-- #    -->
-<!-- # }) -->
-<!-- #  -->
-<!-- # withSpinner(uiOutput("national_map_summary")) -->
+```{r national-map-title, fig.alt = "Map title the selected topic."}
 
-<!-- ``` -->
+output$national_map_title <- renderUI({
 
-<!-- </div> -->
+  HTML(
+      altTitle(national_variable_selected())
+      
+    # # Static check
+    # altTitle(demographics,
+    #         national_variable_selector_static)
+
+  )
+
+})
+
+withSpinner(uiOutput("national_map_title"))
+
+```
 
 </div>
 

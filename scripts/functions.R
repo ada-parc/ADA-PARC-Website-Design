@@ -798,3 +798,18 @@ altText <- function(data, variable) {
   )
   
 }
+
+
+altTitle <- function(variable) {
+  
+  # Title, vars_pretty field for variable
+  title <- dict_vars %>% 
+    filter(!is.na(national_dropdown_label),
+           var_readable == sym(variable)) %>% 
+    head(1) %>% 
+    pull(var_pretty)
+  
+  # Text for title
+  paste0( "<b>", title, "</b>")
+  
+}
