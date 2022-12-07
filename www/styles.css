@@ -1,6 +1,6 @@
 table {
   border-spacing: 1;
-  border-collapse: collapse;
+  border-collapse: separate !important;
   background: white;
   overflow: hidden;
   width: 100%;
@@ -21,6 +21,9 @@ table thead tr {
   height: 60px;
   background: #8799FF;
   font-size: 16px;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
 }
 
 table tbody tr:last-child {

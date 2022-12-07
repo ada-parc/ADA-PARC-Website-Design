@@ -792,7 +792,12 @@ altText <- function(data, variable) {
   # Text for summary
   paste0(
     # "<b>", title, "</b><br>",
-    summary_text, " ",
+    if (is.na(summary_text)) {
+      ""
+    } else {
+    paste0(summary_text, " ")
+      }
+    ,
     # Min/Max
     text_min, text_max
   )

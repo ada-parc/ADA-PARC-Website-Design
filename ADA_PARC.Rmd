@@ -433,7 +433,7 @@ national_vars_in_topic <- reactive({
            display == T) %>% 
     select(var_pretty, var_readable)
   
-  # Static check
+  # # Static check
   # national_vars_in_topic_static <- dict_vars %>%
   #   filter(is_demographics == TRUE,
   #          var_topic ==
@@ -479,7 +479,7 @@ national_data_table_friendly <- reactive({
                       deframe())) %>%
     select(State, starts_with("Population"), starts_with("Percent"), everything())
   
-  # # # Static check
+  # # Static check
   # table_friendly <- demographics %>%
   #   mutate("State" = paste0(NAME
   #                           # " (", ABBR, ")"
@@ -513,10 +513,11 @@ output$national_table <- renderUI({
       replace_html('[a-z]</td>', '</th>', replace_all = T)
   )
   
-  # # # Static check
+  # Static check
   # HTML(
   #   tableHTML(table_friendly %>%
-  #               mutate(State = paste0(State, "a")), rownames = F, class = "table_national") %>%
+  #               mutate(State = paste0(State, "a")),
+  #             rownames = F, class = "table_national") %>%
   #     # Essentially, this respecifies the first column as a column of table headers. See link below
   #     # https://www.w3.org/WAI/tutorials/tables/two-headers/
   #     replace_html('<td id="tableHTML_column_1">', '<th scope="row" id="tableHTML_column_1">', replace_all = T) %>%
