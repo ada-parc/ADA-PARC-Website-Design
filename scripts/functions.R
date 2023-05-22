@@ -220,6 +220,7 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
 
 # rename, since this isn't exclusively for interactive maps
 # probably renderNationalMap()
+# 
 render_national_map <- function(category, selected, 
                                 palette_selected = "YlOrBr",
                                 output_asp_ratio = 0.45) {
@@ -243,7 +244,7 @@ render_national_map <- function(category, selected,
 
   # p1
   legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
-
+  
   quartiles <- quantile(data %>% pull(!!sym(selected)),
                         probs = seq(0, 1, length.out = no_classes + 1),
                         na.rm = TRUE)
@@ -310,14 +311,22 @@ render_national_map <- function(category, selected,
     # Map title reworking
     legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
     
-    plot_1_title <- ifelse(str_detect(legend_title_comp,
-                                      "People with Disabilities"),
-                           "People with Disabilities",
-                           "People without Disabilities")
     
-    plot_2_title <- ifelse(plot_1_title == "People with Disabilities",
-                           "People without Disabilities", 
-                           "People with Disabilities")
+    # plot_1_title <- ifelse(str_detect(legend_title_comp,
+    #                                   "People with Disabilities"),
+    #                        "People with Disabilities",
+    #                        "People without Disabilities")
+    # 
+    # plot_1_title_error_print <- paste0("Plot 1 Original Title: ", legend_title_comp, "\n Plot 1 New Title: ", plot_1_title)
+    # 
+    # cat(file=stderr(), as.character(plot_1_title_error_print))
+    # 
+    # plot_2_title <- ifelse(plot_1_title == "People with Disabilities",
+    #                        "People without Disabilities", 
+    #                        "People with Disabilities")
+    
+    plot_1_title <- "People with Disabilities"
+    plot_2_title <- "People without Disabilities"
     
     legend_title_comp <- str_replace_all(legend_title_comp,
                                          "People (with|without) Disabilities",
