@@ -21,7 +21,11 @@ resource_files:
 ```{r setup, include=FALSE}
 
 ### ----- Libraries -----
+
+# Install from devtools non-CRAN packages as needed
 # devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
+# devtools::install_github("UrbanInstitute/urbnmapr")
+
 # Packages
 library(reactlog)
 library(tidyverse)
