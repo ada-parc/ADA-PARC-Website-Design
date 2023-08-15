@@ -332,7 +332,7 @@ output$national_map_summary <- renderUI({
     paste0(
       altText(national_data(), 
               national_variable_selected()),
-      " Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: 2016-2020 American Community Survey five-year estimates")
+      " Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: 2017-2021 American Community Survey five-year estimates")
   )
   
 })
@@ -674,7 +674,7 @@ output$city_summary <- renderUI({
     city_place() %>% 
       mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
       pull(NAME), "</h4>",
-    "Based on ACS 2020 5-Year Estimates, <b>", city_place() %>% 
+    "Based on ACS 2021 5-Year Estimates, <b>", city_place() %>% 
       pull(S1810_C02_001_estimate) %>% 
       scales::comma(.), "</b> of the city's <b>", 
     city_place() %>% 
