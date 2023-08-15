@@ -1507,40 +1507,6 @@ withSpinner(leafletOutput("snapshotmap"))
 
 <!-- </div> -->
 
-# Download Fact Sheets
-
-## Row
-
-<div role="main">
-
-###  
-
-```{r download-fact-sheets-body}
-
-# Read in dataframe of national factsheets and links
-download_factsheet_national <- 
-  read_csv(str_c(here::here(),
-                 "/factsheet_national/dashboard_factsheet_national.csv"))
-
-# Create accessible hyperlinks
-download_factsheet_national <- download_factsheet_national %>% 
-  mutate("hyperlink" = str_c('<a href="',
-                             output_file,
-                             '" target="_blank">',
-                             national_dropdown_label,
-                             '</a>')) %>% 
-  select("Fact Sheets Available" = hyperlink)
-
-# Create kable table
-kbl(x = download_factsheet_national,
-    escape = FALSE,
-    caption = "Download National Fact Sheets") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                position = "left")
-
-```
-
-</div>
 
 # Accessibility
 
