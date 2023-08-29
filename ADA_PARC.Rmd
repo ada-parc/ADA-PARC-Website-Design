@@ -24,6 +24,7 @@ resource_files:
 
 # Install from devtools non-CRAN packages as needed
 # devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
+library(devtools)
 # devtools::install_github("UrbanInstitute/urbnmapr")
 
 # Packages
