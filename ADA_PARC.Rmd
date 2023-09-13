@@ -55,7 +55,6 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 
 # Load in environment variables from "Data-Update" process
 # National tables
-# load(here::here("data", "ADA-Website_tables.Rda"))
 load(here::here("data", "ADA-Website_tables_national.Rda"))
 # City tables
 load(here::here("data", "ADA-Website_tables_city.Rda"))
