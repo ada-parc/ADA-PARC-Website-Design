@@ -681,7 +681,7 @@ city_tract_sf <- reactive({
     pull(tract_GEOID)
   
   temp_sf <- tracts_sf %>%
-    filter(t_GEOID %in% temp_city)
+    filter(tract_GEOID %in% temp_city)
   
   return(temp_sf)
   
@@ -891,7 +891,7 @@ output$snapshotmap <- renderLeaflet({
   
   data <- left_join(city_tract_sf(),
                     city_tract() %>% select(GEOID, pwd_total),
-                    by = c("t_GEOID" = "GEOID")) 
+                    by = c("tract_GEOID" = "GEOID")) 
   
   leaflet(data) %>%
     clearShapes() %>%
@@ -902,7 +902,7 @@ output$snapshotmap <- renderLeaflet({
                 weight = 1, smoothFactor = 0,
                 fillColor = ~pal_city()(pwd_total),
                 fillOpacity = 0.5,
-                layerId = ~ t_GEOID) %>%
+                layerId = ~ tract_GEOID) %>%
     addLegend(position = "topright", pal = pal_city(),
               values = ~ pwd_total,
               labFormat =  function(type, cuts, p) {
