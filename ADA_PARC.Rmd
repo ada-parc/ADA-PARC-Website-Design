@@ -16,6 +16,14 @@ resource_files:
 - data/ADA-Website_tables_city.Rda
 - data/ADA-Website_tracts.Rda
 - data/dict_vars.csv
+- data/final/city_place_full.Rds
+- data/final/community_living.Rds
+- data/final/community_participation.Rds
+- data/final/demographics.Rds
+- data/final/dict_location_crosswalk.Rds
+- data/final/tract_data.Rds
+- data/final/tracts_sf.Rds
+- data/final/work_economic.Rds
 ---
 
 ```{r setup, include=FALSE}
@@ -55,26 +63,65 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 
 # Load in environment variables from "Data-Update" process
 # National tables
-load(here::here("data", "ADA-Website_tables_national.Rda"))
-# City tables
-load(here::here("data", "ADA-Website_tables_city.Rda"))
-# City tracts sf
-load(here::here("data", "ADA-Website_tracts.Rda"))
+# load(here::here("data", "ADA-Website_tables_national.Rda"))
+# # City tables
+# load(here::here("data", "ADA-Website_tables_city.Rda"))
+# # City tracts sf
+# load(here::here("data", "ADA-Website_tracts.Rda"))
+
+
+###### Jane Test
+# old_tracts_data <- tracts_data
+# old_city_place_full <- city_place_full
+# 
+# 
+#   
+# tracts_data <- readRDS(here::here("data", "tract_data.Rds")) %>% filter(year == 2021)
+# 
+# city_place_full <- readRDS(here::here("data", "city_place_full.Rds")) %>% filter(year == 2021)
+
+
+#################################
+#################################
+# Load data:
+#################################
+#################################
+city_place_full <- readRDS(here::here("data", "final", "city_place_full.Rds")) 
+
+community_living <- readRDS(here::here("data", "final", "community_living.Rds")) 
+
+community_participation <- readRDS(here::here("data", "final", "community_participation.Rds"))
+
+demographics <- readRDS(here::here("data", "final", "demographics.Rds"))
+
+dict_location_crosswalk <- readRDS(here::here("data", "final", "dict_location_crosswalk.Rds")) 
+
+tracts_data <- readRDS(here::here("data", "final", "tract_data.Rds"))
+
+work_economic <- readRDS(here::here("data", "final", "work_economic.Rds"))
+
+tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
+
 
 # Read in variable dictionary manually
 dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
 # dict_vars_old <- read_csv(here::here("data", "dict_vars_2022-08-22.csv"))
 
+
+
+
+
+
 # Standardize city GEOID, csv vs txt can mess up structure
-dict_location_crosswalk <- dict_location_crosswalk %>%
-  mutate("place_GEOID" = str_pad(as.character(place_GEOID),
-                                 width = 7, side = "left",
-                                 pad = "0"),
-         "tract_GEOID" = str_pad(as.character(tract_GEOID),
-                                 width = 11, side = "left",
-                                 pad = "0"),
-         "city" = str_remove(metro_state, ", [A-Z]{2}$"),
-         "state" = str_extract(metro_state, "[A-Z]{2}$"))
+# dict_location_crosswalk2 <- dict_location_crosswalk %>%
+#   mutate("place_GEOID" = str_pad(as.character(place_GEOID),
+#                                  width = 7, side = "left",
+#                                  pad = "0"),
+#          "tract_GEOID" = str_pad(as.character(tract_GEOID),
+#                                  width = 11, side = "left",
+#                                  pad = "0"),
+#          "city" = str_remove(metro_state, ", [A-Z]{2}$"),
+#          "state" = str_extract(metro_state, "[A-Z]{2}$"))
 
 # Export locally as needed
 # # Tables
@@ -567,9 +614,9 @@ city_choices <- reactive({
   tibble::deframe(
     dict_location_crosswalk %>%
       filter(state == state_selected(),
-             !str_detect(city, " CDP")) %>%
-      select(city, state, place_GEOID) %>%
-      distinct(city, place_GEOID)
+             !str_detect(place_NAME, " CDP")) %>%
+      select(place_NAME, state, place_GEOID) %>%
+      distinct(place_NAME, place_GEOID)
   ) %>%
     sort()
   
@@ -580,8 +627,8 @@ selectInput(inputId = "city_selector",
             choices =   tibble::deframe(
     dict_location_crosswalk %>%
       filter(state == "IL") %>%
-      select(city, state, place_GEOID) %>%
-      distinct(city, place_GEOID)
+      select(place_NAME, state, place_GEOID) %>%
+      distinct(place_NAME, place_GEOID)
   ),
             selected = "1714000")
 
@@ -609,8 +656,16 @@ city_selected <- reactive({
 
 # Place for selected city
 city_place <- reactive({
+
+  city_place_geoids <-city_place_full%>% 
+    filter(GEOID == city_selected())
+   
+  length_city_place <- nrow(city_place_geoids)
   
-  city_place_full %>% 
+  
+  cat("City place full: ", length_city_place, "the list <</br>")
+  
+    city_place_full %>% 
     filter(GEOID == city_selected())
   
 })
@@ -639,8 +694,15 @@ city_tract <- reactive ({
     filter(place_GEOID %in% city_selected()) %>%
     pull(tract_GEOID)
   
+  cat(paste0("Selected City tracts from Place: ", temp_city, "<br>"))
+  
   temp <- tracts_data %>%
     filter(GEOID %in% temp_city) 
+  
+  length_temp <- nrow(temp)
+  
+    cat(paste0("Tracts Data Length: ", length_temp, "<br>"))
+
   # # Connect and pull
   # temp_mongo_conn <- fun_mongo_connect(host_name,
   #                                      collection_name = "acs_tract_S1810",
@@ -671,26 +733,27 @@ output$city_summary <- renderUI({
       mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
       pull(NAME), "</h4>",
     "Based on ACS 2021 5-Year Estimates, <b>", city_place() %>% 
-      pull(S1810_C02_001_estimate) %>% 
+      pull(pwd_total) %>% 
       scales::comma(.), "</b> of the city's <b>", 
     city_place() %>% 
-      pull(S1810_C01_001_estimate) %>% 
+      pull(pop_total) %>% 
       scales::comma(.), "</b> residents (<b>", 
     city_place() %>% 
-      pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
+      pull(pwd_total),
+      # pull(S1810_C03_001_estimate), 
+    "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
   # Summary tables side by side
   # Create individual summary tables
   # Demographics
   city_summary_demo <- city_place() %>%
-    mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
-             S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
-    select("White" = S1810_C02_011_estimate,
-           "Black" = S1810_C02_005_estimate,
-           "Hispanic" = S1810_C02_012_estimate,
-           "Asian" = S1810_C02_007_estimate,
-           Other,
-           "Total" = S1810_C02_001_estimate) %>% 
+    # mutate("Other" = pwd_other) %>% 
+    select("White" = pwd_white_nonhisp,
+           "Black" = pwd_black,
+           "Hispanic" = pwd_hisp,
+           "Asian" = pwd_asian,
+           "Other" = pwd_other,
+           "Total" = pwd_total) %>% 
     mutate(across(-Total,
                   ~ paste0(comma(., accuracy = 1), 
                            " (",  percent(. / Total, 
@@ -709,84 +772,85 @@ output$city_summary <- renderUI({
     str_c(collapse = "")
   
   # Community Participation
-  city_summary_cp <- city_place() %>%
-    transmute("Car" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               ((S1811_C02_033_estimate +
-                                   S1811_C02_034_estimate) / 100),
-                             accuracy = 1),
-                       " (", comma((S1811_C02_033_estimate +
-                                      S1811_C02_034_estimate),
-                                   accuracy = 0.1), "%)"),
-              "Transit" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               (S1811_C02_035_estimate / 100),
-                             accuracy = 1),
-                       " (", comma(S1811_C02_035_estimate,
-                                   accuracy = 0.1), "%)"),
-              
-              "Walk or Bike" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               ((S1811_C02_036_estimate +
-                                   S1811_C02_037_estimate) / 100),
-                             accuracy = 1),
-                       " (", comma((S1811_C02_036_estimate +
-                                      S1811_C02_037_estimate),
-                                   accuracy = 0.1), "%)"),
-              "Work from Home" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               (S1811_C02_038_estimate / 100),
-                             accuracy = 1),
-                       " (", comma((S1811_C02_038_estimate),
-                                   accuracy = 0.1), "%)"),
-              "<b>Total" = 
-                paste0(comma(S1811_C02_032_estimate, 
-                             accuracy = 1),
-                       "</b>")) %>% 
-    pivot_longer(everything(),
-                 names_to = "Commute, Workers 16+",
-                 values_to = "PWD (%)") %>% 
-    mutate("Bullets" = paste0('<li>', `Commute, Workers 16+`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-    
-    pull(Bullets) %>% 
-    str_c(collapse = "")
-  
-  # Work/Economic
-  city_summary_we <- city_place() %>%
-    transmute("Employed" = 
-                paste0(comma(S1811_C02_004_estimate, accuracy = 1),
-                       " (", S1811_C02_002_estimate, "%)"),
-              "Not in Labor Force" = 
-                paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
-                       " (", S1811_C02_003_estimate, "%)"),
-              "<b>Total" = 
-                paste0(comma(S1811_C02_001_estimate, accuracy = 1),
-                       "</b>")) %>%
-    pivot_longer(everything(),
-                 names_to = "Employment, 16+",
-                 values_to = "PWD (%)") %>% 
-    mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-    
-    pull(Bullets) %>% 
-    str_c(collapse = "")
+  # city_summary_cp <- city_place() %>%
+  #   transmute("Car" = 
+  #               paste0(comma(pwd_total_commute * 
+  #                              ((pwd_commute_car_alone_pct +
+  #                                  S1811_C02_034_estimate) / 100),
+  #                            accuracy = 1),
+  #                      " (", comma((pwd_commute_car_alone_pct +
+  #                                     S1811_C02_034_estimate),
+  #                                  accuracy = 0.1), "%)"),
+  #             "Transit" = 
+  #               paste0(comma(pwd_total_commute * 
+  #                              (pwd_commute_public_pct / 100),
+  #                            accuracy = 1),
+  #                      " (", comma(pwd_commute_public_pct,
+  #                                  accuracy = 0.1), "%)"),
+  #             
+  #             "Walk or Bike" = 
+  #               paste0(comma(pwd_total_commute * 
+  #                              ((S1811_C02_036_estimate +
+  #                                  S1811_C02_037_estimate) / 100),
+  #                            accuracy = 1),
+  #                      " (", comma((S1811_C02_036_estimate +
+  #                                     S1811_C02_037_estimate),
+  #                                  accuracy = 0.1), "%)"),
+  #             "Work from Home" = 
+  #               paste0(comma(pwd_total_commute * 
+  #                              (S1811_C02_038_estimate / 100),
+  #                            accuracy = 1),
+  #                      " (", comma((S1811_C02_038_estimate),
+  #                                  accuracy = 0.1), "%)"),
+  #             "<b>Total" = 
+  #               paste0(comma(pwd_total_commute, 
+  #                            accuracy = 1),
+  #                      "</b>")) %>% 
+  #   pivot_longer(everything(),
+  #                names_to = "Commute, Workers 16+",
+  #                values_to = "PWD (%)") %>% 
+  #   mutate("Bullets" = paste0('<li>', `Commute, Workers 16+`, " &mdash; ",
+  #                             `PWD (%)`, '</li>')) %>%
+  #   
+  #   pull(Bullets) %>% 
+  #   str_c(collapse = "")
+  # 
+  # # Work/Economic
+  # city_summary_we <- city_place() %>%
+  #   transmute("Employed" = 
+  #               paste0(comma(S1811_C02_004_estimate, accuracy = 1),
+  #                      " (", S1811_C02_002_estimate, "%)"),
+  #             "Not in Labor Force" = 
+  #               paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
+  #                      " (", S1811_C02_003_estimate, "%)"),
+  #             "<b>Total" = 
+  #               paste0(comma(S1811_C02_001_estimate, accuracy = 1),
+  #                      "</b>")) %>%
+  #   pivot_longer(everything(),
+  #                names_to = "Employment, 16+",
+  #                values_to = "PWD (%)") %>% 
+  #   mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
+  #                             `PWD (%)`, '</li>')) %>%
+  #   
+  #   pull(Bullets) %>% 
+  #   str_c(collapse = "")
   
   # Place dataframes in 3 columns side-by-side
   city_summary_tables <- paste0('<div class = "row">',
                                 '<div class = "col-md-4">',
                                 '<b>Race/Ethnicity</b><ul>',
-                                city_summary_demo,
-                                '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Commute, Workers 16+</b><ul>',
-                                city_summary_cp,
-                                '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Employment, 16+</b><ul>',
-                                city_summary_we,
-                                '</ul></div>',
-                                '</div>')
+                                city_summary_demo)
+  # ,
+  #                               '</ul></div>',
+  #                               '<div class = "col-md-4">',
+  #                               '<b>Commute, Workers 16+</b><ul>',
+  #                               city_summary_cp,
+  #                               '</ul></div>',
+  #                               '<div class = "col-md-4">',
+  #                               '<b>Employment, 16+</b><ul>',
+  #                               city_summary_we,
+  #                               '</ul></div>',
+  #                               '</div>')
   
   
   
@@ -811,12 +875,12 @@ withSpinner(uiOutput("city_summary"))
 
 # Palette
 pal_city <- reactive ({
-  if(length(pull(city_tract(), S1810_C02_001_estimate)) < 4) {
+  if(length(pull(city_tract(), pwd_total)) < 4) {
     colorNumeric(palette = access_map_palette_selected(),
-                 domain = pull(city_tract(), S1810_C02_001_estimate))
+                 domain = pull(city_tract(), pwd_total))
   } else {
     colorQuantile(palette = access_map_palette_selected(),
-                  domain = pull(city_tract(), S1810_C02_001_estimate),
+                  domain = pull(city_tract(), pwd_total),
                   n = 4)
   }
   
@@ -826,7 +890,7 @@ pal_city <- reactive ({
 output$snapshotmap <- renderLeaflet({
   
   data <- left_join(city_tract_sf(),
-                    city_tract() %>% select(GEOID, S1810_C02_001_estimate),
+                    city_tract() %>% select(GEOID, pwd_total),
                     by = c("t_GEOID" = "GEOID")) 
   
   leaflet(data) %>%
@@ -836,11 +900,11 @@ output$snapshotmap <- renderLeaflet({
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444",
                 weight = 1, smoothFactor = 0,
-                fillColor = ~pal_city()(S1810_C02_001_estimate),
+                fillColor = ~pal_city()(pwd_total),
                 fillOpacity = 0.5,
-                layerId = ~t_GEOID) %>%
+                layerId = ~ t_GEOID) %>%
     addLegend(position = "topright", pal = pal_city(),
-              values = ~S1810_C02_001_estimate,
+              values = ~ pwd_total,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
