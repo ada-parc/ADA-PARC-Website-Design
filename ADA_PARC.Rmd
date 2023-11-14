@@ -773,29 +773,23 @@ output$city_summary <- renderUI({
     transmute("Car" =
                 paste0(comma(pwd_car_commute,
                              accuracy = 1),
-                       " (", comma((pwd_commute_car_alone_pct +
-                                      pwd_commute_carpool),
+                       " (", comma(pwd_car_commute_pct,
                                    accuracy = 0.1), "%)"),
               "Transit" =
-                paste0(comma(pwd_total_commute *
-                               (pwd_commute_public_pct / 100),
+                paste0(comma(pwd_pub_transit,
                              accuracy = 1),
-                       " (", comma(pwd_commute_public_pct,
+                       " (", comma(pwd_pub_transit_pct,
                                    accuracy = 0.1), "%)"),
 
               "Walk or Bike" =
-                paste0(comma(pwd_total_commute *
-                               ((pwd_commute_walk +
-                                   pwd_commute_taxi_car_bike_etc) / 100),
+                paste0(comma(pwd_walk_bike,
                              accuracy = 1),
-                       " (", comma((pwd_commute_walk +
-                                      pwd_commute_taxi_car_bike_etc),
+                       " (", comma(pwd_walk_bike_pct,
                                    accuracy = 0.1), "%)"),
               "Work from Home" =
-                paste0(comma(pwd_total_commute *
-                               (pwd_grtoeq_16_wfh_pct / 100),
+                paste0(comma(pwd_wfh,
                              accuracy = 1),
-                       " (", comma((pwd_grtoeq_16_wfh_pct),
+                       " (", comma(pwd_wfh_pct,
                                    accuracy = 0.1), "%)"),
               "<b>Total" =
                 paste0(comma(pwd_total_commute,
