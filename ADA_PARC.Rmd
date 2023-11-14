@@ -778,7 +778,7 @@ output$city_summary <- renderUI({
 
   # Community Participation
   city_summary_cp <- city_place() %>%
-    transmute("Car" =
+    mutate("Car" =
                 paste0(comma(pwd_car_commute,
                              accuracy = 1),
                        " (", comma(pwd_car_commute_pct,
@@ -802,7 +802,8 @@ output$city_summary <- renderUI({
               "<b>Total" =
                 paste0(comma(pwd_total_commute,
                              accuracy = 1),
-                       "</b>")) %>%
+                       "</b>"),
+                .keep = "none") %>% 
     pivot_longer(everything(),
                  names_to = "Commute, Workers 16+",
                  values_to = "PWD (%)") %>%
@@ -814,7 +815,7 @@ output$city_summary <- renderUI({
 
   # # Work/Economic
   city_summary_we <- city_place() %>%
-    transmute("Employed" =
+    mutate("Employed" =
                 paste0(comma(pop_total_employed_16_plus, accuracy = 1),
                        " (", pwd_employed, "%)"),
               "Not in Labor Force" =
@@ -822,7 +823,8 @@ output$city_summary <- renderUI({
                        " (", pwd_not_employed, "%)"),
               "<b>Total" =
                 paste0(comma(pwd_16_plus, accuracy = 1),
-                       "</b>")) %>%
+                       "</b>"),
+              .keep = "none") %>% 
     pivot_longer(everything(),
                  names_to = "Employment, 16+",
                  values_to = "PWD (%)") %>%
