@@ -745,29 +745,37 @@ output$city_summary <- renderUI({
   # Create individual summary tables
   # Demographics
   city_summary_demo <- city_place() %>%
-    select("White" = pwd_white_nonhisp,
-           "Black" = pwd_black,
-           "Hispanic" = pwd_hisp,
-           "Asian" = pwd_asian,
-           "Other" = pwd_other,
-           "Total" = pwd_total) %>% 
-    mutate(across(-Total,
-                  ~ paste0(comma(., accuracy = 1), 
-                           " (",  percent(. / Total, 
-                                          accuracy = 0.1), ")"))) %>%
-    mutate(Total = paste0(comma(Total, 
-                                accuracy = 1),
-                          "</b>")) %>%
-    rename("<b>Total" = Total) %>% 
+    mutate("White" = paste0(comma(pwd_white_nonhisp,
+                                  accuracy = 1),
+                            " (", pwd_white_nonhisp_pct, "%)"),
+           "Black" = paste0(comma(pwd_black,
+                                  accuracy = 1),
+                            " (", pwd_black_pct, "%)"),
+           
+           "Hispanic" = paste0(comma(pwd_hisp,
+                                  accuracy = 1),
+                            " (", pwd_hisp_pct, "%)"),
+           "Asian" = paste0(comma(pwd_asian,
+                      accuracy = 1),
+                " (", pwd_asian_pct, "%)"),
+           "Other" = paste0(comma(pwd_other,
+                      accuracy = 1),
+                " (", pwd_other_pct, "%)"),
+           "<b>Total" =
+                paste0(comma(pwd_total,
+                             accuracy = 1),
+                       "</b>"),
+           .keep = "none") %>% 
     pivot_longer(everything(),
                  names_to = "Race/Ethnicity",
-                 values_to = "PWD (%)") %>% 
+                 values_to = "PWD (%)") %>%
     mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
                               `PWD (%)`, '</li>')) %>%
     
     pull(Bullets) %>% 
     str_c(collapse = "")
-  
+           
+
   # Community Participation
   city_summary_cp <- city_place() %>%
     transmute("Car" =
