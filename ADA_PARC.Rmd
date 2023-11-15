@@ -487,12 +487,10 @@ national_data_table_friendly <- reactive({
     select(any_of(c("State",
                     national_vars_in_topic() %>% 
                       pull(var_readable)))) %>% 
-    mutate(across(-State & -ends_with("_pct"),
-                  ~scales::comma(.x))) %>% 
     mutate(across(ends_with("_pct"),
-                  ~scales::percent(.x, 
+                  ~scales::percent(.x,
                                    accuracy = 0.1,
-                                   scale = 1))) %>% 
+                                   scale = 1))) %>%
     rename(!!any_of(national_vars_in_topic() %>% 
                       deframe())) %>%
     select(State, starts_with("Population"), starts_with("Percent"), everything())
