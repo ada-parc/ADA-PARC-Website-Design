@@ -482,7 +482,6 @@ national_data_table_friendly <- reactive({
   national_data() %>%
     arrange(GEOID) %>% 
     mutate("State" = paste0(NAME
-                            # , " (", ABBR, ")"
     )
     ) %>% 
     select(any_of(c("State",
@@ -790,10 +789,10 @@ output$city_summary <- renderUI({
   city_summary_we <- city_place() %>%
     mutate("Employed" =
                 paste0(comma(pop_total_employed_16_plus, accuracy = 1),
-                       " (", pwd_employed, "%)"),
+                       " (", pwd_employed_subj, "%)"),
               "Not in Labor Force" =
                 paste0(comma((pwd_16_plus - pop_total_employed_16_plus), accuracy = 1),
-                       " (", pwd_not_employed, "%)"),
+                       " (", pwd_not_employed_subj, "%)"),
               "<b>Total" =
                 paste0(comma(pwd_16_plus, accuracy = 1),
                        "</b>"),
