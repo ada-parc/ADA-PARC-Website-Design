@@ -791,10 +791,10 @@ output$city_summary <- renderUI({
                 paste0(comma(pop_total_employed_16_plus, accuracy = 1),
                        " (", pwd_employed_subj, "%)"),
               "Not in Labor Force" =
-                paste0(comma((pwd_16_plus - pop_total_employed_16_plus), accuracy = 1),
+                paste0(comma((pwd_16_plus_subj - pop_total_employed_16_plus), accuracy = 1),
                        " (", pwd_not_employed_subj, "%)"),
               "<b>Total" =
-                paste0(comma(pwd_16_plus, accuracy = 1),
+                paste0(comma(pwd_16_plus_subj, accuracy = 1),
                        "</b>"),
               .keep = "none") %>% 
     pivot_longer(everything(),
