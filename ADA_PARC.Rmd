@@ -12,9 +12,6 @@ runtime: shiny
 resource_files:
 - www/participant_logos.png
 - scripts/functions.R
-- data/ADA-Website_tables_national.Rda
-- data/ADA-Website_tables_city.Rda
-- data/ADA-Website_tracts.Rda
 - data/dict_vars.csv
 - data/final/city_place_full.Rds
 - data/final/community_living.Rds
