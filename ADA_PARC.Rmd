@@ -470,7 +470,7 @@ national_vars_in_topic <- reactive({
     filter((!!sym(national_category_selected())) == TRUE,
            var_topic ==
              (dict_vars %>% 
-                filter((!!sym(national_category_selected())) == TRUE,
+                filter((!!sym(national_category_selected())) == TRUE &
                        var_readable == national_variable_selected()) %>% 
                 pull(var_topic)),
            display == T) %>% 
