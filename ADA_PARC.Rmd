@@ -54,30 +54,6 @@ options(scipen = 999999,
         shiny.reactlog = TRUE)
 knitr::opts_chunk$set(fig.cap = TRUE)
 
-
-### ----- Data import and clean -----
-
-
-# Load in environment variables from "Data-Update" process
-# National tables
-# load(here::here("data", "ADA-Website_tables_national.Rda"))
-# # City tables
-# load(here::here("data", "ADA-Website_tables_city.Rda"))
-# # City tracts sf
-# load(here::here("data", "ADA-Website_tracts.Rda"))
-
-
-###### Jane Test
-# old_tracts_data <- tracts_data
-# old_city_place_full <- city_place_full
-# 
-# 
-#   
-# tracts_data <- readRDS(here::here("data", "tract_data.Rds")) %>% filter(year == 2021)
-# 
-# city_place_full <- readRDS(here::here("data", "city_place_full.Rds")) %>% filter(year == 2021)
-
-
 #################################
 #################################
 # Load data:
