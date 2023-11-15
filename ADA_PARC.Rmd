@@ -77,48 +77,6 @@ tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
 
 # Read in variable dictionary manually
 dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
-# dict_vars_old <- read_csv(here::here("data", "dict_vars_2022-08-22.csv"))
-
-
-
-
-
-
-# Standardize city GEOID, csv vs txt can mess up structure
-# dict_location_crosswalk2 <- dict_location_crosswalk %>%
-#   mutate("place_GEOID" = str_pad(as.character(place_GEOID),
-#                                  width = 7, side = "left",
-#                                  pad = "0"),
-#          "tract_GEOID" = str_pad(as.character(tract_GEOID),
-#                                  width = 11, side = "left",
-#                                  pad = "0"),
-#          "city" = str_remove(metro_state, ", [A-Z]{2}$"),
-#          "state" = str_extract(metro_state, "[A-Z]{2}$"))
-
-# Export locally as needed
-# # Tables
-# save(city_place_full, community_living, community_participation,
-#      demographics, dict_location_crosswalk, work_economic,
-#      tracts_data,
-#      file = here::here("data", "ADA-Website_tables_copy.Rda"))
-# 
-# Tables for scorecard work
-# openxlsx::write.xlsx(
-#   list("National - Demo" = demographics,
-#        "National - Comm Part" = community_participation,
-#        "National - Comm Living" = community_living,
-#        "National - Economic" = work_economic,
-#        "City" = city_place_full,
-#        "Tract" = tracts_data,
-#        "Dict - Geo Crosswalk" = dict_location_crosswalk,
-#        "Dict - Variables" = dict_vars),
-#   here::here("data",
-#              "ADA-PARC_Website_Data.xlsx"))
-#
-# # Tracts spatial data
-# save(tracts_sf,
-#      file = here::here("data", "ADA-Website_tracts_copy.Rda"))
-
 
 ### ----- Functions import -----
 
