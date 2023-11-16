@@ -653,106 +653,91 @@ city_tract <- reactive ({
 
 output$city_summary <- renderUI({
   
+  create_number_percent_string <- function(num, pct) {
+    
+    #PCT requires special handling if it's NA because we want to construct it like " (NA%)"
+    if(is.na(pct)) {
+      pct_string <- " (NA%)"
+    } else {
+      pct_string <- paste0(" (",
+                     scales::percent(as.numeric(pct), 
+                        accuracy = 0.1,
+                        scale = 1),
+                     ")")
+    }
+    
+    string <- paste0(num, pct_string)
+    
+    return(string)
+  }
   # Overview text
   city_summary_text <- paste0(
     "<h4>",  
     city_place() %>% 
       mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
       pull(NAME), "</h4>",
-    "Based on ACS 2021 5-Year Estimates, <b>", city_place() %>% 
-      pull(pwd_total) %>% 
-      scales::comma(.), "</b> of the city's <b>", 
-    city_place() %>% 
-      pull(pop_total) %>% 
-      scales::comma(.), "</b> residents (<b>", 
-    city_place() %>% 
+    "Based on ACS 2021 5-Year Estimates, <b>", 
+    city_place() %>%
+      pull(pwd_total),
+    "</b> of the city's <b>",
+    city_place() %>%
+      pull(pop_total),
+    "</b> residents (<b>",
+    city_place() %>%
       pull(pwd_pct),
     "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
-  # Summary tables side by side
-  # Create individual summary tables
-  # Demographics
+  # # Summary tables side by side
+  # # Create individual summary tables
+  # # Demographics
   city_summary_demo <- city_place() %>%
-    mutate("White" = paste0(comma(pwd_white_nonhisp,
-                                  accuracy = 1),
-                            " (", pwd_white_nonhisp_pct, "%)"),
-           "Black" = paste0(comma(pwd_black,
-                                  accuracy = 1),
-                            " (", pwd_black_pct, "%)"),
-           
-           "Hispanic" = paste0(comma(pwd_hisp,
-                                  accuracy = 1),
-                            " (", pwd_hisp_pct, "%)"),
-           "Asian" = paste0(comma(pwd_asian,
-                      accuracy = 1),
-                " (", pwd_asian_pct, "%)"),
-           "Other" = paste0(comma(pwd_other,
-                      accuracy = 1),
-                " (", pwd_other_pct, "%)"),
-           "<b>Total" =
-                paste0(comma(pwd_total,
-                             accuracy = 1),
-                       "</b>"),
-           .keep = "none") %>% 
+    mutate(
+      "White" = create_number_percent_string(pwd_white_nonhisp, pwd_white_nonhisp_dis_pct),
+      "Black" =  create_number_percent_string(pwd_black, pwd_black_dis_pct),
+      "Hispanic" = create_number_percent_string(pwd_hisp, pwd_hisp_dis_pct),
+      "Asian" = create_number_percent_string(pwd_asian, pwd_asian_dis_pct),
+      "Other" = create_number_percent_string(pwd_other, pwd_other_dis_pct),
+      "<b>Total" =
+        paste0(pwd_total,
+               "</b>"),
+      .keep = "none"
+    ) %>%
     pivot_longer(everything(),
                  names_to = "Race/Ethnicity",
                  values_to = "PWD (%)") %>%
     mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
                               `PWD (%)`, '</li>')) %>%
     
-    pull(Bullets) %>% 
+    pull(Bullets) %>%
     str_c(collapse = "")
-           
 
-  # Community Participation
+
+  # # Community Participation
   city_summary_cp <- city_place() %>%
-    mutate("Car" =
-                paste0(comma(pwd_car_commute,
-                             accuracy = 1),
-                       " (", comma(pwd_car_commute_pct,
-                                   accuracy = 0.1), "%)"),
-              "Transit" =
-                paste0(comma(pwd_pub_transit,
-                             accuracy = 1),
-                       " (", comma(pwd_pub_transit_pct,
-                                   accuracy = 0.1), "%)"),
-
-              "Walk or Bike" =
-                paste0(comma(pwd_walk_bike,
-                             accuracy = 1),
-                       " (", comma(pwd_walk_bike_pct,
-                                   accuracy = 0.1), "%)"),
-              "Work from Home" =
-                paste0(comma(pwd_wfh,
-                             accuracy = 1),
-                       " (", comma(pwd_wfh_pct,
-                                   accuracy = 0.1), "%)"),
-              "<b>Total" =
-                paste0(comma(pwd_total_commute,
-                             accuracy = 1),
-                       "</b>"),
-                .keep = "none") %>% 
+    mutate(
+      "Car" = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
+      "Transit" =  create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
+      "Walk or Bike" = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
+      "Work from Home" = create_number_percent_string(pwd_wfh, pwd_wfh_dis_pct),
+      "<b>Total" =
+        paste0(pwd_total_commute,
+               "</b>"),
+      .keep = "none"
+    ) %>%
     pivot_longer(everything(),
                  names_to = "Commute, Workers 16+",
                  values_to = "PWD (%)") %>%
     mutate("Bullets" = paste0('<li>', `Commute, Workers 16+`, " &mdash; ",
                               `PWD (%)`, '</li>')) %>%
-
     pull(Bullets) %>%
     str_c(collapse = "")
 
   # # Work/Economic
   city_summary_we <- city_place() %>%
-    mutate("Employed" =
-                paste0(comma(pop_total_employed_16_plus, accuracy = 1),
-                       " (", pwd_employed_subj, "%)"),
-              "Not in Labor Force" =
-                paste0(comma((pwd_16_plus_subj - pop_total_employed_16_plus), accuracy = 1),
-                       " (", pwd_not_employed_subj, "%)"),
-              "<b>Total" =
-                paste0(comma(pwd_16_plus_subj, accuracy = 1),
-                       "</b>"),
-              .keep = "none") %>% 
+    mutate("Employed" = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
+              "Not in Labor Force" = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj),
+              "<b>Total" = paste0(pwd_16_plus_subj,"</b>"),
+              .keep = "none") %>%
     pivot_longer(everything(),
                  names_to = "Employment, 16+",
                  values_to = "PWD (%)") %>%
