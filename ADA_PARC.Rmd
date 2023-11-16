@@ -586,11 +586,6 @@ city_place <- reactive({
 
   city_place_geoids <- city_place_full%>% 
     filter(GEOID == city_selected())
-   
-  length_city_place <- nrow(city_place_geoids)
-  
-  
-  cat("City place full: ", length_city_place, "the list <</br>")
   
     city_place_full %>% 
     filter(GEOID == city_selected())
@@ -621,14 +616,8 @@ city_tract <- reactive ({
     filter(place_GEOID %in% city_selected()) %>%
     pull(tract_GEOID)
   
-  cat(paste0("Selected City tracts from Place: ", temp_city, "<br>"))
-  
   temp <- tracts_data %>%
     filter(GEOID %in% temp_city) 
-  
-  length_temp <- nrow(temp)
-  
-    cat(paste0("Tracts Data Length: ", length_temp, "<br>"))
 
   # # Connect and pull
   # temp_mongo_conn <- fun_mongo_connect(host_name,
@@ -670,6 +659,7 @@ output$city_summary <- renderUI({
     
     return(string)
   }
+  
   # Overview text
   city_summary_text <- paste0(
     "<h4>",  
@@ -784,14 +774,43 @@ withSpinner(uiOutput("city_summary"))
 
 ```{r city-pwd-map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
-# Palette
+ # Addison Village: 1700243 -- FOR TESTING
+#   temp_city <- dict_location_crosswalk %>%
+#     filter(place_GEOID == 1700243) %>%
+#     pull(tract_GEOID)
+#   
+#   temp <- tracts_data %>%
+#     filter(GEOID %in% temp_city) 
+# 
+#   # confirm pal_city works
+# pal_city <- 
+#   if(length(pull(temp, pwd_total)) < 4) {
+#     colorNumeric(palette = "Yellow-Orange-Brown",
+#                   domain = as.numeric(str_replace_all(city_tract$pwd_total, ",", "")))
+#                  } else {
+#     colorQuantile(palette = "Yellow-Orange-Brown",
+#                   domain = as.numeric(str_replace_all(city_tract$pwd_total, ",", "")),
+#                   n = 4)
+#   }
+
+  
+
+######
+
+  
+  # Palette
 pal_city <- reactive ({
-  if(length(pull(city_tract(), pwd_total)) < 4) {
-    colorNumeric(palette = access_map_palette_selected(),
-                 domain = pull(city_tract(), pwd_total))
+  
+  city_tract <- city_tract()
+  city_tract_pwd_total <- as.numeric(str_replace_all(city_tract$pwd_total, ",", ""))
+  map_palette <- access_map_palette_selected()
+
+  if(length(city_tract_pwd_total) < 4) {
+    colorNumeric(palette = map_palette,
+                  domain = city_tract_pwd_total)
   } else {
-    colorQuantile(palette = access_map_palette_selected(),
-                  domain = pull(city_tract(), pwd_total),
+    colorQuantile(palette = map_palette,
+                  domain = city_tract_pwd_total,
                   n = 4)
   }
   
@@ -800,9 +819,12 @@ pal_city <- reactive ({
 # Tract map
 output$snapshotmap <- renderLeaflet({
   
-  data <- left_join(city_tract_sf(),
-                    city_tract() %>% select(GEOID, pwd_total),
-                    by = c("tract_GEOID" = "GEOID")) 
+  data <- left_join(
+    city_tract_sf(),
+    city_tract() %>% select(GEOID, pwd_total),
+    by = c("tract_GEOID" = "GEOID")
+  ) %>%
+    mutate(pwd_total = as.numeric(str_replace_all(pwd_total, ",", "")))
   
   leaflet(data) %>%
     clearShapes() %>%
