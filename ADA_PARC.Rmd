@@ -12,10 +12,15 @@ runtime: shiny
 resource_files:
 - www/participant_logos.png
 - scripts/functions.R
-- data/ADA-Website_tables_national.Rda
-- data/ADA-Website_tables_city.Rda
-- data/ADA-Website_tracts.Rda
 - data/dict_vars.csv
+- data/final/city_place_full.Rds
+- data/final/community_living.Rds
+- data/final/community_participation.Rds
+- data/final/demographics.Rds
+- data/final/dict_location_crosswalk.Rds
+- data/final/tract_data.Rds
+- data/final/tracts_sf.Rds
+- data/final/work_economic.Rds
 ---
 
 ```{r setup, include=FALSE}
@@ -49,57 +54,29 @@ options(scipen = 999999,
         shiny.reactlog = TRUE)
 knitr::opts_chunk$set(fig.cap = TRUE)
 
+#################################
+#################################
+# Load data:
+#################################
+#################################
+city_place_full <- readRDS(here::here("data", "final", "city_place_full.Rds")) 
 
-### ----- Data import and clean -----
+community_living <- readRDS(here::here("data", "final", "community_living.Rds")) 
 
+community_participation <- readRDS(here::here("data", "final", "community_participation.Rds"))
 
-# Load in environment variables from "Data-Update" process
-# National tables
-load(here::here("data", "ADA-Website_tables_national.Rda"))
-# City tables
-load(here::here("data", "ADA-Website_tables_city.Rda"))
-# City tracts sf
-load(here::here("data", "ADA-Website_tracts.Rda"))
+demographics <- readRDS(here::here("data", "final", "demographics.Rds"))
+
+dict_location_crosswalk <- readRDS(here::here("data", "final", "dict_location_crosswalk.Rds")) 
+tracts_data <- readRDS(here::here("data", "final", "tracts_data.Rds")) 
+
+work_economic <- readRDS(here::here("data", "final", "work_economic.Rds"))
+
+tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
+
 
 # Read in variable dictionary manually
 dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
-# dict_vars_old <- read_csv(here::here("data", "dict_vars_2022-08-22.csv"))
-
-# Standardize city GEOID, csv vs txt can mess up structure
-dict_location_crosswalk <- dict_location_crosswalk %>%
-  mutate("place_GEOID" = str_pad(as.character(place_GEOID),
-                                 width = 7, side = "left",
-                                 pad = "0"),
-         "tract_GEOID" = str_pad(as.character(tract_GEOID),
-                                 width = 11, side = "left",
-                                 pad = "0"),
-         "city" = str_remove(metro_state, ", [A-Z]{2}$"),
-         "state" = str_extract(metro_state, "[A-Z]{2}$"))
-
-# Export locally as needed
-# # Tables
-# save(city_place_full, community_living, community_participation,
-#      demographics, dict_location_crosswalk, work_economic,
-#      tracts_data,
-#      file = here::here("data", "ADA-Website_tables_copy.Rda"))
-# 
-# Tables for scorecard work
-# openxlsx::write.xlsx(
-#   list("National - Demo" = demographics,
-#        "National - Comm Part" = community_participation,
-#        "National - Comm Living" = community_living,
-#        "National - Economic" = work_economic,
-#        "City" = city_place_full,
-#        "Tract" = tracts_data,
-#        "Dict - Geo Crosswalk" = dict_location_crosswalk,
-#        "Dict - Variables" = dict_vars),
-#   here::here("data",
-#              "ADA-PARC_Website_Data.xlsx"))
-#
-# # Tracts spatial data
-# save(tracts_sf,
-#      file = here::here("data", "ADA-Website_tracts_copy.Rda"))
-
 
 ### ----- Functions import -----
 
@@ -131,7 +108,7 @@ Director of Graduate Studies <br>
 UIC College of Applied Health Sciences
 
 Application authors: <br>
-Ethan Jantz, Sean Connelly, and Jane Huber <br>
+Ethan Jantz, Sean Connelly, Jane Huber, and Randy D. Colón <br>
 [UIC Voorhees Center](https://voorheescenter.uic.edu/)
 
 <div role="main">
@@ -324,11 +301,26 @@ national_variable_selected <- reactive({
 # Summary text
 output$national_map_summary <- renderUI({
   
+  national_variable_selected <- national_variable_selected()
+  
+  hud_data <- c("pwd_housing_choice_voucher_pct", "pwd_pubhousing_pct")
+  
+  # This text here is a hack--long term, source information should be authored in our pipeline and simply read here.
+  
+  if(national_variable_selected %in% hud_data) {
+      source_text <- "2021 United States Department of Housing and Urban Development"
+
+  } else {
+      source_text <- "2017-2021 American Community Survey five-year estimates"
+
+  }
+  
+  full_text <- paste0(" Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: ", source_text)
+  
   HTML(
     paste0(
       altText(national_data(), 
-              national_variable_selected()),
-      " Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: 2017-2021 American Community Survey five-year estimates")
+              national_variable_selected), full_text)
   )
   
 })
@@ -427,7 +419,7 @@ national_vars_in_topic <- reactive({
     filter((!!sym(national_category_selected())) == TRUE,
            var_topic ==
              (dict_vars %>% 
-                filter((!!sym(national_category_selected())) == TRUE,
+                filter((!!sym(national_category_selected())) == TRUE &
                        var_readable == national_variable_selected()) %>% 
                 pull(var_topic)),
            display == T) %>% 
@@ -463,18 +455,15 @@ national_data_table_friendly <- reactive({
   national_data() %>%
     arrange(GEOID) %>% 
     mutate("State" = paste0(NAME
-                            # , " (", ABBR, ")"
     )
     ) %>% 
     select(any_of(c("State",
                     national_vars_in_topic() %>% 
                       pull(var_readable)))) %>% 
-    mutate(across(-State & -ends_with("_pct"),
-                  ~scales::comma(.x))) %>% 
     mutate(across(ends_with("_pct"),
-                  ~scales::percent(.x, 
+                  ~scales::percent(.x,
                                    accuracy = 0.1,
-                                   scale = 1))) %>% 
+                                   scale = 1))) %>%
     rename(!!any_of(national_vars_in_topic() %>% 
                       deframe())) %>%
     select(State, starts_with("Population"), starts_with("Percent"), everything())
@@ -567,9 +556,9 @@ city_choices <- reactive({
   tibble::deframe(
     dict_location_crosswalk %>%
       filter(state == state_selected(),
-             !str_detect(city, " CDP")) %>%
-      select(city, state, place_GEOID) %>%
-      distinct(city, place_GEOID)
+             !str_detect(place_NAME, " CDP")) %>%
+      select(place_NAME, state, place_GEOID) %>%
+      distinct(place_NAME, place_GEOID)
   ) %>%
     sort()
   
@@ -580,8 +569,8 @@ selectInput(inputId = "city_selector",
             choices =   tibble::deframe(
     dict_location_crosswalk %>%
       filter(state == "IL") %>%
-      select(city, state, place_GEOID) %>%
-      distinct(city, place_GEOID)
+      select(place_NAME, state, place_GEOID) %>%
+      distinct(place_NAME, place_GEOID)
   ),
             selected = "1714000")
 
@@ -609,8 +598,11 @@ city_selected <- reactive({
 
 # Place for selected city
 city_place <- reactive({
+
+  city_place_geoids <- city_place_full%>% 
+    filter(GEOID == city_selected())
   
-  city_place_full %>% 
+    city_place_full %>% 
     filter(GEOID == city_selected())
   
 })
@@ -626,7 +618,7 @@ city_tract_sf <- reactive({
     pull(tract_GEOID)
   
   temp_sf <- tracts_sf %>%
-    filter(t_GEOID %in% temp_city)
+    filter(tract_GEOID %in% temp_city)
   
   return(temp_sf)
   
@@ -641,6 +633,7 @@ city_tract <- reactive ({
   
   temp <- tracts_data %>%
     filter(GEOID %in% temp_city) 
+
   # # Connect and pull
   # temp_mongo_conn <- fun_mongo_connect(host_name,
   #                                      collection_name = "acs_tract_S1810",
@@ -664,112 +657,99 @@ city_tract <- reactive ({
 
 output$city_summary <- renderUI({
   
+  create_number_percent_string <- function(num, pct) {
+    
+    #PCT requires special handling if it's NA because we want to construct it like " (NA%)"
+    if(is.na(pct)) {
+      pct_string <- " (NA%)"
+    } else {
+      pct_string <- paste0(" (",
+                     scales::percent(as.numeric(pct), 
+                        accuracy = 0.1,
+                        scale = 1),
+                     ")")
+    }
+    
+    string <- paste0(num, pct_string)
+    
+    return(string)
+  }
+  
   # Overview text
   city_summary_text <- paste0(
     "<h4>",  
     city_place() %>% 
       mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
       pull(NAME), "</h4>",
-    "Based on ACS 2021 5-Year Estimates, <b>", city_place() %>% 
-      pull(S1810_C02_001_estimate) %>% 
-      scales::comma(.), "</b> of the city's <b>", 
-    city_place() %>% 
-      pull(S1810_C01_001_estimate) %>% 
-      scales::comma(.), "</b> residents (<b>", 
-    city_place() %>% 
-      pull(S1810_C03_001_estimate), "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
+    "Based on ACS 2021 5-Year Estimates, <b>", 
+    city_place() %>%
+      pull(pwd_total),
+    "</b> of the city's <b>",
+    city_place() %>%
+      pull(pop_total),
+    "</b> residents (<b>",
+    city_place() %>%
+      pull(pwd_pct),
+    "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
   
-  # Summary tables side by side
-  # Create individual summary tables
-  # Demographics
+  # # Summary tables side by side
+  # # Create individual summary tables
+  # # Demographics
   city_summary_demo <- city_place() %>%
-    mutate("Other" = S1810_C02_006_estimate + S1810_C02_008_estimate + 
-             S1810_C02_009_estimate + S1810_C02_010_estimate) %>% 
-    select("White" = S1810_C02_011_estimate,
-           "Black" = S1810_C02_005_estimate,
-           "Hispanic" = S1810_C02_012_estimate,
-           "Asian" = S1810_C02_007_estimate,
-           Other,
-           "Total" = S1810_C02_001_estimate) %>% 
-    mutate(across(-Total,
-                  ~ paste0(comma(., accuracy = 1), 
-                           " (",  percent(. / Total, 
-                                          accuracy = 0.1), ")"))) %>%
-    mutate(Total = paste0(comma(Total, 
-                                accuracy = 1),
-                          "</b>")) %>%
-    rename("<b>Total" = Total) %>% 
+    mutate(
+      "White" = create_number_percent_string(pwd_white_nonhisp, pwd_white_nonhisp_dis_pct),
+      "Black" =  create_number_percent_string(pwd_black, pwd_black_dis_pct),
+      "Hispanic" = create_number_percent_string(pwd_hisp, pwd_hisp_dis_pct),
+      "Asian" = create_number_percent_string(pwd_asian, pwd_asian_dis_pct),
+      "Other" = create_number_percent_string(pwd_other_multiple, pwd_other_multiple_dis_pct),
+      "<b>Total" =
+        paste0(pwd_total,
+               "</b>"),
+      .keep = "none"
+    ) %>%
     pivot_longer(everything(),
                  names_to = "Race/Ethnicity",
-                 values_to = "PWD (%)") %>% 
+                 values_to = "PWD (%)") %>%
     mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
                               `PWD (%)`, '</li>')) %>%
     
-    pull(Bullets) %>% 
+    pull(Bullets) %>%
     str_c(collapse = "")
-  
-  # Community Participation
+
+
+  # # Community Participation
   city_summary_cp <- city_place() %>%
-    transmute("Car" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               ((S1811_C02_033_estimate +
-                                   S1811_C02_034_estimate) / 100),
-                             accuracy = 1),
-                       " (", comma((S1811_C02_033_estimate +
-                                      S1811_C02_034_estimate),
-                                   accuracy = 0.1), "%)"),
-              "Transit" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               (S1811_C02_035_estimate / 100),
-                             accuracy = 1),
-                       " (", comma(S1811_C02_035_estimate,
-                                   accuracy = 0.1), "%)"),
-              
-              "Walk or Bike" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               ((S1811_C02_036_estimate +
-                                   S1811_C02_037_estimate) / 100),
-                             accuracy = 1),
-                       " (", comma((S1811_C02_036_estimate +
-                                      S1811_C02_037_estimate),
-                                   accuracy = 0.1), "%)"),
-              "Work from Home" = 
-                paste0(comma(S1811_C02_032_estimate * 
-                               (S1811_C02_038_estimate / 100),
-                             accuracy = 1),
-                       " (", comma((S1811_C02_038_estimate),
-                                   accuracy = 0.1), "%)"),
-              "<b>Total" = 
-                paste0(comma(S1811_C02_032_estimate, 
-                             accuracy = 1),
-                       "</b>")) %>% 
+    mutate(
+      "Car" = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
+      "Transit" =  create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
+      "Walk or Bike" = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
+      "Work from Home" = create_number_percent_string(pwd_wfh, pwd_wfh_dis_pct),
+      "<b>Total" =
+        paste0(pwd_total_commute,
+               "</b>"),
+      .keep = "none"
+    ) %>%
     pivot_longer(everything(),
                  names_to = "Commute, Workers 16+",
-                 values_to = "PWD (%)") %>% 
+                 values_to = "PWD (%)") %>%
     mutate("Bullets" = paste0('<li>', `Commute, Workers 16+`, " &mdash; ",
                               `PWD (%)`, '</li>')) %>%
-    
-    pull(Bullets) %>% 
+    pull(Bullets) %>%
     str_c(collapse = "")
-  
-  # Work/Economic
+
+  # # Work/Economic
   city_summary_we <- city_place() %>%
-    transmute("Employed" = 
-                paste0(comma(S1811_C02_004_estimate, accuracy = 1),
-                       " (", S1811_C02_002_estimate, "%)"),
-              "Not in Labor Force" = 
-                paste0(comma((S1811_C02_001_estimate - S1811_C02_004_estimate), accuracy = 1), 
-                       " (", S1811_C02_003_estimate, "%)"),
-              "<b>Total" = 
-                paste0(comma(S1811_C02_001_estimate, accuracy = 1),
-                       "</b>")) %>%
+    mutate("Employed" = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
+              "Not in Labor Force" = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj),
+              "<b>Total" = paste0(pwd_16_plus_subj,"</b>"),
+              .keep = "none") %>%
     pivot_longer(everything(),
                  names_to = "Employment, 16+",
-                 values_to = "PWD (%)") %>% 
+                 values_to = "PWD (%)") %>%
     mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
                               `PWD (%)`, '</li>')) %>%
-    
-    pull(Bullets) %>% 
+
+    pull(Bullets) %>%
     str_c(collapse = "")
   
   # Place dataframes in 3 columns side-by-side
@@ -809,14 +789,43 @@ withSpinner(uiOutput("city_summary"))
 
 ```{r city-pwd-map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
-# Palette
+ # Addison Village: 1700243 -- FOR TESTING
+#   temp_city <- dict_location_crosswalk %>%
+#     filter(place_GEOID == 1700243) %>%
+#     pull(tract_GEOID)
+#   
+#   temp <- tracts_data %>%
+#     filter(GEOID %in% temp_city) 
+# 
+#   # confirm pal_city works
+# pal_city <- 
+#   if(length(pull(temp, pwd_total)) < 4) {
+#     colorNumeric(palette = "Yellow-Orange-Brown",
+#                   domain = as.numeric(str_replace_all(city_tract$pwd_total, ",", "")))
+#                  } else {
+#     colorQuantile(palette = "Yellow-Orange-Brown",
+#                   domain = as.numeric(str_replace_all(city_tract$pwd_total, ",", "")),
+#                   n = 4)
+#   }
+
+  
+
+######
+
+  
+  # Palette
 pal_city <- reactive ({
-  if(length(pull(city_tract(), S1810_C02_001_estimate)) < 4) {
-    colorNumeric(palette = access_map_palette_selected(),
-                 domain = pull(city_tract(), S1810_C02_001_estimate))
+  
+  city_tract <- city_tract()
+  city_tract_pwd_total <- as.numeric(str_replace_all(city_tract$pwd_total, ",", ""))
+  map_palette <- access_map_palette_selected()
+
+  if(length(city_tract_pwd_total) < 4) {
+    colorNumeric(palette = map_palette,
+                  domain = city_tract_pwd_total)
   } else {
-    colorQuantile(palette = access_map_palette_selected(),
-                  domain = pull(city_tract(), S1810_C02_001_estimate),
+    colorQuantile(palette = map_palette,
+                  domain = city_tract_pwd_total,
                   n = 4)
   }
   
@@ -825,9 +834,12 @@ pal_city <- reactive ({
 # Tract map
 output$snapshotmap <- renderLeaflet({
   
-  data <- left_join(city_tract_sf(),
-                    city_tract() %>% select(GEOID, S1810_C02_001_estimate),
-                    by = c("t_GEOID" = "GEOID")) 
+  data <- left_join(
+    city_tract_sf(),
+    city_tract() %>% select(GEOID, pwd_total),
+    by = c("tract_GEOID" = "GEOID")
+  ) %>%
+    mutate(pwd_total = as.numeric(str_replace_all(pwd_total, ",", "")))
   
   leaflet(data) %>%
     clearShapes() %>%
@@ -836,11 +848,11 @@ output$snapshotmap <- renderLeaflet({
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444",
                 weight = 1, smoothFactor = 0,
-                fillColor = ~pal_city()(S1810_C02_001_estimate),
+                fillColor = ~pal_city()(pwd_total),
                 fillOpacity = 0.5,
-                layerId = ~t_GEOID) %>%
+                layerId = ~ tract_GEOID) %>%
     addLegend(position = "topright", pal = pal_city(),
-              values = ~S1810_C02_001_estimate,
+              values = ~ pwd_total,
               labFormat =  function(type, cuts, p) {
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
@@ -887,626 +899,6 @@ withSpinner(leafletOutput("snapshotmap"))
 </div>
 
 </div>
-
-<!-- ## Row -->
-
-<!-- ### City in Context -->
-
-<!-- ```{r city context plots, fig.alt=c("Scatterplot of the percent of people with disabilities (y-axis) versus total population (x-axis)", "Scatterplot of the percent of people with disabilities with a bachelor's degree or higher (y-axis) versus people with disabilities population (x-axis)", "Scatterplot of people with disabilities employment rate (y-axis) versus people with disabilities population (x-axis)"), context="server"} -->
-
-<!-- # =============== -->
-<!-- # Demographics -->
-<!-- # =============== -->
-
-<!-- # Definition -->
-<!-- output$city_demo_plot <- renderPlotly({ -->
-
-<!--   # Plot -->
-<!--   gg <- city_place_full %>% -->
-<!--     mutate("NAME" = str_replace_all( -->
-<!--       NAME,  -->
-<!--       pattern = " (city|village|municipality|town), ", -->
-<!--       replacement = ", ")) %>%  -->
-<!--     select(GEOID, -->
-<!--            NAME,  -->
-<!--            "pwd" = S1810_C02_001_estimate, -->
-<!--            "total_population" = S1810_C01_001_estimate, -->
-<!--            "pwd_pct" = S1810_C03_001_estimate) %>% -->
-<!--     ggplot(aes(text = paste0("City: ", NAME,  -->
-<!--                              "<br>PWD: ", scales::comma(pwd, -->
-<!--                                                         accuracy = 1),  -->
-<!--                              " (", pwd_pct, "%)", -->
-<!--                              "<br>Total Pop.: ",  -->
-<!--                              scales::comma(total_population, -->
-<!--                                            accuracy = 1)))) + -->
-<!--     geom_point(stat = "identity", -->
-<!--                alpha = 0.8, position = "jitter", -->
-<!--                aes(x = total_population, y = pwd_pct)) + -->
-<!--     gghighlight(GEOID == input$city_selector) + -->
-<!--     labs(x = "Total Population",  -->
-<!--          y = "PWD (%)", -->
-<!--          title = "People with Disabilities (%) vs. Total Population") + -->
-<!--     scale_x_log10(labels = scales::comma) + -->
-<!--     scale_y_continuous(labels = function(x) paste0(x, "%")) + -->
-<!--     ggplot_fill_selected() + -->
-<!--     ggplot_theme_selected() + -->
-<!--     theme(legend.position = "top") -->
-
-<!--   # Interactive plotly settings -->
-<!--   plotly::ggplotly(gg, tooltip = "text") %>%  -->
-<!--     plotly::layout( -->
-<!--       height = 280, -->
-<!--       margin = list(l = 25, t = 25, b = 90), -->
-<!--       xaxis = list(title = list(text = "Total Population", -->
-<!--                                 standoff = 5, -->
-<!--                                 font = list(size = 14)), -->
-<!--                    tickfont = list(size = 12)), -->
-<!--       yaxis = list(title = list(text = "PWD (%)", -->
-<!--                                 standoff = 5, -->
-<!--                                 font = list(size = 14)), -->
-<!--                    tickfont = list(size = 12)), -->
-<!--       title = list(text = "People with Disabilities (%) vs. Total Population", -->
-<!--                    font = list(size = 16), -->
-<!--                    yref = "paper", -->
-<!--                    y = 1, -->
-<!--                    yanchor = "bottom"), -->
-<!--       font = list(size = 10) -->
-<!--     ) -->
-
-<!-- }) -->
-
-<!-- # =============== -->
-<!-- # Community Participation -->
-<!-- # =============== -->
-
-<!-- output$city_cp_plot <- renderPlotly({ -->
-
-<!--   # Plot -->
-<!--   gg <- city_place_full %>% -->
-<!--     mutate("NAME" = str_replace_all( -->
-<!--       NAME,  -->
-<!--       pattern = " (city|village|municipality|town), ", -->
-<!--       replacement = ", ")) %>%   -->
-<!--     select(GEOID, -->
-<!--            NAME, -->
-<!--            "pwd_25_over" = S1811_C02_039_estimate, -->
-<!--            "pwd_bachelors" = S1811_C02_043_estimate) %>%  -->
-<!--     ggplot(aes(text = paste0("City: ", NAME,  -->
-<!--                              "<br>PWD Bachelor's or Higher: ", pwd_bachelors, "%", -->
-<!--                              "<br>PWD 25+: ", scales::comma(pwd_25_over, -->
-<!--                                                             accuracy = 1)))) + -->
-<!--     geom_point(stat = "identity", -->
-<!--                alpha = 0.8, position = "jitter", -->
-<!--                aes(x = pwd_25_over, y = pwd_bachelors)) + -->
-<!--     gghighlight(GEOID == input$city_selector) + -->
-<!--     labs(x = "PWD, 25 or Older",  -->
-<!--          y = "Bachelor's Degree or Higher (%)", -->
-<!--          title = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older") + -->
-<!--     scale_x_log10(labels = scales::comma) + -->
-<!--     scale_y_continuous(labels = function(x) paste0(x, "%")) + -->
-<!--     ggplot_fill_selected() + -->
-<!--     ggplot_theme_selected() + -->
-<!--     theme(legend.position = "top") -->
-
-<!--   # Interactive plotly settings -->
-<!--   plotly::ggplotly(gg, tooltip = "text") %>%  -->
-<!--     plotly::layout( -->
-<!--       height = 280, -->
-<!--       margin = list(l = 25, t = 25, b = 90), -->
-<!--       xaxis = list(title = list(text = "PWD, 25 or Older", -->
-<!--                                 standoff = 5, -->
-<!--                                 font = list(size = 14)), -->
-<!--                    tickfont = list(size = 12)), -->
-<!--       yaxis = list(title = list(text = "Bachelor's Degree or Higher (%)", -->
-<!--                                 standoff = 5, -->
-<!--                                 font = list(size = 14)), -->
-<!--                    tickfont = list(size = 12)), -->
-<!--       title = list(text = "Bachelor's Degree or Higher (%) vs. PWD Population 25 or Older", -->
-<!--                    font = list(size = 16), -->
-<!--                    yref = "paper", -->
-<!--                    y = 1, -->
-<!--                    yanchor = "bottom"), -->
-<!--       font = list(size = 10) -->
-<!--     ) -->
-
-<!-- }) -->
-
-<!-- # =============== -->
-<!-- # Work/Economic -->
-<!-- # =============== -->
-
-<!-- # Definition -->
-<!-- output$city_we_plot <- renderPlotly({ -->
-
-<!--   # Plot -->
-<!--   gg <- city_place_full %>% -->
-<!--     mutate("NAME" = str_replace_all( -->
-<!--       NAME,  -->
-<!--       pattern = " (city|village|municipality|town), ", -->
-<!--       replacement = ", ")) %>%  -->
-<!--     select(GEOID, -->
-<!--            NAME, -->
-<!--            "pwd_employed" = S1811_C02_004_estimate, -->
-<!--            "pwd" = S1811_C02_001_estimate, -->
-<!--            "pwd_employed_pct" = S1811_C02_002_estimate) %>%  -->
-<!--     ggplot(aes(text = paste0("City: ", NAME,  -->
-<!--                              "<br>PWD Employed: ",  -->
-<!--                              scales::comma(pwd_employed, -->
-<!--                                            accuracy = 1),  -->
-<!--                              " (", pwd_employed_pct, "%)", -->
-<!--                              "<br>PWD ", scales::comma(pwd, -->
-<!--                                                        accuracy = 1)))) + -->
-<!--     geom_point(stat = "identity", -->
-<!--                alpha = 0.8, position = "jitter", -->
-<!--                aes(x = pwd, y = pwd_employed_pct)) + -->
-<!--     gghighlight(GEOID == input$city_selector) + -->
-<!--     labs(x = "People with Disabilities",  -->
-<!--          y = "PWD Employment Rate (%)", -->
-<!--          title = "PWD Employment Rate (%) vs. PWD Population") + -->
-<!--     scale_x_log10(labels = scales::comma) + -->
-<!--     scale_y_continuous(labels = function(x) paste0(x, "%")) + -->
-<!--     ggplot_fill_selected() + -->
-<!--     ggplot_theme_selected() + -->
-<!--     theme(legend.position = "top") -->
-
-<!--   # Interactive plotly settings -->
-<!--   plotly::ggplotly(gg, tooltip = "text") %>%  -->
-<!--     plotly::layout( -->
-<!--       height = 280, -->
-<!--       margin = list(l = 25, t = 25, b = 90), -->
-<!--       xaxis = list(title = list(text = "PWD Population", -->
-<!--                                 standoff = 5, -->
-<!--                                 font = list(size = 14)), -->
-<!--                    tickfont = list(size = 12)), -->
-<!--       yaxis = list(title = list(text = "PWD Employment Rate (%)", -->
-<!--                                 standoff = 5, -->
-<!--                                 font = list(size = 14)), -->
-<!--                    tickfont = list(size = 12)), -->
-<!--       title = list(text = "PWD Employment Rate (%) vs. PWD Population", -->
-<!--                    font = list(size = 16), -->
-<!--                    yref = "paper", -->
-<!--                    y = 1, -->
-<!--                    yanchor = "bottom"), -->
-<!--       font = list(size = 10) -->
-<!--     ) -->
-
-<!-- }) -->
-
-<!-- # Tab panel output -->
-<!-- tabsetPanel(type = "tabs", -->
-<!--             tabPanel("Demographics", -->
-<!--                      plotlyOutput("city_demo_plot")), -->
-<!--             tabPanel("Community Participation", -->
-<!--                      plotlyOutput("city_cp_plot")), -->
-<!--             tabPanel("Work/Economic", -->
-<!--                      plotlyOutput("city_we_plot"))) -->
-
-<!-- ``` -->
-
-<!-- ### Characteristics of Selected Tract (Click on Map to Show Table) {.table-wrapper} -->
-
-<!-- ```{r, metro snapshot tract table} -->
-
-<!-- # Reconfigure tract data for table -->
-<!-- city_table_data <- reactive({ -->
-
-<!--   # Select tract -->
-<!--   temp <- city_tract()[city_tract()$GEOID == click_snapshotmap(), ]  -->
-
-<!--   # Static check -->
-<!--   # Census Tract 59.01, Montgomery County, Alabama -->
-<!--   # temp_mongo_conn <- fun_mongo_connect(host_name = "host_dev", -->
-<!--   #                                      collection_name = "acs_tract_S1810", -->
-<!--   #                                      database_name = "ADA-PARC") -->
-<!--   # temp <- temp_mongo_conn$find( -->
-<!--   #   query = sprintf('{ "GEOID" : { "$in" : ["01101005901" ] } }')) -->
-
-<!--   # Value and percent (Remove White and Hispanic, reorder Race topic) -->
-<!--   temp_values <- temp %>%  -->
-<!--     select(GEOID:NAME, matches("_C02_")) %>% -->
-<!--     # Values -->
-<!--     pivot_longer(cols = -c(GEOID:NAME), -->
-<!--                  names_to = c("variable", ".value"), -->
-<!--                  names_pattern = "(.*)_(.*)") %>%  -->
-<!--     # Percent -->
-<!--     mutate("pct" = format(round((estimate / max(estimate)) * 100, -->
-<!--                                 digits = 1), -->
-<!--                           nsmall = 1)) %>%  -->
-<!--     mutate("pct" = replace_na(pct, 0)) %>%  -->
-<!--     # Variable order -->
-<!--     filter(!variable %in% c("S1810_C02_004")) %>%  -->
-<!--     mutate("variable" = fct_relevel( -->
-<!--       variable, -->
-<!--       c("S1810_C02_001",  -->
-<!--         # Gender -->
-<!--         "S1810_C02_002", "S1810_C02_003", -->
-<!--         # Race/Ethnicity -->
-<!--         "S1810_C02_011", "S1810_C02_005", "S1810_C02_012", -->
-<!--         "S1810_C02_007", "S1810_C02_006", "S1810_C02_008", -->
-<!--         "S1810_C02_009", "S1810_C02_010", -->
-<!--         # Age -->
-<!--         "S1810_C02_013", "S1810_C02_014", "S1810_C02_015", -->
-<!--         "S1810_C02_016", "S1810_C02_017", "S1810_C02_018"))) %>%  -->
-<!--     arrange(variable) -->
-
-<!--   # Output -->
-<!--   temp_values %>% -->
-<!--     left_join(., -->
-<!--               dict_vars %>%  -->
-<!--                 select("category" = var_topic, -->
-<!--                        "label" = var_pretty, -->
-<!--                        "variable" = var_database), -->
-<!--               by = "variable") %>% -->
-<!--     # Label -->
-<!--     mutate("label" = str_remove_all(label,  -->
-<!--                                     "Total Persons with Disabilities, ")) %>% -->
-<!--     mutate("label" = case_when(variable == "S1810_C02_001" ~ -->
-<!--                                  "People with Disabilities", -->
-<!--                                variable == "S1810_C02_011" ~ -->
-<!--                                  "White alone", -->
-<!--                                variable == "S1810_C02_012" ~ -->
-<!--                                  "Hispanic or Latino", -->
-<!--                                TRUE ~ label)) %>% -->
-<!--     mutate("category" = str_to_title(category)) %>%  -->
-<!--     select(GEOID, NAME, category, variable, label, -->
-<!--            estimate, moe, pct)  -->
-
-<!-- }) -->
-
-<!-- # Table -->
-<!-- renderUI({  -->
-
-<!--   # Req -->
-<!--   req(nrow(city_table_data()) > 0) -->
-
-<!--   HTML( -->
-
-<!--     kbl(x = city_table_data() %>% -->
-<!--           mutate("output_est" = paste0(comma(estimate, -->
-<!--                                              accuracy = 1),  -->
-<!--                                        " (", pct, "%)"), -->
-<!--                  "output_moe" = paste0("(±",  -->
-<!--                                        comma(moe, -->
-<!--                                              accuracy = 1), -->
-<!--                                        ")")) %>%  -->
-<!--           mutate(across(everything(),  -->
-<!--                         ~cell_spec(., "html", -->
-<!--                                    color = ifelse(moe >= estimate,  -->
-<!--                                                   "red", "black")))) %>% -->
-<!--           select("Variable" = label, "Est" = output_est,  "MOE" = output_moe), -->
-<!--         caption = city_table_data() %>% head(1) %>% pull(NAME), -->
-<!--         escape = FALSE, -->
-<!--         table.attr = "style='width:100%;'") %>%  -->
-<!--       pack_rows(index = table( -->
-<!--         fct_inorder(city_table_data()$category))) %>%  -->
-<!--       kable_styling(bootstrap_options = c("striped", "hover",  -->
-<!--                                           "condensed"), -->
-<!--                     full_width = TRUE) -->
-
-<!--   ) }) -->
-
-<!-- ``` -->
-
-<!-- Comparison {data-navmenu="By City"} -->
-
-<!-- ====================================================================== -->
-
-<!-- Sidebar {.sidebar} -->
-
-<!-- ----------------------------------------------------------------------- -->
-
-<!-- <br> -->
-
-<!-- ```{r } -->
-
-<!-- # Same for the other city-level data we have available (i.e. community_participation and work_economic. recommend flopping the naming convention here to metro_demo_data to keep things organized, i should probably do that for national as well) -->
-
-<!-- ``` -->
-
-<!-- ```{r } -->
-
-<!-- # Define inputs -->
-
-<!-- # City -->
-
-<!-- selectizeInput(inputId = "compare",  -->
-
-<!--                label = "Select Cities to Compare",  -->
-
-<!--                choices = city_tract() %>% select(metro_state), -->
-
-<!--                multiple = TRUE, -->
-
-<!--                options = list( -->
-
-<!--                  maxItems = 3, -->
-
-<!--                  placeholder = "select up to 3 cities" -->
-
-<!--                ) -->
-
-<!-- ) -->
-
-<!-- ### I want to model something similar to the AARP website -->
-
-<!-- ### So these three inputs would feed into the DT and then we could do a transposed table of -->
-
-<!-- ### some subset of relevant fields for the user based on a selection -->
-
-<!-- ``` -->
-
-<!-- Row -->
-
-<!-- ----------------------------------------------------------------------- -->
-
-<!-- ### Table {.download-DT} -->
-
-<!-- ```{r } -->
-
-<!-- DT::renderDataTable({ -->
-
-<!--   if(is.null(input$compare)){ -->
-
-<!--     DT::datatable( -->
-
-<!--       metro_demo_data %>%  -->
-
-<!--         rename("City" = metro_state), -->
-
-<!--       options(lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All"))) -->
-
-<!--     ) -->
-
-<!--   }else{ -->
-
-<!--     DT::datatable( -->
-
-<!--       metro_demo_data %>%  -->
-
-<!--         filter(metro_state %in% input$compare) %>%  -->
-
-<!--         select("City" = metro_state, everything()) %>% -->
-
-<!--         pivot_longer( -->
-
-<!--           cols = -"City", -->
-
-<!--           names_to = "Variable" -->
-
-<!--         ) %>% -->
-
-<!--         pivot_wider( -->
-
-<!--           id_cols = Variable, -->
-
-<!--           names_from = City -->
-
-<!--         ) %>% -->
-
-<!--         select(" " = Variable, everything()), -->
-
-<!--       options (pageLength = 50) -->
-
-<!--     ) -->
-
-<!--   } -->
-
-<!-- }) -->
-
-<!-- ``` -->
-
-<!-- Explore {data-navmenu="By Metro"} -->
-
-<!-- ====================================================================== -->
-
-<!-- Sidebar {.sidebar} -->
-
-<!-- ----------------------------------------------------------------------- -->
-
-<!-- <br> -->
-
-<!-- ```{r metro explore sidebar} -->
-
-<!-- # Define inputs -->
-
-<!-- # Metro -->
-
-<!-- selectizeInput(inputId = "metro_explore_select",  -->
-
-<!--                label = "Select Metro Areas to explore",  -->
-
-<!--                choices = metro_demo_data %>% select(metro_state),  -->
-
-<!--                multiple = TRUE,  -->
-
-<!--                options = list("plugins" = list("remove_button"),  -->
-
-<!--                               "create" = TRUE, -->
-
-<!--                               "persist" = FALSE)) -->
-
-<!-- # Variable of interest -->
-
-<!-- selectizeInput(inputId = "var_explore_select",  -->
-
-<!--                label = "Select a demographic variable",  -->
-
-<!--                choices = names(metro_demo_data %>% select(pwd:percent_pwd_female)),  -->
-
-<!--                selected = names(metro_demo_data %>% select(pwd)), -->
-
-<!--                multiple = TRUE,  -->
-
-<!--                options = list("plugins" = list("remove_button"),  -->
-
-<!--                               "create" = TRUE, -->
-
-<!--                               "persist" = FALSE)) -->
-
-<!-- ``` -->
-
-<!-- Row -->
-
-<!-- ----------------------------------------------------------------------- -->
-
-<!-- ### Table {.download-DT} -->
-
-<!-- ```{r metro explore table} -->
-
-<!-- DT::renderDataTable({ -->
-
-<!--   if(is.null(input$metro_explore_select)){ -->
-
-<!--     DT::datatable( -->
-
-<!--       metro_demo_data %>%  -->
-
-<!--         rename("City" = metro_state), -->
-
-<!--       options(list(scrollX = "200px", -->
-
-<!--                    pageLength = 5, -->
-
-<!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
-
-<!--     ) -->
-
-<!--   }else{ -->
-
-<!--     DT::datatable( -->
-
-<!--       metro_demo_data %>%  -->
-
-<!--         filter(metro_state %in% input$metro_explore_select) %>%  -->
-
-<!--         select("City" = metro_state, input$var_explore_select), -->
-
-<!--       options(list(scrollX = "200px",  -->
-
-<!--                    pageLength = 5, -->
-
-<!--                    lengthMenu = list(c(5, 10, 20, -1), c("5", "10", "20", "All")))) -->
-
-<!--     ) -->
-
-<!--   } -->
-
-<!-- }) -->
-
-<!-- ``` -->
-
-<!-- Row -->
-
-<!-- ----------------------------------------------------------------------- -->
-
-<!-- ### Selected Variables by Metro -->
-
-<!-- ```{r metro overview chart} -->
-
-<!-- output$metro_explore_plot <- renderPlotly({ -->
-
-<!--   # Require input action and non-null variable before plotting chart -->
-
-<!--   req(input$metro_explore_select) -->
-
-<!--   req(!is.null(input$var_explore_select)) -->
-
-<!--   # Plot -->
-
-<!--   plotly::ggplotly( -->
-
-<!--     metro_demo_data %>% -->
-
-<!--       filter(metro_state %in% input$metro_explore_select) %>% -->
-
-<!--       select(metro_state, input$var_explore_select) %>% -->
-
-<!--       pivot_longer(cols = -metro_state, names_to = "variable", values_to = "value") %>% -->
-
-<!--       mutate(variable = str_replace_all(variable, "_", " "), -->
-
-<!--              value = as.numeric(value)) %>% -->
-
-<!--       ggplot(aes(x = variable, y = value, fill = metro_state)) + -->
-
-<!--       geom_bar(stat = "identity", width = 0.8, -->
-
-<!--                position = position_dodge2(width = 0.6, preserve = "single")) + -->
-
-<!--       labs(x = "Variable", y = "Value") + -->
-
-<!--       scale_y_comma() + -->
-
-<!--       coord_flip() + -->
-
-<!--       ggplot_fill_selected() + -->
-
-<!--       ggplot_theme_selected() + -->
-
-<!--       theme(legend.position = "top") -->
-
-<!--   ) -->
-
-<!-- }) -->
-
-<!-- plotlyOutput("metro_explore_plot") -->
-
-<!-- ``` -->
-
-<!-- # Download Data -->
-
-<!-- ## Row -->
-
-<!-- <div role="main"> -->
-
-<!-- ###   -->
-
-<!-- ```{r download-data-body} -->
-
-<!-- ### ----- National Data ----- -->
-
-<!-- # Text -->
-<!-- h5("Download National Data:") -->
-
-<!-- # Download button -->
-<!-- downloadButtonRmd(outputId = "download_data_national_button", -->
-<!--                   label = "Download", -->
-<!--                   style = "vertical-align: middle; height: 40px !important; width: 125px !important;") -->
-
-<!-- # Download file  -->
-<!-- output$download_data_national_button <- downloadHandler( -->
-
-<!--   filename = function() { -->
-<!--     paste0("ADA-PARC_National_Data_Download_", -->
-<!--            format(Sys.time(), "%Y-%m-%d_%I%M%p"), -->
-<!--            ".xlsx") -->
-<!--   }, -->
-<!--   content = function(file) { -->
-<!--     openxlsx::write.xlsx( -->
-<!--       list("Demographics" = demographics %>%  -->
-<!--              arrange(GEOID),  -->
-<!--            "Community Participation" = community_participation %>%  -->
-<!--              arrange(GEOID),  -->
-<!--            "Community Living" = community_living %>%  -->
-<!--              arrange(GEOID),  -->
-<!--            "Work-Economic" = work_economic %>%  -->
-<!--              arrange(GEOID), -->
-<!--            "Lookup" = dict_vars %>% -->
-<!--              filter((is_demographics == TRUE |  -->
-<!--                        is_community_living == TRUE | -->
-<!--                        is_community_participation == TRUE | -->
-<!--                        is_work_economic == TRUE)) %>%  -->
-<!--              select("variable_key" = var_readable,  -->
-<!--                     "variable_label" = var_pretty,  -->
-<!--                     is_demographics:is_work_economic)), -->
-<!--       file) -->
-<!--   } -->
-<!-- ) -->
-
-<!-- ``` -->
-
-<!-- </div> -->
-
 
 # Accessibility
 
