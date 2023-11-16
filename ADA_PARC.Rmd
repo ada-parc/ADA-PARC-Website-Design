@@ -301,11 +301,26 @@ national_variable_selected <- reactive({
 # Summary text
 output$national_map_summary <- renderUI({
   
+  national_variable_selected <- national_variable_selected()
+  
+  hud_data <- c("pwd_housing_choice_voucher_pct", "pwd_pubhousing_pct")
+  
+  # This text here is a hack--long term, source information should be authored in our pipeline and simply read here.
+  
+  if(national_variable_selected %in% hud_data) {
+      source_text <- "2021 United States Department of Housing and Urban Development"
+
+  } else {
+      source_text <- "2017-2021 American Community Survey five-year estimates"
+
+  }
+  
+  full_text <- paste0(" Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: ", source_text)
+  
   HTML(
     paste0(
       altText(national_data(), 
-              national_variable_selected()),
-      " Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: 2017-2021 American Community Survey five-year estimates")
+              national_variable_selected), full_text)
   )
   
 })
