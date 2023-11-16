@@ -701,7 +701,7 @@ output$city_summary <- renderUI({
       "Black" =  create_number_percent_string(pwd_black, pwd_black_dis_pct),
       "Hispanic" = create_number_percent_string(pwd_hisp, pwd_hisp_dis_pct),
       "Asian" = create_number_percent_string(pwd_asian, pwd_asian_dis_pct),
-      "Other" = create_number_percent_string(pwd_other, pwd_other_dis_pct),
+      "Other" = create_number_percent_string(pwd_other_multiple, pwd_other_multiple_dis_pct),
       "<b>Total" =
         paste0(pwd_total,
                "</b>"),
