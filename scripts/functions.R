@@ -739,8 +739,6 @@ altText <- function(data, variable) {
     filter(!is.na(!!sym(variable))) %>% 
     filter(!!sym(variable) == min(!!sym(variable))) %>% 
     slice(1) %>% 
-    mutate(across(-State & -ends_with("_pct"),
-                  ~scales::comma(.x))) %>% 
     mutate(across(ends_with("_pct"),
                   ~scales::percent(.x, 
                                    accuracy = 0.1,
@@ -757,8 +755,6 @@ altText <- function(data, variable) {
     filter(!is.na(!!sym(variable))) %>% 
     filter(!!sym(variable) == max(!!sym(variable))) %>% 
     slice(1) %>% 
-    mutate(across(-State & -ends_with("_pct"),
-                  ~scales::comma(.x))) %>% 
     mutate(across(ends_with("_pct"),
                   ~scales::percent(.x, 
                                    accuracy = 0.1,
