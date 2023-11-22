@@ -72,7 +72,8 @@ set_quartile_labels <- function(quartiles, no_classes, selected) {
     }
   }
   # Remove last label which will have NA
-  labels <- labels[1:length(labels)-1]
+  rtn_labels <- labels[1:length(labels)-1]
+  return(rtn_labels)
 }
 
 # Abbreviates values for large numbers in render_tile_map
@@ -128,25 +129,43 @@ abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to perfor
 
 getUrbnGeo <- function(data, selected, quartiles = NULL, labels = NULL, interactive = T) {
   
+  
+  # Short-term hack: need to have special handling for percentages vs full numbers
+  
+  data <- 
+    data %>% 
+    mutate(selected_column = !!sym(selected))
+ 
+  data_class <-  class(data$selected_column[1])
+   
+  if(data_class == "character") {
+    
+    data <- 
+      data %>% 
+      mutate(selected_column = as.numeric(gsub("[,]", "", !!sym(selected))))
+  }
+  
   df <- get_urbn_map("territories_states", sf = TRUE) %>% 
     filter(!state_fips %in% c("60", "66", "69", "78")) %>% 
     select("ABBR" = state_abbv) %>% 
-    inner_join(data %>% 
-                 select(ABBR, !!sym(selected)) %>%
-                 filter(!is.na(!!sym(selected))),
-               by = "ABBR")
+    inner_join(
+      data %>%
+        select(ABBR, selected_column) %>%
+        filter(!is.na(selected_column)),
+      by = "ABBR"
+    )
   
   if(interactive) {
     df %>%
       rowwise() %>% 
       mutate("hover_text" := ifelse(grepl("_pct$", 
                                           selected),
-                                    paste0(round(!!sym(selected), 1), "%"),
-                                    abbreviate_number(!!sym(selected))))
+                                    paste0(round(selected_column, 1), "%"),
+                                    abbreviate_number(selected_column)))
   } else if(!is.null(quartiles) & !is.null(labels)) {
     df %>%
       rowwise() %>% 
-      mutate("quartile_fill" = cut(!!sym(selected), 
+      mutate("quartile_fill" = cut(selected_column, 
                                    breaks = quartiles, 
                                    labels = labels, 
                                    include.lowest = TRUE))
@@ -240,15 +259,27 @@ render_national_map <- function(category, selected,
   
   data <- eval(sym(str_remove(category, "^is_"))) %>%
     filter(ABBR != "USA")
+  
   no_classes <- 4
 
   # p1
   legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
   
-  quartiles <- quantile(data %>% pull(!!sym(selected)),
+  variable_column <- data %>% pull(!!sym(selected))
+  
+  if (class(variable_column) == "character") {
+    # remove all commas and decimals from a number, cast as numeric.
+    
+    variable_column <- as.numeric(gsub("[,]", "", variable_column))
+    
+  }
+  
+  quartiles <- quantile(variable_column,
                         probs = seq(0, 1, length.out = no_classes + 1),
                         na.rm = TRUE)
 
+
+  
   labels <- set_quartile_labels(quartiles, 4, selected)
   
   # isCompVar
@@ -294,13 +325,19 @@ render_national_map <- function(category, selected,
       filter(var_readable == selected, !!sym(category)) %>% 
       pull(var_base)
     
+    
+
+    
     comp_var <- dict_vars %>%
       filter(var_base == base_var, var_readable != selected) %>%
       pull(var_readable)
+
     
+        
     # Combine PWD and PWOD
-    combined_var <- vctrs::vec_c(data %>% pull(!!sym(selected)),
-                                 data %>% pull(!!sym(comp_var)))
+    combined_var <- as.numeric(gsub("[,]", "", vctrs::vec_c(data %>% pull(!!sym(selected)),
+                                 data %>% pull(!!sym(comp_var)))))
+    
     
     quartiles <- quantile(combined_var, 
                           probs = seq(0, 1, length.out = no_classes + 1),
