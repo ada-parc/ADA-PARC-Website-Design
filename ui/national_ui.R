@@ -5,7 +5,8 @@ sidebarLayout(
     p("This is the sidebar panel content for the National Data tab.")
   ),
   mainPanel(
-    h3("National Data Main Panel"),
-    p("This is the main panel content for the National Data tab.")
+    h3("Testing testing"),
+    plotOutput("us_map"),
+    p("Big test here")
   )
 )
