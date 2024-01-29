@@ -308,10 +308,10 @@ output$national_map_summary <- renderUI({
   # This text here is a hack--long term, source information should be authored in our pipeline and simply read here.
   
   if(national_variable_selected %in% hud_data) {
-      source_text <- "2021 United States Department of Housing and Urban Development"
+      source_text <- "2022 United States Department of Housing and Urban Development"
 
   } else {
-      source_text <- "2017-2021 American Community Survey five-year estimates"
+      source_text <- "2018-2022 American Community Survey five-year estimates"
 
   }
   
@@ -681,7 +681,7 @@ output$city_summary <- renderUI({
     city_place() %>% 
       mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
       pull(NAME), "</h4>",
-    "Based on ACS 2021 5-Year Estimates, <b>", 
+    "Based on ACS 2022 5-Year Estimates, <b>", 
     city_place() %>%
       pull(pwd_total),
     "</b> of the city's <b>",
