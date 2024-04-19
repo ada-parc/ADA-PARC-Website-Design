@@ -716,6 +716,21 @@ output$city_summary <- renderUI({
     pull(Bullets) %>%
     str_c(collapse = "")
 
+  # Poverty
+    city_summary_poverty <- city_place() %>%
+    mutate(
+      "People With Disabilities Living In Poverty" = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
+      "People Without Disabilities Living In Poverty" =  create_number_percent_string(pwod_below_poverty, pwod_below_poverty_pct),
+      .keep = "none"
+    ) %>%
+    pivot_longer(everything(),
+                 names_to = "Race/Ethnicity",
+                 values_to = "PWD (%)") %>%
+    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
+
+    pull(Bullets) %>%
+    str_c(collapse = "")
 
   # # Community Participation
   city_summary_cp <- city_place() %>%
@@ -757,6 +772,10 @@ output$city_summary <- renderUI({
                                 '<div class = "col-md-4">',
                                 '<b>Race/Ethnicity</b><ul>',
                                 city_summary_demo,
+                                '</ul></div>',
+                                '<div class = "col-md-4">',
+                                '<b>Living In Poverty</b><ul>',
+                                city_summary_poverty,
                                 '</ul></div>',
                                 '<div class = "col-md-4">',
                                 '<b>Commute, Workers 16+</b><ul>',
