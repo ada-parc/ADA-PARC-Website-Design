@@ -3,7 +3,7 @@ title: "ADA-PARC"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_layout: fill
+    vertical_layout: scroll
     theme: cosmo
     includes:
       in_header: www/cssloaders.html
