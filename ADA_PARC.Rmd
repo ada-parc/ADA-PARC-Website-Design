@@ -48,6 +48,13 @@ library(scales)
 library(tableHTML)
 library(hrbrthemes); library(ggthemes)
 library(extrafont)
+library(plotly)
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(tigris)
+library(RColorBrewer)
+library(tidyverse)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE,
@@ -331,11 +338,10 @@ withSpinner(uiOutput("national_map_summary"))
 
 </div>
 
-## Row {data-height=100}
+## Row {data-height=30}
 
 <div role="region" aria-labelledby="section-national-title">
 
-### National Map Title
 
 ```{r national-map-title, fig.alt = "Map title the selected topic."}
 
@@ -362,17 +368,9 @@ withSpinner(uiOutput("national_map_title"))
 
 <div role="region" aria-labelledby="section-state-by-state-map-of-selected-topic">
 
-### State-by-State Map of Selected Topic
+### 
 
 ```{r national-map, out.width = "100%", fig.align = "center", fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
-
-output$national_map <- renderUI({
-  
-  withSpinner(plotOutput("national_ggmap"))
-  
-})
-
-uiOutput("national_map")
 
 output$national_ggmap <- renderPlot({
   
@@ -382,9 +380,19 @@ output$national_ggmap <- renderPlot({
   
 })
 
+output$national_map <- renderUI({
+  
+  withSpinner(plotOutput(outputId = "national_ggmap"))
+  
+})
+
+uiOutput("national_map")
+
+
+
 # For debugging
 # Static version of comparison map
-# render_national_map(                          
+# render_national_map(
 #   "is_demographics",
 #   "pwd_pct",
 #   "YlOrBr"
@@ -404,12 +412,11 @@ output$national_ggmap <- renderPlot({
 
 </div>
 
-## Row
+## Row 
 
 <div role="region" aria-labelledby="section-table-of-selected-topic">
 
-### Table of Selected Topic {.table-wrapper}
-
+### {.table-wrapper}
 ```{r national-table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable

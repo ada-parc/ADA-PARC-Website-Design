@@ -49,6 +49,20 @@
 
 # Dashboard functions -----------------------------------------------------
 
+altTitle <- function(variable) {
+  
+  # Title, vars_pretty field for variable
+  title <- dict_vars %>% 
+    filter(!is.na(national_dropdown_label),
+           var_readable == sym(variable)) %>% 
+    head(1) %>% 
+    pull(var_pretty)
+  
+  return(title)
+  
+}
+
+
 # Set quartiles
 set_quartile_labels <- function(quartiles, no_classes, selected) {
 
@@ -249,7 +263,7 @@ render_national_map <- function(category, selected,
   # selected <- "pwd_19_64_insured_public_pct"
   # palette_selected <- "YlOrBr"
   # output_asp_ratio <- 0.45
-    
+      
   if(!is.character(category)) {
     stop("category must be a character string")
   }
@@ -257,7 +271,7 @@ render_national_map <- function(category, selected,
     stop("selected must be a character string")
   }
   
-  data <- eval(sym(str_remove(category, "^is_"))) %>%
+  data_for_states <- eval(sym(str_remove(category, "^is_"))) %>%
     filter(ABBR != "USA")
   
   no_classes <- 4
@@ -265,7 +279,7 @@ render_national_map <- function(category, selected,
   # p1
   legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
   
-  variable_column <- data %>% pull(!!sym(selected))
+  variable_column <- data_for_states %>% pull(!!sym(selected))
   
   if (class(variable_column) == "character") {
     # remove all commas and decimals from a number, cast as numeric.
@@ -275,7 +289,7 @@ render_national_map <- function(category, selected,
   }
   
   quartiles <- quantile(variable_column,
-                        probs = seq(0, 1, length.out = no_classes + 1),
+                        probs = seq(0, 1, length.out = 4 + 1),
                         na.rm = TRUE)
 
 
@@ -289,34 +303,52 @@ render_national_map <- function(category, selected,
   
   is_comp <- ifelse(display_type == "comp", 
                     TRUE, FALSE)
+  
+  variable_dataset <- data_for_states %>% 
+    select(NAME, estimate = sym(selected))
 
   if(!is_comp){
+
+    us_states <- states(cb = TRUE, resolution = "20m") %>%
+      shift_geometry() %>% 
+      sf::st_cast("MULTIPOLYGON") %>% 
+      left_join(variable_dataset)
     
-    # single plot/standalone (plot_1)
-    states_sf <- getUrbnGeo(data, selected, quartiles, 
-                            labels, interactive = FALSE)
-    makeGgplotObject(states_sf, legend_title, palette_selected) +
-      theme(plot.background = element_rect(colour = "white"), 
-            plot.title = element_text(face = "bold", 
-                                      size = 10),
-            panel.grid = element_blank(),
-            panel.grid.major = element_blank(),
-            plot.margin = margin(t = 0, b = 0, 
-                                 l = 2, r = 2, "cm"),
-            aspect.ratio = output_asp_ratio,
-            axis.text = element_blank(),
-            axis.ticks = element_blank(),
-            axis.line = element_blank(),
-            panel.spacing = unit(0L, "pt"),
-            legend.position = "bottom",
-            legend.title = element_text(face = "bold", 
-                                        vjust = 0.75),
-            legend.text = element_text(vjust = .5),
-            legend.key = element_rect(color = "black"),
-            strip.text.x = element_text(size = 9L),
-            text = element_text(size = 12))
-
-
+    # Calculate quantile breaks and create custom labels
+    breaks <- quantile(us_states$estimate, probs = seq(0, 1, length.out = 5), na.rm = TRUE)
+    labels <- paste0(round(breaks[-length(breaks)]), "%-", round(breaks[-1]), "%")
+    
+    us_states <- us_states %>%
+      mutate(estimate_cat = cut(estimate, breaks = breaks, include.lowest = TRUE, labels = labels))
+    
+    
+    palette <- brewer.pal(4, palette_selected) # Change to "YlOrRd" or "GnBu" as needed
+    
+    # Create the map
+    ggplot(data = us_states) +
+      geom_sf(aes(fill = estimate_cat)) +
+      scale_fill_manual(values = palette, name = "Estimate") +
+      theme_void() +
+      theme(
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.title = element_text(size = 10, hjust = 0.5),
+        legend.text = element_text(size = 8),
+        legend.title.align = 0.5,
+        legend.box = "horizontal",
+        legend.box.just = "center"
+      ) +
+      guides(
+        fill = guide_legend(
+          title.position = "top",
+          title.hjust = 0.5,
+          label.position = "bottom", # Move labels below the legend keys
+          label.hjust = 0.5, # Center the labels below the legend keys
+          nrow = 1 # Ensure the legend items are in a single row
+        )
+      )
+    
+    
   } else {
     
     # side-by-side plots/comp (plot_1, plot_2)
@@ -843,20 +875,5 @@ altText <- function(data, variable) {
     # Min/Max
     text_min, text_max
   )
-  
-}
-
-
-altTitle <- function(variable) {
-  
-  # Title, vars_pretty field for variable
-  title <- dict_vars %>% 
-    filter(!is.na(national_dropdown_label),
-           var_readable == sym(variable)) %>% 
-    head(1) %>% 
-    pull(var_pretty)
-  
-  # Text for title
-  paste0( "<b>", title, "</b>")
   
 }
