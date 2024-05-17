@@ -327,13 +327,13 @@ render_national_map <- function(category, selected,
     # Create the map
     ggplot(data = us_states) +
       geom_sf(aes(fill = estimate_cat)) +
-      scale_fill_manual(values = palette, name = "Estimate") +
+      scale_fill_manual(values = palette, name = legend_title) +
       theme_void() +
       theme(
         legend.position = "bottom",
         legend.direction = "horizontal",
-        legend.title = element_text(size = 10, hjust = 0.5),
-        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 14, hjust = 0.5),
+        legend.text = element_text(size = 10),
         legend.title.align = 0.5,
         legend.box = "horizontal",
         legend.box.just = "center"

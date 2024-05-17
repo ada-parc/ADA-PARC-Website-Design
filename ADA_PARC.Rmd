@@ -355,10 +355,10 @@ output$national_map_title <- renderUI({
     #         national_variable_selector_static)
 
   )
-
 })
 
 withSpinner(uiOutput("national_map_title"))
+
 
 ```
 
@@ -397,16 +397,6 @@ uiOutput("national_map")
 #   "pwd_pct",
 #   "YlOrBr"
 # )
-
-# output$national_tmap <- renderPlot({
-#   #   # req(national_variable_selected(), national_category_selected(), national_data())
-#   #   print("reqs filled")
-#   #   print("run tmap")
-#   render_national_map(national_category_selected(),
-#                       national_variable_selected(),
-#                       access_map_palette_selected())
-#   #   
-# })
 
 ```
 
