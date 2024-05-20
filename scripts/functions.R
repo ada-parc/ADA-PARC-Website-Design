@@ -58,6 +58,12 @@ altTitle <- function(variable) {
     head(1) %>% 
     pull(var_pretty)
   
+  title <- str_trim(str_replace_all(title,
+                                    " (with|without) Disabilities", ""))
+  
+  title <- str_trim(str_replace_all(title,
+                                    " (with|without) Disability", ""))
+  
   return(title)
   
 }
@@ -254,197 +260,219 @@ makeGgplotObject <- function(states_sf, legend_title, palette_selected) {
 # rename, since this isn't exclusively for interactive maps
 # probably renderNationalMap()
 # 
-render_national_map <- function(category, selected, 
+render_national_map <- function(category,
+                                selected,
                                 palette_selected = "YlOrBr",
                                 output_asp_ratio = 0.45) {
-  
   # Static check
   # category <- "is_community_participation"
   # selected <- "pwd_19_64_insured_public_pct"
   # palette_selected <- "YlOrBr"
   # output_asp_ratio <- 0.45
+  
+    if (!is.character(category)) {
+      stop("category must be a character string")
+    }
+    if (!is.character(selected)) {
+      stop("selected must be a character string")
+    }
+    
+    data_for_states <- eval(sym(str_remove(category, "^is_"))) %>%
+      filter(ABBR != "USA")
+    
+    no_classes <- 4
+    
+    # p1
+    legend_title <-
+      paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
+    
+    variable_column <- data_for_states %>% pull(!!sym(selected))
+    
+    if (class(variable_column) == "character") {
+      # remove all commas and decimals from a number, cast as numeric.
       
-  if(!is.character(category)) {
-    stop("category must be a character string")
-  }
-  if(!is.character(selected)) {
-    stop("selected must be a character string")
-  }
-  
-  data_for_states <- eval(sym(str_remove(category, "^is_"))) %>%
-    filter(ABBR != "USA")
-  
-  no_classes <- 4
-
-  # p1
-  legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
-  
-  variable_column <- data_for_states %>% pull(!!sym(selected))
-  
-  if (class(variable_column) == "character") {
-    # remove all commas and decimals from a number, cast as numeric.
+      variable_column <- as.numeric(gsub("[,]", "", variable_column))
+      
+    }
     
-    variable_column <- as.numeric(gsub("[,]", "", variable_column))
-    
-  }
-  
-  quartiles <- quantile(variable_column,
-                        probs = seq(0, 1, length.out = 4 + 1),
-                        na.rm = TRUE)
-
-
-  
-  labels <- set_quartile_labels(quartiles, 4, selected)
-  
-  # isCompVar
-  display_type <- dict_vars %>% 
-    filter(var_readable == selected, !!sym(category)) %>% 
-    pull(display_type)
-  
-  is_comp <- ifelse(display_type == "comp", 
-                    TRUE, FALSE)
-  
-  variable_dataset <- data_for_states %>% 
-    select(NAME, estimate = sym(selected))
-
-  if(!is_comp){
-
-    us_states <- states(cb = TRUE, resolution = "20m") %>%
-      shift_geometry() %>% 
-      sf::st_cast("MULTIPOLYGON") %>% 
-      left_join(variable_dataset)
-    
-    # Calculate quantile breaks and create custom labels
-    breaks <- quantile(us_states$estimate, probs = seq(0, 1, length.out = 5), na.rm = TRUE)
-    labels <- paste0(round(breaks[-length(breaks)]), "%-", round(breaks[-1]), "%")
-    
-    us_states <- us_states %>%
-      mutate(estimate_cat = cut(estimate, breaks = breaks, include.lowest = TRUE, labels = labels))
-    
-    
-    palette <- brewer.pal(4, palette_selected) # Change to "YlOrRd" or "GnBu" as needed
-    
-    # Create the map
-    ggplot(data = us_states) +
-      geom_sf(aes(fill = estimate_cat)) +
-      scale_fill_manual(values = palette, name = legend_title) +
-      theme_void() +
-      theme(
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.title = element_text(size = 14, hjust = 0.5),
-        legend.text = element_text(size = 10),
-        legend.title.align = 0.5,
-        legend.box = "horizontal",
-        legend.box.just = "center"
-      ) +
-      guides(
-        fill = guide_legend(
-          title.position = "top",
-          title.hjust = 0.5,
-          label.position = "bottom", # Move labels below the legend keys
-          label.hjust = 0.5, # Center the labels below the legend keys
-          nrow = 1 # Ensure the legend items are in a single row
-        )
-      )
-    
-    
-  } else {
-    
-    # side-by-side plots/comp (plot_1, plot_2)
-    # Define variables
-    base_var <- dict_vars %>% 
-      filter(var_readable == selected, !!sym(category)) %>% 
-      pull(var_base)
-    
-    
-
-    
-    comp_var <- dict_vars %>%
-      filter(var_base == base_var, var_readable != selected) %>%
-      pull(var_readable)
-
-    
-        
-    # Combine PWD and PWOD
-    combined_var <- as.numeric(gsub("[,]", "", vctrs::vec_c(data %>% pull(!!sym(selected)),
-                                 data %>% pull(!!sym(comp_var)))))
-    
-    
-    quartiles <- quantile(combined_var, 
-                          probs = seq(0, 1, length.out = no_classes + 1),
+    quartiles <- quantile(variable_column,
+                          probs = seq(0, 1, length.out = 4 + 1),
                           na.rm = TRUE)
     
-    labels <- set_quartile_labels(quartiles, 4, base_var)
-    
-    # Map title reworking
-    legend_title_comp <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
     
     
-    # plot_1_title <- ifelse(str_detect(legend_title_comp,
-    #                                   "People with Disabilities"),
-    #                        "People with Disabilities",
-    #                        "People without Disabilities")
-    # 
-    # plot_1_title_error_print <- paste0("Plot 1 Original Title: ", legend_title_comp, "\n Plot 1 New Title: ", plot_1_title)
-    # 
-    # cat(file=stderr(), as.character(plot_1_title_error_print))
-    # 
-    # plot_2_title <- ifelse(plot_1_title == "People with Disabilities",
-    #                        "People without Disabilities", 
-    #                        "People with Disabilities")
+    labels <- set_quartile_labels(quartiles, 4, selected)
     
-    plot_1_title <- "People with Disabilities"
-    plot_2_title <- "People without Disabilities"
+    # isCompVar
+    display_type <- dict_vars %>%
+      filter(var_readable == selected, !!sym(category)) %>%
+      pull(display_type)
     
-    legend_title_comp <- str_replace_all(legend_title_comp,
-                                         "People (with|without) Disabilities",
-                                         "People with/without Disabilities")
+    is_comp <- ifelse(display_type == "comp",
+                      TRUE, FALSE)
     
-    # plot_1
-    states_sf <- getUrbnGeo(data, selected, quartiles, 
-                            labels, interactive = FALSE)
-    plot_1 <- makeGgplotObject(states_sf, 
-                               legend_title_comp, 
-                               palette_selected) +
-      ggtitle(plot_1_title)
+    variable_dataset <- data_for_states %>%
+      select(NAME, estimate = sym(selected))
+    
+    if (!is_comp) {
+      us_states <- us_states %>%
+        left_join(variable_dataset)
+      
+      # Calculate quantile breaks and create custom labels
+      breaks <-
+        quantile(us_states$estimate,
+                 probs = seq(0, 1, length.out = 5),
+                 na.rm = TRUE)
+      labels <-
+        paste0(round(breaks[-length(breaks)]), "%-", round(breaks[-1]), "%")
+      
+      us_states <- us_states %>%
+        mutate(estimate_cat = cut(
+          estimate,
+          breaks = breaks,
+          include.lowest = TRUE,
+          labels = labels
+        ))
+      
+      
+      palette <-
+        brewer.pal(4, palette_selected) # Change to "YlOrRd" or "GnBu" as needed
+      
+      # Create the map
+      ggplot(data = us_states) +
+        geom_sf(aes(fill = estimate_cat)) +
+        scale_fill_manual(values = palette, name = legend_title) +
+        theme_void() +
+        theme(
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.title = element_text(size = 14, hjust = 0.5),
+          legend.text = element_text(size = 10),
+          legend.title.align = 0.5,
+          legend.box = "horizontal",
+          legend.box.just = "center"
+        ) +
+        guides(
+          fill = guide_legend(
+            title.position = "top",
+            title.hjust = 0.5,
+            label.position = "bottom",
+            # Move labels below the legend keys
+            label.hjust = 0.5,
+            # Center the labels below the legend keys
+            nrow = 1 # Ensure the legend items are in a single row
+          )
+        )
+      
+      
+    } else {
+      # side-by-side plots/comp (plot_1, plot_2)
+      # Define variables
+      
+      base_var <- dict_vars %>%
+        filter(var_readable == selected, !!sym(category)) %>%
+        pull(var_base)
+      
+      comp_var <- dict_vars %>%
+        filter(var_base == base_var, var_readable != selected) %>%
+        pull(var_readable)
+      
+      variable_dataset <- data_for_states %>%
+        select(NAME,
+               estimate = sym(selected),
+               estimate_2 = sym(comp_var)) %>%
+        mutate(estimate = as.numeric(gsub(
+          pattern = "[,]",
+          replacement = "",
+          x = estimate
+        )),
+        estimate_2 = as.numeric(gsub(
+          pattern = "[,]",
+          replacement = "",
+          x = estimate_2
+        )),)
+      
+      # Combine PWD and PWOD
+      combined_var <- c(variable_dataset$estimate, variable_dataset$estimate_2)
+      
+      breaks <- quantile(combined_var,
+                            probs = seq(0, 1, length.out = 5),
+                            na.rm = TRUE)
+      
+      labels <- set_quartile_labels(breaks, 4, base_var)
+      
+      # Map title reworking
+      legend_title_comp <-
+        paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
+      
+      
+      plot_1_title <- "People with Disabilities"
+      plot_2_title <- "People without Disabilities"
+      
+      legend_title_comp <- str_trim(str_replace_all(legend_title_comp,
+                                                    " (with|without) Disabilities", ""))
 
-    # plot_2
-    states_sf <- getUrbnGeo(data, comp_var, quartiles, 
-                            labels, interactive = FALSE)
-    plot_2 <- makeGgplotObject(states_sf, 
-                               legend_title_comp, 
-                               palette_selected) +
-      ggtitle(plot_2_title)
-    
-    # Combine plots, legend elements
-    plot_1 +
-      plot_2 +
-      plot_layout(ncol = 2, widths = 1,
-                  guides = "collect") &
-      theme(plot.background = element_rect(colour = "white"), 
-            plot.title = element_text(face = "bold", 
-                                      size = 10),
-            panel.grid = element_blank(),
-            panel.grid.major = element_blank(),
-            plot.margin = margin(t = 0, b = 0, 
-                                 l = 2, r = 2, "cm"),
-            aspect.ratio = output_asp_ratio,
-            axis.text = element_blank(),
-            axis.ticks = element_blank(),
-            axis.line = element_blank(),
-            panel.spacing = unit(0L, "pt"),
+      
+      us_states <- us_states %>%
+        left_join(variable_dataset) %>% 
+        mutate(estimate_cat = cut(estimate, breaks = breaks, include.lowest = TRUE, labels = labels),
+               estimate_2_cat = cut(estimate_2, breaks = breaks, include.lowest = TRUE, labels = labels))
+      
+      palette <- brewer.pal(4, "YlOrBr")
+      
+
+      map1 <- ggplot(data = us_states) +
+        geom_sf(aes(fill = estimate_cat)) +
+        scale_fill_manual(values = palette, name = "Estimate") +
+        ggtitle(plot_1_title) +
+        theme_void() +
+        theme(
+          legend.position = "none" # Hide legend for the first map
+        )
+      
+      # Create the second map for 'estimate_2'
+      map2 <- ggplot(data = us_states) +
+        geom_sf(aes(fill = estimate_2_cat)) +
+        scale_fill_manual(values = palette, name = "Estimate") +
+        ggtitle(plot_2_title) +
+        theme_void() +
+        theme(
+          legend.position = "none" # Hide legend for the second map
+        )
+      
+      # Extract the legend from one of the maps
+      legend <- cowplot::get_legend(
+        ggplot(data = us_states) +
+          geom_sf(aes(fill = estimate_cat)) +
+          scale_fill_manual(values = palette, name = "Estimate") +
+          theme_void() +
+          theme(
             legend.position = "bottom",
-            legend.title = element_text(face = "bold", 
-                                        vjust = 0.75),
-            legend.text = element_text(vjust = .5),
-            legend.key = element_rect(color = "black"),
-            strip.text.x = element_text(size = 9L),
-            text = element_text(size = 12))
-    
+            legend.direction = "horizontal",
+            legend.title = element_text(size = 10, hjust = 0.5),
+            legend.text = element_text(size = 8),
+            legend.title.align = 0.5,
+            legend.box = "horizontal",
+            legend.box.just = "center"
+          ) +
+          guides(
+            fill = guide_legend(
+              title.position = "top",
+              title.hjust = 0.5,
+              label.position = "bottom", # Move labels below the legend keys
+              label.hjust = 0.5, # Center the labels below the legend keys
+              nrow = 1 # Ensure the legend items are in a single row
+            )
+          )
+      )
+      
+      # Combine the maps and the legend using patchwork
+      combined <- (map1 + map2) / legend + plot_layout(heights = c(10, 1))
+      
+      combined
+    }
   }
 
-}
 
 
 # census_download.Rmd functions -----------------------------------------------

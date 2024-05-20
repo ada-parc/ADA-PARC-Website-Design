@@ -55,6 +55,7 @@ library(dplyr)
 library(tigris)
 library(RColorBrewer)
 library(tidyverse)
+library(cowplot)
 
 options(scipen = 999999,
         tigris_use_cache = TRUE,
@@ -84,6 +85,10 @@ tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
 
 # Read in variable dictionary manually
 dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
+
+us_states <- states(cb = TRUE, resolution = "20m") %>%
+  shift_geometry() %>%
+  sf::st_cast("MULTIPOLYGON")
 
 ### ----- Functions import -----
 
