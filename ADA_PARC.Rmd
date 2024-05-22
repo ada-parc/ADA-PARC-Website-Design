@@ -383,14 +383,25 @@ withSpinner(uiOutput("national_map_summary"))
 
 output$national_map_title <- renderUI({
 
-  HTML(
-      altTitle(national_variable_selected())
-      
+  title <- dict_vars %>% 
+    filter(var_readable == sym(national_variable_selected())) %>% 
+    head(1) %>% 
+    pull(national_dropdown_label) %>%
+    sub(".*:", "", .) %>% 
+    trimws()
+  
+  HTML(title)
+    
+    
+    
+    
+    
+
     # # Static check
     # altTitle(demographics,
     #         national_variable_selector_static)
 
-  )
+  
 })
 
 withSpinner(uiOutput("national_map_title"))
