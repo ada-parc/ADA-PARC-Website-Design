@@ -374,7 +374,7 @@ withSpinner(uiOutput("national_map_summary"))
 
 </div>
 
-## Row {data-height=30}
+## Row {data-height=50}
 
 <div role="region" aria-labelledby="section-national-title">
 
@@ -390,18 +390,8 @@ output$national_map_title <- renderUI({
     sub(".*:", "", .) %>% 
     trimws()
   
-  HTML(title)
-    
-    
-    
-    
-    
+  h4(title)
 
-    # # Static check
-    # altTitle(demographics,
-    #         national_variable_selector_static)
-
-  
 })
 
 withSpinner(uiOutput("national_map_title"))
@@ -688,167 +678,42 @@ city_tract <- reactive ({
   return(temp)
   
 })
-
 ```
 
-## Row
+## Row {data-height=50}
 
-<div role="region" aria-labelledby="section-city-summary">
+<div role="region" aria-labelledby="section-national-title">
 
-### City Summary
 
-```{r city-summary}
+```{r city-map-title, fig.alt = "City Map Title"}
 
-output$city_summary <- renderUI({
-  
-  create_number_percent_string <- function(num, pct) {
-    
-    #PCT requires special handling if it's NA because we want to construct it like " (NA%)"
-    if(is.na(pct)) {
-      pct_string <- " (NA%)"
-    } else {
-      pct_string <- paste0(" (",
-                     scales::percent(as.numeric(pct), 
-                        accuracy = 0.1,
-                        scale = 1),
-                     ")")
-    }
-    
-    string <- paste0(num, pct_string)
-    
-    return(string)
-  }
-  
-  # Overview text
-  city_summary_text <- paste0(
-    "<h4>",  
-    city_place() %>% 
+output$city_map_title <- renderUI({
+
+  title <- city_place() %>% 
       mutate(NAME = str_replace_all(NAME, pattern = " (city|village|municipality|town), ", replacement = ", ")) %>% 
-      pull(NAME), "</h4>",
-    "Based on ACS 2022 5-Year Estimates, <b>", 
-    city_place() %>%
-      pull(pwd_total),
-    "</b> of the city's <b>",
-    city_place() %>%
-      pull(pop_total),
-    "</b> residents (<b>",
-    city_place() %>%
-      pull(pwd_pct),
-    "%</b>) are people with disabilities.<br><h5>People with Disabilities - Summary Tables</h5>")
+      pull(NAME)
   
-  # # Summary tables side by side
-  # # Create individual summary tables
-  # # Demographics
-  city_summary_demo <- city_place() %>%
-    mutate(
-      "White" = create_number_percent_string(pwd_white_nonhisp, pwd_white_nonhisp_dis_pct),
-      "Black" =  create_number_percent_string(pwd_black, pwd_black_dis_pct),
-      "Hispanic" = create_number_percent_string(pwd_hisp, pwd_hisp_dis_pct),
-      "Asian" = create_number_percent_string(pwd_asian, pwd_asian_dis_pct),
-      "Other" = create_number_percent_string(pwd_other_multiple, pwd_other_multiple_dis_pct),
-      "<b>Total" =
-        paste0(pwd_total,
-               "</b>"),
-      .keep = "none"
-    ) %>%
-    pivot_longer(everything(),
-                 names_to = "Race/Ethnicity",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-    
-    pull(Bullets) %>%
-    str_c(collapse = "")
-
-  # Poverty
-    city_summary_poverty <- city_place() %>%
-    mutate(
-      "People With Disabilities Living In Poverty" = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
-      "People Without Disabilities Living In Poverty" =  create_number_percent_string(pwod_below_poverty, pwod_below_poverty_pct),
-      .keep = "none"
-    ) %>%
-    pivot_longer(everything(),
-                 names_to = "Race/Ethnicity",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-
-    pull(Bullets) %>%
-    str_c(collapse = "")
-
-  # # Community Participation
-  city_summary_cp <- city_place() %>%
-    mutate(
-      "Car" = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
-      "Transit" =  create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
-      "Walk or Bike" = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
-      "Work from Home" = create_number_percent_string(pwd_wfh, pwd_wfh_dis_pct),
-      "<b>Total" =
-        paste0(pwd_total_commute,
-               "</b>"),
-      .keep = "none"
-    ) %>%
-    pivot_longer(everything(),
-                 names_to = "Commute, Workers 16+",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Commute, Workers 16+`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-    pull(Bullets) %>%
-    str_c(collapse = "")
-
-  # # Work/Economic
-  city_summary_we <- city_place() %>%
-    mutate("Employed" = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
-              "Not in Labor Force" = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj),
-              "<b>Total" = paste0(pwd_16_plus_subj,"</b>"),
-              .keep = "none") %>%
-    pivot_longer(everything(),
-                 names_to = "Employment, 16+",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-
-    pull(Bullets) %>%
-    str_c(collapse = "")
+  h4(title)
   
-  # Place dataframes in 3 columns side-by-side
-  city_summary_tables <- paste0('<div class = "row">',
-                                '<div class = "col-md-4">',
-                                '<b>Race/Ethnicity</b><ul>',
-                                city_summary_demo,
-                                '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Living In Poverty</b><ul>',
-                                city_summary_poverty,
-                                '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Commute, Workers 16+</b><ul>',
-                                city_summary_cp,
-                                '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Employment, 16+</b><ul>',
-                                city_summary_we,
-                                '</ul></div>',
-                                '</div>')
-  
-  
-  
-  # UI Output
-  HTML(paste(city_summary_text, city_summary_tables, sep = ""))
+    # # Static check
+    # altTitle(demographics,
+    #         national_variable_selector_static)
+
   
 })
 
-withSpinner(uiOutput("city_summary"))
+withSpinner(uiOutput("city_map_title"))
 
 ```
 
 </div>
 
+
 ## Row
 
 <div role="region" aria-labelledby="section-people-with-disabilities-map">
 
-### People With Disabilities Map
+### 
 
 ```{r city-pwd-map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
 
@@ -906,8 +771,7 @@ output$snapshotmap <- renderLeaflet({
   
   leaflet(data) %>%
     clearShapes() %>%
-    addProviderTiles(providers$Esri, group = "Esri") %>%
-    addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>%
+    addProviderTiles(providers$CartoDB.Positron) %>%
     addResetMapButton() %>%
     addPolygons(stroke = TRUE, color = "#444444",
                 weight = 1, smoothFactor = 0,
@@ -921,9 +785,6 @@ output$snapshotmap <- renderLeaflet({
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
               },
               title = "PWD") %>%
-    addLayersControl(position = "bottomright",
-                     baseGroups = c("Esri", "CartoDB"),
-                     options = layersControlOptions(collapsed = FALSE)) %>%
     addSearchOSM(options = searchOptions(autoCollapse = FALSE, minLength = 3,
                                          position = "topleft", zoom = 15,
                                          autoResize = FALSE,
@@ -931,31 +792,157 @@ output$snapshotmap <- renderLeaflet({
   
 })
 
-# # Click event for the map
-# click_snapshotmap <- eventReactive(input$snapshotmap_shape_click, {
-#   
-#   x <- input$snapshotmap_shape_click
-#   y <- x$id
-#   
-#   return(y)
-#   
-# })
-
-# # Add the clicked state to the map, and remove when a new one is clicked
-# observe({
-#   
-#   req(click_snapshotmap())
-#   
-#   snapshotmap <- leafletProxy("snapshotmap") %>%
-#     removeShape("highlight_tract") %>%
-#     addPolygons(data = city_tract_sf()[city_tract_sf()$GEOID == click_snapshotmap(), ], 
-#                 fill = FALSE, weight = 3,
-#                 color = "#000000", opacity = 1, layerId = "highlight_tract")
-#   
-# })
-
 withSpinner(leafletOutput("snapshotmap"))
 
+
+```
+
+</div>
+
+## Row
+
+<div role="region" aria-labelledby="section-city-summary">
+
+### 
+
+```{r city-summary}
+
+output$city_summary <- renderUI({
+  
+  create_number_percent_string <- function(num, pct) {
+    
+    #PCT requires special handling if it's NA because we want to construct it like " (NA%)"
+    if(is.na(pct)) {
+      pct_string <- " (NA%)"
+    } else {
+      pct_string <- paste0(" (",
+                     scales::percent(as.numeric(pct), 
+                        accuracy = 0.1,
+                        scale = 1),
+                     ")")
+    }
+    
+    string <- paste0(num, pct_string)
+    
+    return(string)
+  }
+  
+  # Overview text
+  city_summary_text <- paste0(
+    "<h5>People with Disabilities - Summary Tables</h5><b/>",
+    "Based on ACS 2022 5-Year Estimates, <b>", 
+    city_place() %>%
+      pull(pwd_total),
+    "</b> of the city's <b>",
+    city_place() %>%
+      pull(pop_total),
+    "</b> residents (<b>",
+    city_place() %>%
+      pull(pwd_pct),
+    "%</b>) are people with disabilities.<br>")
+  
+  # # Summary tables side by side
+  # # Create individual summary tables
+  # # Demographics
+  city_summary_demo <- city_place() %>%
+    mutate(
+      "White" = create_number_percent_string(pwd_white_nonhisp, pwd_white_nonhisp_dis_pct),
+      "Black" =  create_number_percent_string(pwd_black, pwd_black_dis_pct),
+      "Hispanic" = create_number_percent_string(pwd_hisp, pwd_hisp_dis_pct),
+      "Asian" = create_number_percent_string(pwd_asian, pwd_asian_dis_pct),
+      "Other" = create_number_percent_string(pwd_other_multiple, pwd_other_multiple_dis_pct),
+      "<b>Total" =
+        paste0(pwd_total,
+               "</b>"),
+      .keep = "none"
+    ) %>%
+    pivot_longer(everything(),
+                 names_to = "Race/Ethnicity",
+                 values_to = "PWD (%)") %>%
+    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
+    
+    pull(Bullets) %>%
+    str_c(collapse = "")
+
+  # Poverty
+    city_summary_poverty <- city_place() %>%
+    mutate(
+      "People With Disabilities Living In Poverty" = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
+      "People Without Disabilities Living In Poverty" =  create_number_percent_string(pwod_below_poverty, pwod_below_poverty_pct),
+      .keep = "none"
+    ) %>%
+    pivot_longer(everything(),
+                 names_to = "Race/Ethnicity",
+                 values_to = "PWD (%)") %>%
+    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
+
+    pull(Bullets) %>%
+    str_c(collapse = "")
+
+  # # Community Participation
+  city_summary_cp <- city_place() %>%
+    mutate(
+      "Car" = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
+      "Public Transit" =  create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
+      "Walk or Bike" = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
+      "<b>Total" =
+        paste0(pwd_total_commute,
+               "</b>"),
+      .keep = "none"
+    ) %>%
+    pivot_longer(everything(),
+                 names_to = "Transportation, Workers 16+",
+                 values_to = "PWD (%)") %>%
+    mutate("Bullets" = paste0('<li>', `Transportation, Workers 16+`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
+    pull(Bullets) %>%
+    str_c(collapse = "")
+
+  # # Work/Economic
+  city_summary_we <- city_place() %>%
+    mutate("Employed" = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
+              "Not in Labor Force" = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj),
+              "<b>Total" = paste0(pwd_16_plus_subj,"</b>"),
+              .keep = "none") %>%
+    pivot_longer(everything(),
+                 names_to = "Employment, 16+",
+                 values_to = "PWD (%)") %>%
+    mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
+                              `PWD (%)`, '</li>')) %>%
+
+    pull(Bullets) %>%
+    str_c(collapse = "")
+  
+  # Place dataframes in 3 columns side-by-side
+  city_summary_tables <- paste0('<div class = "row">',
+                                '<div class = "col-md-4">',
+                                '<b>Race/Ethnicity</b><ul>',
+                                city_summary_demo,
+                                '</ul></div>',
+                                '<div class = "col-md-4">',
+                                '<b>Living In Poverty</b><ul>',
+                                city_summary_poverty,
+                                '</ul></div>',
+                                '<div class = "col-md-4">',
+                                '<b>Transportation, Workers 16+</b><ul>',
+                                city_summary_cp,
+                                '</ul></div>',
+                                '<div class = "col-md-4">',
+                                '<b>Employment, 16+</b><ul>',
+                                city_summary_we,
+                                '</ul></div>',
+                                '</div>')
+  
+  
+  
+  # UI Output
+  HTML(paste(city_summary_text, city_summary_tables, sep = ""))
+  
+})
+
+withSpinner(uiOutput("city_summary"))
 
 ```
 
