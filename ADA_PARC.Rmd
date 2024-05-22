@@ -111,8 +111,8 @@ us_states <- us_states %>%
       .default = X
     ),
     y_lab = case_when(
-      STUSPS == "DC" ~ Y - 120000,
-      STUSPS == "DE" ~ Y + 40000,
+      STUSPS == "DC" ~ Y - 180000,
+      STUSPS == "DE" ~ Y + 100000,
       STUSPS == "NH" ~ Y - 40000,
       STUSPS == "VT" ~ Y + 40000,
       STUSPS == "MD" ~ Y - 40000,
