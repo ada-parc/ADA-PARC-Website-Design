@@ -141,7 +141,7 @@ Use the **National Data** tab to examine the status of people with disabilities 
 
 Use the **City Data** tab to investigate people with disabilities statistics at the municipal level.
 
-Use the **Accessibility** tab to set color palettes for the visualizations in this dashboard.
+Use the **Settings** tab to set color palettes for the visualizations in this dashboard.
 
 <br>
 
@@ -963,7 +963,7 @@ withSpinner(leafletOutput("snapshotmap"))
 
 </div>
 
-# Accessibility
+# Settings
 
 <div role="main">
 
