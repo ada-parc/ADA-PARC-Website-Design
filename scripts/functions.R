@@ -347,9 +347,9 @@ render_national_map <- function(category,
           x_lab = if_else(STUSPS %in% east_coast_states_to_relocate,
                       2300000,
                       X),
-          y_lab = if_else(STUSPS == "DC",
-                      Y - 40000,
-                      Y)
+          y_lab = case_when(STUSPS == "DC" ~ Y - 40000,
+                            STUSPS == "DE" ~ Y + 40000,
+                            .default = Y)
         )
       
       
