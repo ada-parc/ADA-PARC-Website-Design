@@ -417,9 +417,13 @@ render_national_map <- function(category,
       plot_1_title <- "People with Disabilities"
       plot_2_title <- "People without Disabilities"
       
-      legend_title_comp <- str_trim(str_replace_all(legend_title_comp,
-                                                    " (with|without) Disabilities", ""))
-
+      legend_title_comp <-
+        str_trim(str_replace_all(legend_title_comp,
+                                 " (with|without) Disabilities", ""))
+      
+      legend_title_comp <-
+        str_trim(str_replace_all(legend_title_comp,
+                                 " (with|without) Disability", ""))
       
       us_states_with_data <- us_states %>%
         left_join(variable_dataset) %>% 
