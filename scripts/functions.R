@@ -315,32 +315,57 @@ render_national_map <- function(category,
       select(NAME, estimate = sym(selected))
     
     if (!is_comp) {
-      us_states <- us_states %>%
+      
+      #TODO: 
+      # Add in a label geometry (separate from centroid geometry)
+      
+      us_states_with_data <- us_states %>%
         left_join(variable_dataset)
       
       # Calculate quantile breaks and create custom labels
       breaks <-
-        quantile(us_states$estimate,
+        quantile(us_states_with_data$estimate,
                  probs = seq(0, 1, length.out = 5),
                  na.rm = TRUE)
       labels <-
         paste0(round(breaks[-length(breaks)]), "%-", round(breaks[-1]), "%")
       
-      us_states <- us_states %>%
+      # Inspired by this manual project
+      east_coast_states_to_relocate <- c("RI", "DE", "DC")
+      
+      us_states_with_data <- us_states_with_data %>%
+        left_join(us_states_with_data %>% 
+                    sf::st_set_geometry(NULL) %>%
+                    bind_cols(us_states %>%
+                                sf::st_centroid() %>%
+                                sf::st_coordinates() %>% as_tibble())) %>% 
         mutate(estimate_cat = cut(
           estimate,
           breaks = breaks,
           include.lowest = TRUE,
-          labels = labels
-        ))
+          labels = labels),
+          x_lab = if_else(STUSPS %in% east_coast_states_to_relocate,
+                      2300000,
+                      X),
+          y_lab = if_else(STUSPS == "DC",
+                      Y - 40000,
+                      Y)
+        )
       
       
       palette <-
         brewer.pal(4, palette_selected) # Change to "YlOrRd" or "GnBu" as needed
       
       # Create the map
-      ggplot(data = us_states) +
+      ggplot(data = us_states_with_data) +
         geom_sf(aes(fill = estimate_cat)) +
+        geom_text(data = us_states_with_data,
+                  aes(label = STUSPS,
+                      x = x_lab,
+                      y = y_lab)) +
+        geom_segment(data = us_states_with_data %>%
+                       filter(STUSPS %in% east_coast_states_to_relocate), 
+                     aes(X, Y, xend = x_lab - 100000, yend = y_lab))+
         scale_fill_manual(values = palette, name = legend_title) +
         theme_void() +
         theme(
@@ -350,7 +375,8 @@ render_national_map <- function(category,
           legend.text = element_text(size = 10),
           legend.title.align = 0.5,
           legend.box = "horizontal",
-          legend.box.just = "center"
+          legend.box.just = "center",
+          panel.background = element_rect(fill = "transparent")
         ) +
         guides(
           fill = guide_legend(
