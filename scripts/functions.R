@@ -316,9 +316,6 @@ render_national_map <- function(category,
     
     if (!is_comp) {
       
-      #TODO: 
-      # Add in a label geometry (separate from centroid geometry)
-      
       us_states_with_data <- us_states %>%
         left_join(variable_dataset)
       
@@ -330,27 +327,13 @@ render_national_map <- function(category,
       labels <-
         paste0(round(breaks[-length(breaks)]), "%-", round(breaks[-1]), "%")
       
-      # Inspired by this manual project
-      east_coast_states_to_relocate <- c("RI", "DE", "DC")
-      
-      us_states_with_data <- us_states_with_data %>%
-        left_join(us_states_with_data %>% 
-                    sf::st_set_geometry(NULL) %>%
-                    bind_cols(us_states %>%
-                                sf::st_centroid() %>%
-                                sf::st_coordinates() %>% as_tibble())) %>% 
+
+      us_states_with_data <- us_states_with_data  %>% 
         mutate(estimate_cat = cut(
           estimate,
           breaks = breaks,
           include.lowest = TRUE,
-          labels = labels),
-          x_lab = if_else(STUSPS %in% east_coast_states_to_relocate,
-                      2300000,
-                      X),
-          y_lab = case_when(STUSPS == "DC" ~ Y - 40000,
-                            STUSPS == "DE" ~ Y + 40000,
-                            .default = Y)
-        )
+          labels = labels))
       
       
       palette <-
@@ -365,7 +348,7 @@ render_national_map <- function(category,
                       y = y_lab)) +
         geom_segment(data = us_states_with_data %>%
                        filter(STUSPS %in% east_coast_states_to_relocate), 
-                     aes(X, Y, xend = x_lab - 100000, yend = y_lab))+
+                     aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
         scale_fill_manual(values = palette, name = legend_title) +
         theme_void() +
         theme(
@@ -403,7 +386,7 @@ render_national_map <- function(category,
         pull(var_readable)
       
       variable_dataset <- data_for_states %>%
-        select(NAME,
+        select(STUSPS = ABBR,
                estimate = sym(selected),
                estimate_2 = sym(comp_var)) %>%
         mutate(estimate = as.numeric(gsub(
@@ -438,7 +421,7 @@ render_national_map <- function(category,
                                                     " (with|without) Disabilities", ""))
 
       
-      us_states <- us_states %>%
+      us_states_with_data <- us_states %>%
         left_join(variable_dataset) %>% 
         mutate(estimate_cat = cut(estimate, breaks = breaks, include.lowest = TRUE, labels = labels),
                estimate_2_cat = cut(estimate_2, breaks = breaks, include.lowest = TRUE, labels = labels))
@@ -446,9 +429,16 @@ render_national_map <- function(category,
       palette <- brewer.pal(4, "YlOrBr")
       
 
-      map1 <- ggplot(data = us_states) +
+      map1 <- ggplot(data = us_states_with_data) +
         geom_sf(aes(fill = estimate_cat)) +
-        scale_fill_manual(values = palette, name = "Estimate") +
+        geom_text(data = us_states_with_data,
+                  aes(label = STUSPS,
+                      x = x_lab,
+                      y = y_lab)) +
+        geom_segment(data = us_states_with_data %>%
+                       filter(STUSPS %in% east_coast_states_to_relocate), 
+                     aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
+        scale_fill_manual(values = palette) +
         ggtitle(plot_1_title) +
         theme_void() +
         theme(
@@ -456,9 +446,16 @@ render_national_map <- function(category,
         )
       
       # Create the second map for 'estimate_2'
-      map2 <- ggplot(data = us_states) +
+      map2 <- ggplot(data = us_states_with_data) +
         geom_sf(aes(fill = estimate_2_cat)) +
-        scale_fill_manual(values = palette, name = "Estimate") +
+        geom_text(data = us_states_with_data,
+                  aes(label = STUSPS,
+                      x = x_lab,
+                      y = y_lab)) +
+        geom_segment(data = us_states_with_data %>%
+                       filter(STUSPS %in% east_coast_states_to_relocate), 
+                     aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
+        scale_fill_manual(values = palette) +
         ggtitle(plot_2_title) +
         theme_void() +
         theme(
@@ -467,9 +464,9 @@ render_national_map <- function(category,
       
       # Extract the legend from one of the maps
       legend <- cowplot::get_legend(
-        ggplot(data = us_states) +
+        ggplot(data = us_states_with_data) +
           geom_sf(aes(fill = estimate_cat)) +
-          scale_fill_manual(values = palette, name = "Estimate") +
+          scale_fill_manual(values = palette, name = legend_title_comp) +
           theme_void() +
           theme(
             legend.position = "bottom",

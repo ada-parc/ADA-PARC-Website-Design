@@ -86,9 +86,40 @@ tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
 # Read in variable dictionary manually
 dict_vars <- read_csv(here::here("data", "dict_vars.csv"))
 
+east_coast_states_to_relocate <- c("RI", "DE", "DC", "MD")
+
 us_states <- states(cb = TRUE, resolution = "20m") %>%
   shift_geometry() %>%
   sf::st_cast("MULTIPOLYGON")
+
+us_states <- us_states %>% 
+  left_join(
+    us_states %>%
+      sf::st_drop_geometry() %>%
+      bind_cols(
+        us_states %>%
+          sf::st_centroid() %>%
+          sf::st_coordinates() %>% 
+          as_tibble()
+      )
+  ) %>% 
+  mutate(
+    x_lab = case_when(
+      STUSPS %in% east_coast_states_to_relocate ~ 2300000,
+      STUSPS == "FL" ~ X + 80000,
+      STUSPS == "LA" ~ X - 60000,
+      .default = X
+    ),
+    y_lab = case_when(
+      STUSPS == "DC" ~ Y - 120000,
+      STUSPS == "DE" ~ Y + 40000,
+      STUSPS == "NH" ~ Y - 40000,
+      STUSPS == "VT" ~ Y + 40000,
+      STUSPS == "MD" ~ Y - 40000,
+      STUSPS == "LA" ~ Y + 40000,
+      .default = Y
+    )
+  )
 
 ### ----- Functions import -----
 
