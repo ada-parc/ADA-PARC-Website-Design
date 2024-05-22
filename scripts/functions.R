@@ -84,12 +84,6 @@ render_national_map <- function(category,
     data_for_states <- eval(sym(str_remove(category, "^is_"))) %>%
       filter(ABBR != "USA")
     
-    no_classes <- 4
-    
-    # p1
-    legend_title <-
-      paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
-    
     variable_column <- data_for_states %>% pull(!!sym(selected))
     
     if (class(variable_column) == "character") {
@@ -98,14 +92,6 @@ render_national_map <- function(category,
       variable_column <- as.numeric(gsub("[,]", "", variable_column))
       
     }
-    
-    quartiles <- quantile(variable_column,
-                          probs = seq(0, 1, length.out = 4 + 1),
-                          na.rm = TRUE)
-    
-    
-    
-    labels <- set_quartile_labels(quartiles, 4, selected)
     
     # isCompVar
     display_type <- dict_vars %>%
@@ -119,6 +105,9 @@ render_national_map <- function(category,
       select(NAME, estimate = sym(selected))
     
     if (!is_comp) {
+      
+      legend_title <-
+        paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
       
       us_states_with_data <- us_states %>%
         left_join(variable_dataset)
@@ -202,7 +191,7 @@ render_national_map <- function(category,
           pattern = "[,]",
           replacement = "",
           x = estimate_2
-        )),)
+        )))
       
       # Combine PWD and PWOD
       combined_var <- c(variable_dataset$estimate, variable_dataset$estimate_2)
@@ -217,10 +206,6 @@ render_national_map <- function(category,
       legend_title_comp <-
         paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
       
-      
-      plot_1_title <- "People with Disabilities"
-      plot_2_title <- "People without Disabilities"
-      
       legend_title_comp <-
         str_trim(str_replace_all(legend_title_comp,
                                  " (with|without) Disabilities", ""))
@@ -229,10 +214,25 @@ render_national_map <- function(category,
         str_trim(str_replace_all(legend_title_comp,
                                  " (with|without) Disability", ""))
       
+      plot_1_title <- "People with Disabilities"
+      plot_2_title <- "People without Disabilities"
+      
       us_states_with_data <- us_states %>%
-        left_join(variable_dataset) %>% 
-        mutate(estimate_cat = cut(estimate, breaks = breaks, include.lowest = TRUE, labels = labels),
-               estimate_2_cat = cut(estimate_2, breaks = breaks, include.lowest = TRUE, labels = labels))
+        left_join(variable_dataset) %>%
+        mutate(
+          estimate_cat = factor(cut(
+            estimate,
+            breaks = breaks,
+            include.lowest = TRUE,
+            labels = labels
+          ), levels = labels),
+          estimate_2_cat = factor(cut(
+            estimate_2,
+            breaks = breaks,
+            include.lowest = TRUE,
+            labels = labels
+          ), levels = labels)
+        )
       
       palette <- brewer.pal(4, "YlOrBr")
       
@@ -246,7 +246,7 @@ render_national_map <- function(category,
         geom_segment(data = us_states_with_data %>%
                        filter(STUSPS %in% east_coast_states_to_relocate), 
                      aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
-        scale_fill_manual(values = palette) +
+        scale_fill_manual(values = palette, drop = FALSE) +
         ggtitle(plot_1_title) +
         theme_void() +
         theme(
@@ -263,18 +263,20 @@ render_national_map <- function(category,
         geom_segment(data = us_states_with_data %>%
                        filter(STUSPS %in% east_coast_states_to_relocate), 
                      aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
-        scale_fill_manual(values = palette) +
+        scale_fill_manual(values = palette, drop = FALSE) +
         ggtitle(plot_2_title) +
         theme_void() +
         theme(
           legend.position = "none" # Hide legend for the second map
         )
       
+      
       # Extract the legend from one of the maps
       legend <- cowplot::get_legend(
         ggplot(data = us_states_with_data) +
           geom_sf(aes(fill = estimate_cat)) +
-          scale_fill_manual(values = palette, name = legend_title_comp) +
+          # geom_sf(aes(fill = estimate_2_cat)) +
+          scale_fill_manual(values = palette, name = legend_title_comp, drop = FALSE) +
           theme_void() +
           theme(
             legend.position = "bottom",
