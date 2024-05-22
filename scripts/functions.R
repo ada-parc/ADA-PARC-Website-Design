@@ -376,7 +376,6 @@ render_national_map <- function(category,
           legend.title.align = 0.5,
           legend.box = "horizontal",
           legend.box.just = "center",
-          panel.background = element_rect(fill = "transparent")
         ) +
         guides(
           fill = guide_legend(
