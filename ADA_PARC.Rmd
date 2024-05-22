@@ -784,7 +784,7 @@ output$snapshotmap <- renderLeaflet({
                 n = length(cuts)
                 paste0(as.numeric(cuts)[-n], " &ndash; ", as.numeric(cuts)[-1])
               },
-              title = "PWD") %>%
+              title = "# People With Disabilities") %>%
     addSearchOSM(options = searchOptions(autoCollapse = FALSE, minLength = 3,
                                          position = "topleft", zoom = 15,
                                          autoResize = FALSE,
@@ -829,7 +829,7 @@ output$city_summary <- renderUI({
   
   # Overview text
   city_summary_text <- paste0(
-    "<h5>People with Disabilities - Summary Tables</h5><b/>",
+    "<h5>People with Disabilities - Summary Tables</h5>",
     "Based on ACS 2022 5-Year Estimates, <b>", 
     city_place() %>%
       pull(pwd_total),
@@ -839,7 +839,7 @@ output$city_summary <- renderUI({
     "</b> residents (<b>",
     city_place() %>%
       pull(pwd_pct),
-    "%</b>) are people with disabilities.<br>")
+    "%</b>) are people with disabilities.<br><br>")
   
   # # Summary tables side by side
   # # Create individual summary tables
