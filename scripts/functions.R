@@ -61,14 +61,7 @@ format_ranges <- function(breaks, col_name) {
   if (grepl("pct", col_name, ignore.case = TRUE)) {
     # Format as percentages
     
-    if(any(breaks > 1)) {
-      formatted_breaks <- breaks
-    } else {
-
-      formatted_breaks <- round(breaks * 100)
-    }
-    
-    formatted_ranges <- paste0(head(formatted_breaks, -1), "%-", tail(formatted_breaks, -1), "%")
+    formatted_ranges <- paste0(head(breaks, -1), "%-", tail(breaks, -1), "%")
   } else {
     # Format with commas for large numbers
     formatted_breaks <- formatC(breaks, format = "f", big.mark = ",", digits = 0)
