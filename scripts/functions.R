@@ -111,18 +111,6 @@ render_national_map <- function(category,
       stop("selected must be a character string")
     }
     
-    data_for_states <- eval(sym(str_remove(category, "^is_"))) %>%
-      filter(ABBR != "USA")
-    
-    variable_column <- data_for_states %>% pull(!!sym(selected))
-    
-    if (class(variable_column) == "character") {
-      # remove all commas and decimals from a number, cast as numeric.
-      
-      variable_column <- as.numeric(gsub("[,]", "", variable_column))
-      
-    }
-    
     # isCompVar
     display_type <- dict_vars %>%
       filter(var_readable == selected, !!sym(category)) %>%
@@ -131,8 +119,8 @@ render_national_map <- function(category,
     is_comp <- ifelse(display_type == "comp",
                       TRUE, FALSE)
     
-    variable_dataset <- data_for_states %>%
-      select(NAME, estimate = sym(selected))
+    palette <-
+      brewer.pal(4, palette_selected)
     
     if (!is_comp) {
       
@@ -140,14 +128,23 @@ render_national_map <- function(category,
         paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
       
       us_states_with_data <- us_states %>%
-        left_join(variable_dataset)
-      
+        left_join(
+          eval(sym(str_remove(category, "^is_"))) %>%
+            filter(ABBR != "USA") %>%
+            select(NAME, estimate = sym(selected)) %>%
+            mutate(estimate = as.numeric(
+              gsub(
+                pattern = "[,]",
+                replacement = "",
+                x = estimate
+              )
+            ))
+        )
+
       # Calculate quantile breaks and create custom labels
       breaks <- get_quartile_buckets(us_states_with_data$estimate)
       
       labels <- set_quartile_labels(breaks, selected)
-        # paste0(round(breaks[-length(breaks)], digits = 3), "%-", round(breaks[-1], digits = 3), "%")
-      
 
       us_states_with_data <- us_states_with_data  %>% 
         mutate(estimate_cat = cut(
@@ -155,10 +152,6 @@ render_national_map <- function(category,
           breaks = breaks,
           include.lowest = TRUE,
           labels = labels))
-      
-      
-      palette <-
-        brewer.pal(4, palette_selected) # Change to "YlOrRd" or "GnBu" as needed
       
       # Create the map
       ggplot(data = us_states_with_data) +
@@ -195,9 +188,7 @@ render_national_map <- function(category,
       
       
     } else {
-      # side-by-side plots/comp (plot_1, plot_2)
-      # Define variables
-      
+
       base_var <- dict_vars %>%
         filter(var_readable == selected, !!sym(category)) %>%
         pull(var_base)
@@ -206,27 +197,58 @@ render_national_map <- function(category,
         filter(var_base == base_var, var_readable != selected) %>%
         pull(var_readable)
       
-      variable_dataset <- data_for_states %>%
-        select(STUSPS = ABBR,
-               estimate = sym(selected),
-               estimate_2 = sym(comp_var)) %>%
-        mutate(estimate = as.numeric(gsub(
-          pattern = "[,]",
-          replacement = "",
-          x = estimate
-        )),
-        estimate_2 = as.numeric(gsub(
-          pattern = "[,]",
-          replacement = "",
-          x = estimate_2
-        )))
+      us_states_with_data <- us_states %>%
+        left_join(
+          eval(sym(str_remove(category, "^is_"))) %>%
+            filter(ABBR != "USA") %>%
+            select(
+              STUSPS = ABBR,
+              estimate = sym(selected),
+              estimate_2 = sym(comp_var)
+            ) %>%
+            mutate(estimate = as.numeric(
+              gsub(
+                pattern = "[,]",
+                replacement = "",
+                x = estimate
+              )
+            ),
+            estimate_2 = as.numeric(
+              gsub(
+                pattern = "[,]",
+                replacement = "",
+                x = estimate_2
+              )
+            )))
       
       # Combine PWD and PWOD
-      combined_var <- c(variable_dataset$estimate, variable_dataset$estimate_2)
+      combined_var <- c(us_states_with_data$estimate, us_states_with_data$estimate_2)
       
       breaks <- get_quartile_buckets(combined_var)
       
       labels <- set_quartile_labels(breaks, base_var)
+      
+      us_states_with_data <- us_states_with_data %>% 
+        mutate(
+        estimate_cat = factor(
+          cut(
+            estimate,
+            breaks = breaks,
+            include.lowest = TRUE,
+            labels = labels
+          ),
+          levels = labels
+        ),
+        estimate_2_cat = factor(
+          cut(
+            estimate_2,
+            breaks = breaks,
+            include.lowest = TRUE,
+            labels = labels
+          ),
+          levels = labels
+        )
+      )
       
       # Map title reworking
       legend_title_comp <-
@@ -242,25 +264,6 @@ render_national_map <- function(category,
       
       plot_1_title <- "People with Disabilities"
       plot_2_title <- "People without Disabilities"
-      
-      us_states_with_data <- us_states %>%
-        left_join(variable_dataset) %>%
-        mutate(
-          estimate_cat = factor(cut(
-            estimate,
-            breaks = breaks,
-            include.lowest = TRUE,
-            labels = labels
-          ), levels = labels),
-          estimate_2_cat = factor(cut(
-            estimate_2,
-            breaks = breaks,
-            include.lowest = TRUE,
-            labels = labels
-          ), levels = labels)
-        )
-      
-      palette <- brewer.pal(4, "YlOrBr")
       
 
       map1 <- ggplot(data = us_states_with_data) +
@@ -301,7 +304,6 @@ render_national_map <- function(category,
       legend <- cowplot::get_legend(
         ggplot(data = us_states_with_data) +
           geom_sf(aes(fill = estimate_cat)) +
-          # geom_sf(aes(fill = estimate_2_cat)) +
           scale_fill_manual(values = palette, name = legend_title_comp, drop = FALSE) +
           theme_void() +
           theme(
@@ -317,9 +319,9 @@ render_national_map <- function(category,
             fill = guide_legend(
               title.position = "top",
               title.hjust = 0.5,
-              label.position = "bottom", # Move labels below the legend keys
-              label.hjust = 0.5, # Center the labels below the legend keys
-              nrow = 1 # Ensure the legend items are in a single row
+              label.position = "bottom",
+              label.hjust = 0.5,
+              nrow = 1
             )
           )
       )
