@@ -72,31 +72,21 @@ format_ranges <- function(breaks, col_name) {
 
 render_national_map <- function(category,
                                 selected,
-                                palette_selected = "YlOrBr",
-                                output_asp_ratio = 0.45) {
+                                palette_selected = "YlOrBr") {
   # Static check
-  # category <- "is_community_participation"
   # selected <- "pwd_19_64_insured_public_pct"
   # palette_selected <- "YlOrBr"
   # output_asp_ratio <- 0.45
   
-  # category <- "is_community_living"
-  # selected <- "pwd_grpquarters_institution"
-  
-    if (!is.character(category)) {
-      stop("category must be a character string")
-    }
-    if (!is.character(selected)) {
-      stop("selected must be a character string")
-    }
+  # selected <- "pwd_housing_choice_voucher_pct"
     
-    # isCompVar
-    display_type <- dict_vars %>%
-      filter(var_readable == selected, !!sym(category)) %>%
-      pull(display_type)
-    
-    is_comp <- ifelse(display_type == "comp",
-                      TRUE, FALSE)
+  is_comp <- dict_vars %>%
+    filter(var_readable == selected, !!sym(category)) %>%
+    pull(display_type) %>%
+    head(1) %>%
+    {
+      . == "comp"
+    } 
     
     palette <-
       brewer.pal(4, palette_selected)
