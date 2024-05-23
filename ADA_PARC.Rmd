@@ -25,36 +25,28 @@ resource_files:
 
 ```{r setup, include=FALSE}
 
-### ----- Libraries -----
+### ----- Packages ----- 
 
-# Install from devtools non-CRAN packages as needed
-# devtools::install_github("daattali/shinycssloaders", ref = "rmarkdown") # rmarkdown branch must be installed and cssloaders_in_header.html must exist
-library(devtools)
-# devtools::install_github("UrbanInstitute/urbnmapr")
-
-# Packages
-library(reactlog)
 library(tidyverse)
 library(patchwork)
-library(kableExtra)
-library(tigris); library(sf)
-library(urbnmapr)
-library(leaflet); library(leaflet.extras)
+# library(tigris); 
+library(sf)
+library(leaflet)
+library(leaflet.extras)
 library(htmltools)
-library(shiny); library(shinycssloaders)
-library(shinyWidgets); library(flexdashboard)
+library(shiny)
+library(shinycssloaders)
+library(shinyWidgets)
+library(flexdashboard)
 library(colourpicker)
 library(scales)
 library(tableHTML)
-library(hrbrthemes); library(ggthemes)
+library(hrbrthemes)
+library(ggthemes)
 library(extrafont)
-library(plotly)
 library(sf)
-library(ggplot2)
-library(dplyr)
 library(tigris)
 library(RColorBrewer)
-library(tidyverse)
 library(cowplot)
 
 options(scipen = 999999,
@@ -123,8 +115,6 @@ us_states <- us_states %>%
 
 ### ----- Functions import -----
 
-
-# Load API keys and database connection information
 source(here::here("scripts", "functions.R"), local = TRUE)
 
 ```

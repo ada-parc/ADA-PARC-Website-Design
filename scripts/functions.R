@@ -20,32 +20,59 @@ altTitle <- function(variable) {
   
 }
 
+# Get non-overlapping quartile buckets
+get_quartile_buckets <- function(estimate_vector) {
+  
+  probs <- seq(0, 1, length.out = 5)
+  
+  quantiles <- quantile(estimate_vector, probs, na.rm = TRUE)
+  
+  round_dynamic <- function(x, precision) {
+    return(round(x, digits = precision))
+  }
+  
+  adjust_precision <- function(quantiles) {
+    precision <- 0
+    for (i in 2:length(quantiles)) {
+      while (round_dynamic(quantiles[i-1], precision) >= round_dynamic(quantiles[i], precision)) {
+        precision <- precision + 1
+      }
+    }
+    return(precision)
+  }
+  
+  precision <- adjust_precision(quantiles)
+  rounded_quantiles <- sapply(quantiles, function(x) round_dynamic(x, precision))
+  
+  return(rounded_quantiles)
+}
+
 
 # Set quartiles
-set_quartile_labels <- function(quartiles, no_classes, selected) {
+set_quartile_labels <- function(quartiles, col_name) {
 
-  labels <- c()
-  
-  # Custom labels based on percent or value
-  for(idx in 1:length(quartiles)){
-    if(grepl("pct", selected)) {
-      
-      # Percent, add divide by 100, add symbol to text
-      labels <- c(labels, paste0(scales::percent(quartiles[idx] / 100), 
-                                 "-", 
-                                 scales::percent(quartiles[idx + 1] / 100)))
+  print(paste0(quartiles, ", ", col_name))
+  if (grepl("pct", col_name, ignore.case = TRUE)) {
+    # Format as percentages
+    if (any(quartiles > 1)) {
+      formatted_buckets <- quartiles
       
     } else {
-      
-      # Values
-      labels <- c(labels, paste0(scales::comma(quartiles[idx]), 
-                                 "-", 
-                                 scales::comma(quartiles[idx + 1])))
+      formatted_buckets <- round(quartiles * 100)
     }
+    
+    formatted_ranges <- paste0(head(formatted_buckets, -1), "%-", tail(formatted_buckets, -1), "%")
+    
+  } else {
+    # Format with commas for large numbers
+    formatted_buckets <- formatC(quartiles, format = "f", big.mark = ",", digits = 0)
+    formatted_ranges <- paste(head(formatted_buckets, -1), tail(formatted_buckets, -1), sep = "-")
   }
+  return(formatted_ranges)
+  
   # Remove last label which will have NA
-  rtn_labels <- labels[1:length(labels)-1]
-  return(rtn_labels)
+  # rtn_labels <- labels[1:length(labels)-1]
+  # return(rtn_labels)
 }
 
 # Abbreviates values for large numbers in render_tile_map
@@ -73,6 +100,9 @@ render_national_map <- function(category,
   # selected <- "pwd_19_64_insured_public_pct"
   # palette_selected <- "YlOrBr"
   # output_asp_ratio <- 0.45
+  
+  # category <- "is_community_living"
+  # selected <- "pwd_grpquarters_noninstitution_pct"
   
     if (!is.character(category)) {
       stop("category must be a character string")
@@ -113,12 +143,10 @@ render_national_map <- function(category,
         left_join(variable_dataset)
       
       # Calculate quantile breaks and create custom labels
-      breaks <-
-        quantile(us_states_with_data$estimate,
-                 probs = seq(0, 1, length.out = 5),
-                 na.rm = TRUE)
-      labels <-
-        paste0(round(breaks[-length(breaks)]), "%-", round(breaks[-1]), "%")
+      breaks <- get_quartile_buckets(us_states_with_data$estimate)
+      
+      labels <- set_quartile_labels(breaks, selected)
+        # paste0(round(breaks[-length(breaks)], digits = 3), "%-", round(breaks[-1], digits = 3), "%")
       
 
       us_states_with_data <- us_states_with_data  %>% 
@@ -196,11 +224,9 @@ render_national_map <- function(category,
       # Combine PWD and PWOD
       combined_var <- c(variable_dataset$estimate, variable_dataset$estimate_2)
       
-      breaks <- quantile(combined_var,
-                            probs = seq(0, 1, length.out = 5),
-                            na.rm = TRUE)
+      breaks <- get_quartile_buckets(combined_var)
       
-      labels <- set_quartile_labels(breaks, 4, base_var)
+      labels <- set_quartile_labels(breaks, base_var)
       
       # Map title reworking
       legend_title_comp <-
