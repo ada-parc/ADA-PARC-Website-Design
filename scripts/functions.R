@@ -20,20 +20,28 @@ altTitle <- function(variable) {
   
 }
 
-# Get non-overlapping quartile buckets
-get_quartile_buckets <- function(estimate_vector) {
+# Create non-overlapping quartile buckets
+create_non_overlapping_buckets <- function(data) {
   
   probs <- seq(0, 1, length.out = 5)
   
-  quantiles <- quantile(estimate_vector, probs, na.rm = TRUE)
+  quantiles <- quantile(data, probs, na.rm=TRUE)
   
   round_dynamic <- function(x, precision) {
-    return(round(x, digits = precision))
+    return(round(x * 10^precision) / 10^precision)
+  }
+  
+  floor_dynamic <- function(x, precision) {
+    return(floor(x * 10^precision) / 10^precision)
+  }
+  
+  ceiling_dynamic <- function(x, precision) {
+    return(ceiling(x * 10^precision) / 10^precision)
   }
   
   adjust_precision <- function(quantiles) {
     precision <- 0
-    for (i in 2:length(quantiles)) {
+    for (i in 2:(length(quantiles) - 1)) {
       while (round_dynamic(quantiles[i-1], precision) >= round_dynamic(quantiles[i], precision)) {
         precision <- precision + 1
       }
@@ -42,54 +50,48 @@ get_quartile_buckets <- function(estimate_vector) {
   }
   
   precision <- adjust_precision(quantiles)
-  rounded_quantiles <- sapply(quantiles, function(x) round_dynamic(x, precision))
+  bounds <- sapply(quantiles, function(x) round_dynamic(x, precision))
+  bounds[1] <- floor_dynamic(quantiles[1], precision)
+  bounds[length(bounds)] <- ceiling_dynamic(quantiles[length(quantiles)], precision)
   
-  return(rounded_quantiles)
+  return(bounds)
 }
 
-
-# Set quartiles
-set_quartile_labels <- function(quartiles, col_name) {
-
-  print(paste0(quartiles, ", ", col_name))
+format_ranges <- function(breaks, col_name) {
   if (grepl("pct", col_name, ignore.case = TRUE)) {
     # Format as percentages
-    if (any(quartiles > 1)) {
-      formatted_buckets <- quartiles
-      
+    
+    if(any(breaks > 1)) {
+      formatted_breaks <- breaks
     } else {
-      formatted_buckets <- round(quartiles * 100)
+
+      formatted_breaks <- round(breaks * 100)
     }
     
-    formatted_ranges <- paste0(head(formatted_buckets, -1), "%-", tail(formatted_buckets, -1), "%")
-    
+    formatted_ranges <- paste0(head(formatted_breaks, -1), "%-", tail(formatted_breaks, -1), "%")
   } else {
     # Format with commas for large numbers
-    formatted_buckets <- formatC(quartiles, format = "f", big.mark = ",", digits = 0)
-    formatted_ranges <- paste(head(formatted_buckets, -1), tail(formatted_buckets, -1), sep = "-")
+    formatted_breaks <- formatC(breaks, format = "f", big.mark = ",", digits = 0)
+    formatted_ranges <- paste(head(formatted_breaks, -1), tail(formatted_breaks, -1), sep = "-")
   }
   return(formatted_ranges)
-  
-  # Remove last label which will have NA
-  # rtn_labels <- labels[1:length(labels)-1]
-  # return(rtn_labels)
 }
 
 # Abbreviates values for large numbers in render_tile_map
-abbreviate_number <- function(x)
-{
-  x <- x / 1000000
-  # print(x)
-  
-  if (x >= 1) {
-    return(paste0(round(x, 1), "M"))
-  } else {
-    x <- x * 1000
-    return(paste0(round(x, 0), "K"))
-  }
-}
-
-abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to perform operation row-wise
+# abbreviate_number <- function(x)
+# {
+#   x <- x / 1000000
+#   # print(x)
+#   
+#   if (x >= 1) {
+#     return(paste0(round(x, 1), "M"))
+#   } else {
+#     x <- x * 1000
+#     return(paste0(round(x, 0), "K"))
+#   }
+# }
+# 
+# abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to perform operation row-wise
 
 render_national_map <- function(category,
                                 selected,
@@ -102,7 +104,7 @@ render_national_map <- function(category,
   # output_asp_ratio <- 0.45
   
   # category <- "is_community_living"
-  # selected <- "pwd_grpquarters_noninstitution_pct"
+  # selected <- "pwd_grpquarters_institution"
   
     if (!is.character(category)) {
       stop("category must be a character string")
@@ -142,14 +144,15 @@ render_national_map <- function(category,
         )
 
       # Calculate quantile breaks and create custom labels
-      breaks <- get_quartile_buckets(us_states_with_data$estimate)
+
+      buckets <- create_non_overlapping_buckets(us_states_with_data$estimate)
       
-      labels <- set_quartile_labels(breaks, selected)
+      labels <- format_ranges(buckets, selected)
 
       us_states_with_data <- us_states_with_data  %>% 
         mutate(estimate_cat = cut(
           estimate,
-          breaks = breaks,
+          breaks = buckets,
           include.lowest = TRUE,
           labels = labels))
       
@@ -224,9 +227,8 @@ render_national_map <- function(category,
       # Combine PWD and PWOD
       combined_var <- c(us_states_with_data$estimate, us_states_with_data$estimate_2)
       
-      breaks <- get_quartile_buckets(combined_var)
-      
-      labels <- set_quartile_labels(breaks, base_var)
+      buckets <- create_non_overlapping_buckets(us_states_with_data$estimate)
+      labels <- format_ranges(buckets, selected)
       
       us_states_with_data <- us_states_with_data %>% 
         mutate(
