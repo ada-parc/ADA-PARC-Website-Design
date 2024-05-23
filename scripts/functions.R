@@ -77,22 +77,6 @@ format_ranges <- function(breaks, col_name) {
   return(formatted_ranges)
 }
 
-# Abbreviates values for large numbers in render_tile_map
-# abbreviate_number <- function(x)
-# {
-#   x <- x / 1000000
-#   # print(x)
-#   
-#   if (x >= 1) {
-#     return(paste0(round(x, 1), "M"))
-#   } else {
-#     x <- x * 1000
-#     return(paste0(round(x, 0), "K"))
-#   }
-# }
-# 
-# abbreviate_number <- Vectorize(abbreviate_number) # Must be vectorized to perform operation row-wise
-
 render_national_map <- function(category,
                                 selected,
                                 palette_selected = "YlOrBr",
@@ -227,8 +211,8 @@ render_national_map <- function(category,
       # Combine PWD and PWOD
       combined_var <- c(us_states_with_data$estimate, us_states_with_data$estimate_2)
       
-      buckets <- create_non_overlapping_buckets(us_states_with_data$estimate)
-      labels <- format_ranges(buckets, selected)
+      breaks <- create_non_overlapping_buckets(combined_var)
+      labels <- format_ranges(breaks, selected)
       
       us_states_with_data <- us_states_with_data %>% 
         mutate(
