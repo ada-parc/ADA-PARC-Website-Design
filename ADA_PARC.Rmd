@@ -14,13 +14,10 @@ resource_files:
 - scripts/functions.R
 - data/dict_vars.csv
 - data/final/city_place_full.Rds
-- data/final/community_living.Rds
-- data/final/community_participation.Rds
-- data/final/demographics.Rds
 - data/final/dict_location_crosswalk.Rds
 - data/final/tract_data.Rds
 - data/final/tracts_sf.Rds
-- data/final/work_economic.Rds
+- data/final/national_data.Rds
 ---
 
 ```{r setup, include=FALSE}
@@ -261,11 +258,6 @@ national_variable_choices <- reactive({
   tibble::deframe(
     dict_vars %>%
       filter(!!sym(national_category_selected()) == TRUE,
-             var_readable %in% (
-               national_data %>%
-                 select(-c(GEOID, NAME, ABBR)) %>%
-                 names()
-             ),
              !is.na(national_dropdown_label)) %>%
       select(national_dropdown_label, var_readable)
   )
