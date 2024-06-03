@@ -70,18 +70,17 @@ format_ranges <- function(breaks, col_name) {
   return(formatted_ranges)
 }
 
-render_national_map <- function(category,
-                                selected,
+render_national_map <- function(selected,
                                 palette_selected = "YlOrBr") {
-  # Static check
+  # Static check (Standalone, Comp, HUD Source)
+  # selected <- "pwd_pct"
   # selected <- "pwd_19_64_insured_public_pct"
-  # palette_selected <- "YlOrBr"
-  # output_asp_ratio <- 0.45
-  
   # selected <- "pwd_housing_choice_voucher_pct"
+  # Comp Map:
+  # selected <- "pwd_unemployed_pct"
     
   is_comp <- dict_vars %>%
-    filter(var_readable == selected, !!sym(category)) %>%
+    filter(var_readable == selected) %>%
     pull(display_type) %>%
     head(1) %>%
     {
@@ -97,18 +96,13 @@ render_national_map <- function(category,
         paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
       
       us_states_with_data <- us_states %>%
-        left_join(
-          eval(sym(str_remove(category, "^is_"))) %>%
-            filter(ABBR != "USA") %>%
-            select(NAME, estimate = sym(selected)) %>%
-            mutate(estimate = as.numeric(
-              gsub(
-                pattern = "[,]",
-                replacement = "",
-                x = estimate
-              )
-            ))
-        )
+        filter(ABBR != "USA") %>%
+        select(1:8, estimate = sym(selected)) %>%
+        mutate(estimate = as.numeric(gsub(
+          pattern = "[,]",
+          replacement = "",
+          x = estimate
+        )))
 
       # Calculate quantile breaks and create custom labels
 
@@ -127,11 +121,11 @@ render_national_map <- function(category,
       ggplot(data = us_states_with_data) +
         geom_sf(aes(fill = estimate_cat)) +
         geom_text(data = us_states_with_data,
-                  aes(label = STUSPS,
+                  aes(label = ABBR,
                       x = x_lab,
                       y = y_lab)) +
         geom_segment(data = us_states_with_data %>%
-                       filter(STUSPS %in% east_coast_states_to_relocate), 
+                       filter(ABBR %in% east_coast_states_to_relocate), 
                      aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
         scale_fill_manual(values = palette, name = legend_title) +
         theme_void() +
@@ -160,7 +154,7 @@ render_national_map <- function(category,
     } else {
 
       base_var <- dict_vars %>%
-        filter(var_readable == selected, !!sym(category)) %>%
+        filter(var_readable == selected) %>%
         pull(var_base)
       
       comp_var <- dict_vars %>%
@@ -168,28 +162,20 @@ render_national_map <- function(category,
         pull(var_readable)
       
       us_states_with_data <- us_states %>%
-        left_join(
-          eval(sym(str_remove(category, "^is_"))) %>%
-            filter(ABBR != "USA") %>%
-            select(
-              STUSPS = ABBR,
-              estimate = sym(selected),
-              estimate_2 = sym(comp_var)
-            ) %>%
-            mutate(estimate = as.numeric(
-              gsub(
-                pattern = "[,]",
-                replacement = "",
-                x = estimate
-              )
-            ),
-            estimate_2 = as.numeric(
-              gsub(
-                pattern = "[,]",
-                replacement = "",
-                x = estimate_2
-              )
-            )))
+        filter(ABBR != "USA") %>%
+        select(1:8, 
+               estimate = sym(selected),
+               estimate_2 = sym(comp_var)) %>%
+        mutate(estimate = as.numeric(gsub(
+          pattern = "[,]",
+          replacement = "",
+          x = estimate
+        )),
+        estimate_2 = as.numeric(gsub(
+          pattern = "[,]",
+          replacement = "",
+          x = estimate_2
+        )))
       
       # Combine PWD and PWOD
       combined_var <- c(us_states_with_data$estimate, us_states_with_data$estimate_2)
@@ -238,11 +224,11 @@ render_national_map <- function(category,
       map1 <- ggplot(data = us_states_with_data) +
         geom_sf(aes(fill = estimate_cat)) +
         geom_text(data = us_states_with_data,
-                  aes(label = STUSPS,
+                  aes(label = ABBR,
                       x = x_lab,
                       y = y_lab)) +
         geom_segment(data = us_states_with_data %>%
-                       filter(STUSPS %in% east_coast_states_to_relocate), 
+                       filter(ABBR %in% east_coast_states_to_relocate), 
                      aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
         scale_fill_manual(values = palette, drop = FALSE) +
         ggtitle(plot_1_title) +
@@ -255,11 +241,11 @@ render_national_map <- function(category,
       map2 <- ggplot(data = us_states_with_data) +
         geom_sf(aes(fill = estimate_2_cat)) +
         geom_text(data = us_states_with_data,
-                  aes(label = STUSPS,
+                  aes(label = ABBR,
                       x = x_lab,
                       y = y_lab)) +
         geom_segment(data = us_states_with_data %>%
-                       filter(STUSPS %in% east_coast_states_to_relocate), 
+                       filter(ABBR %in% east_coast_states_to_relocate), 
                      aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
         scale_fill_manual(values = palette, drop = FALSE) +
         ggtitle(plot_2_title) +

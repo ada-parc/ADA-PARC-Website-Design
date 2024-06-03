@@ -29,7 +29,6 @@ resource_files:
 
 library(tidyverse)
 library(patchwork)
-# library(tigris); 
 library(sf)
 library(leaflet)
 library(leaflet.extras)
@@ -61,16 +60,11 @@ knitr::opts_chunk$set(fig.cap = TRUE)
 #################################
 city_place_full <- readRDS(here::here("data", "final", "city_place_full.Rds")) 
 
-community_living <- readRDS(here::here("data", "final", "community_living.Rds")) 
-
-community_participation <- readRDS(here::here("data", "final", "community_participation.Rds"))
-
-demographics <- readRDS(here::here("data", "final", "demographics.Rds"))
-
 dict_location_crosswalk <- readRDS(here::here("data", "final", "dict_location_crosswalk.Rds")) 
 tracts_data <- readRDS(here::here("data", "final", "tracts_data.Rds")) 
 
-work_economic <- readRDS(here::here("data", "final", "work_economic.Rds"))
+national_data <- readRDS(here::here("data", "final", "national_data.Rds")) %>% arrange(GEOID)
+
 
 tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
 
@@ -82,7 +76,8 @@ east_coast_states_to_relocate <- c("RI", "DE", "DC", "MD")
 
 us_states <- states(cb = TRUE, resolution = "20m") %>%
   shift_geometry() %>%
-  sf::st_cast("MULTIPOLYGON")
+  sf::st_cast("MULTIPOLYGON") %>% 
+  select(GEOID, ABBR = STUSPS, NAME, geometry)
 
 us_states <- us_states %>% 
   left_join(
@@ -97,21 +92,22 @@ us_states <- us_states %>%
   ) %>% 
   mutate(
     x_lab = case_when(
-      STUSPS %in% east_coast_states_to_relocate ~ 2300000,
-      STUSPS == "FL" ~ X + 80000,
-      STUSPS == "LA" ~ X - 60000,
+      ABBR %in% east_coast_states_to_relocate ~ 2300000,
+      ABBR == "FL" ~ X + 80000,
+      ABBR == "LA" ~ X - 60000,
       .default = X
     ),
     y_lab = case_when(
-      STUSPS == "DC" ~ Y - 180000,
-      STUSPS == "DE" ~ Y + 100000,
-      STUSPS == "NH" ~ Y - 40000,
-      STUSPS == "VT" ~ Y + 40000,
-      STUSPS == "MD" ~ Y - 40000,
-      STUSPS == "LA" ~ Y + 40000,
+      ABBR == "DC" ~ Y - 180000,
+      ABBR == "DE" ~ Y + 100000,
+      ABBR == "NH" ~ Y - 40000,
+      ABBR == "VT" ~ Y + 40000,
+      ABBR == "MD" ~ Y - 40000,
+      ABBR == "LA" ~ Y + 40000,
       .default = Y
     )
-  )
+  ) %>% 
+  left_join(national_data)
 
 ### ----- Functions import -----
 
@@ -256,18 +252,6 @@ national_category_selected <- reactive({
   
 })
 
-
-### ----- National data  ------
-
-
-# Select dataframe for national data tab
-national_data <- reactive({
-  
-  eval(sym(str_remove(national_category_selected(), "^is_")))
-  
-})
-
-
 ### ----- Variable selector  ------
 
 
@@ -278,7 +262,7 @@ national_variable_choices <- reactive({
     dict_vars %>%
       filter(!!sym(national_category_selected()) == TRUE,
              var_readable %in% (
-               national_data() %>%
+               national_data %>%
                  select(-c(GEOID, NAME, ABBR)) %>%
                  names()
              ),
@@ -352,7 +336,7 @@ output$national_map_summary <- renderUI({
   
   HTML(
     paste0(
-      altText(national_data(), 
+      altText(national_data, 
               national_variable_selected), full_text)
   )
   
@@ -401,8 +385,7 @@ withSpinner(uiOutput("national_map_title"))
 
 output$national_ggmap <- renderPlot({
   
-  render_national_map(national_category_selected(),
-                      national_variable_selected(), 
+  render_national_map(national_variable_selected(), 
                       access_map_palette_selected())
   
 })
@@ -476,7 +459,7 @@ table_caption <- reactive({
 # Reorganize dataframe, switch to pretty names
 national_data_table_friendly <- reactive({
   
-  national_data() %>%
+  national_data %>%
     arrange(GEOID) %>% 
     mutate("State" = paste0(NAME
     )
