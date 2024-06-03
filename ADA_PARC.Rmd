@@ -18,6 +18,7 @@ resource_files:
 - data/final/tract_data.Rds
 - data/final/tracts_sf.Rds
 - data/final/national_data.Rds
+- data/final/tracts_data.Rds
 ---
 
 ```{r setup, include=FALSE}
@@ -60,8 +61,7 @@ city_place_full <- readRDS(here::here("data", "final", "city_place_full.Rds"))
 dict_location_crosswalk <- readRDS(here::here("data", "final", "dict_location_crosswalk.Rds")) 
 tracts_data <- readRDS(here::here("data", "final", "tracts_data.Rds")) 
 
-national_data <- readRDS(here::here("data", "final", "national_data.Rds")) %>% arrange(GEOID)
-
+national_data <- readRDS(here::here("data", "final", "national_data.Rds")) 
 
 tracts_sf <- readRDS(here::here("data", "final", "tracts_sf.Rds"))
 
