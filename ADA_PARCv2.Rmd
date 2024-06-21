@@ -915,72 +915,74 @@ withSpinner(uiOutput("city_summary"))
 
 </div>
 
-```{r}
 
 # About
 
-#Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of ten Americans with Disabilities Act (ADA) Regional Centers.
+```{r about_documentation}
 
-#<br>
+# creating separate 'About' page per website re-design vision
+
+```
+
+Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of ten Americans with Disabilities Act (ADA) Regional Centers.
+
+<br>
 
 #### Purpose of ADA-PARC
 
-#The ADA-PARC research has four purposes:
+The ADA-PARC research has four purposes:
 
-#1.  **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
-#2.  **To identify & examine key environmental factors** contributing to these disparities
-#3.  **To benchmark participation disparities and highlight promising practices** at state & city levels
-#4.  **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
+1.  **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
+2.  **To identify & examine key environmental factors** contributing to these disparities
+3.  **To benchmark participation disparities and highlight promising practices** at state & city levels
+4.  **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
 
-#<br>
+<br>
 
 #### The Work of the ADA-PARC
 
-#The ADA-PARC has research teams focused on Community Living, Community Participation & Work/Economic Participation measures and uses Regional Steering Committees in each of the ten participating regions to gather, review, and choose appropriate data to achieve the project's purposes. The data are mainly from national data sources that have enough statistical power to be relevant on the local level.
+The ADA-PARC has research teams focused on Community Living, Community Participation & Work/Economic Participation measures and uses Regional Steering Committees in each of the ten participating regions to gather, review, and choose appropriate data to achieve the project's purposes. The data are mainly from national data sources that have enough statistical power to be relevant on the local level.
 
-#The intent of this effort is to use this information to inform:
+The intent of this effort is to use this information to inform:
 
-#1.  ADA Center technical assistance and resource dissemination, and
-#2.  Community level stakeholders to increase participation opportunities in their communities.
+1.  ADA Center technical assistance and resource dissemination, and
+2.  Community level stakeholders to increase participation opportunities in their communities.
 
-#<br>
+<br>
 
 #### Who is the ADA-PARC
 
-#The ten participating ADA-Regional Centers in the ADA-PARC are:
+The ten participating ADA-Regional Centers in the ADA-PARC are:
 
-#-   Region 1 New England ADA Center
-#-   Region 2 Northeast ADA Center
-#-   Region 3 Mid-Atlantic ADA Center
-#-   Region 4 Southeast ADA Center
-#-   Region 5 Great Lakes ADA Center
-#-   Region 6 Southwest ADA Center
-#-   Region 7 Great Plains ADA Center
-#-   Region 8 Rocky Mountain ADA Center
-#-   Region 9 Pacific ADA Center
-#-   Region 10 Northwest ADA Center
+-   Region 1 New England ADA Center
+-   Region 2 Northeast ADA Center
+-   Region 3 Mid-Atlantic ADA Center
+-   Region 4 Southeast ADA Center
+-   Region 5 Great Lakes ADA Center
+-   Region 6 Southwest ADA Center
+-   Region 7 Great Plains ADA Center
+-   Region 8 Rocky Mountain ADA Center
+-   Region 9 Pacific ADA Center
+-   Region 10 Northwest ADA Center
 
-#Other institutions collaborating in the ADA-PARC are:
+Other institutions collaborating in the ADA-PARC are:
 
-#-   The ADA Knowledge Translation Center
-#-   The Center on Disability at the Public Health Institute
-#-   TIRR Memorial Hermann
-#-   Syracuse University
-#-   The University of Illinois at Chicago
-#-   The University of Northern Colorado
+-   The ADA Knowledge Translation Center
+-   The Center on Disability at the Public Health Institute
+-   TIRR Memorial Hermann
+-   Syracuse University
+-   The University of Illinois at Chicago
+-   The University of Northern Colorado
 
-#<br>
+<br>
 
-#<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%">
+<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%">
 
-#<br>
+<br>
 
-#The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
+The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
 
-#The ADA Participation Action Consortium is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government.
-
-
-```
+The ADA Participation Action Consortium is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government.
 
 
 # Settings
