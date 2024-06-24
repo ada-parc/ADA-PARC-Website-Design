@@ -19,6 +19,9 @@ resource_files:
 - data/final/tracts_sf.Rds
 - data/final/national_data.Rds
 - data/final/tracts_data.Rds
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -119,107 +122,54 @@ source(here::here("scripts", "functions.R"), local = TRUE)
 <br>
 
 #### How to Navigate<br>this Website
+
+<br> Use the **National Data** tab to examine the status of people with
+disabilities at the national and state level.
+
+Use the **City Data** tab to investigate people with disabilities
+statistics at the municipal level.
+
+Use the **Settings** tab to set color palettes for the visualizations in
+this dashboard.
+
 <br>
-Use the **National Data** tab to examine the status of people with disabilities at the national and state level.
 
-Use the **City Data** tab to investigate people with disabilities statistics at the municipal level.
+**Questions?** <br> [Contact Joy Hammel (email)](mailto:hammel@uic.edu)
+<br> Director of Graduate Studies <br> UIC College of Applied Health
+Sciences
 
-Use the **Settings** tab to set color palettes for the visualizations in this dashboard.
+Application authors: <br> Ethan Jantz, Sean Connelly, Jane Huber, and
+Randy D. Colón <br> [UIC Voorhees
+Center](https://voorheescenter.uic.edu/)
 
-<br>
-
-**Questions?** <br>
-[Contact Joy Hammel (email)](mailto:hammel@uic.edu) <br>
-Director of Graduate Studies <br>
-UIC College of Applied Health Sciences
-
-Application authors: <br>
-Ethan Jantz, Sean Connelly, Jane Huber, and Randy D. Colón <br>
-[UIC Voorhees Center](https://voorheescenter.uic.edu/)
-
-<div role="main">
-
+::: {role="main"}
 ## Row
 
 ### 
 
 <br>
 
-Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of ten Americans with Disabilities Act (ADA) Regional Centers.
+Welcome to the ADA-PARC website. The ADA-PARC is a collaborative
+research project of ten Americans with Disabilities Act (ADA) Regional
+Centers.
+
+Since ADA...
 
 <br>
+:::
 
-#### Purpose of ADA-PARC
-
-The ADA-PARC research has four purposes:
-
-1.  **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
-2.  **To identify & examine key environmental factors** contributing to these disparities
-3.  **To benchmark participation disparities and highlight promising practices** at state & city levels
-4.  **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
-
-<br>
-
-#### The Work of the ADA-PARC
-
-The ADA-PARC has research teams focused on Community Living, Community Participation & Work/Economic Participation measures and uses Regional Steering Committees in each of the ten participating regions to gather, review, and choose appropriate data to achieve the project's purposes. The data are mainly from national data sources that have enough statistical power to be relevant on the local level.
-
-The intent of this effort is to use this information to inform:
-
-1.  ADA Center technical assistance and resource dissemination, and
-2.  Community level stakeholders to increase participation opportunities in their communities.
-
-<br>
-
-#### Who is the ADA-PARC
-
-The ten participating ADA-Regional Centers in the ADA-PARC are:
-
--   Region 1 New England ADA Center
--   Region 2 Northeast ADA Center
--   Region 3 Mid-Atlantic ADA Center
--   Region 4 Southeast ADA Center
--   Region 5 Great Lakes ADA Center
--   Region 6 Southwest ADA Center
--   Region 7 Great Plains ADA Center
--   Region 8 Rocky Mountain ADA Center
--   Region 9 Pacific ADA Center
--   Region 10 Northwest ADA Center
-
-Other institutions collaborating in the ADA-PARC are:
-
--   The ADA Knowledge Translation Center
--   The Center on Disability at the Public Health Institute
--   TIRR Memorial Hermann
--   Syracuse University
--   The University of Illinois at Chicago
--   The University of Northern Colorado
-
-<br>
-
-<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%">
-
-<br>
-
-#### About this Website
-
-The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
-
-The ADA Participation Action Consortium is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government.
-
-</div>
-
-<div role="main">
-
+::: {role="main"}
 # National Data
 
-<div role="region" aria-labelledby="sidebar">
-
+::: {role="region" aria-labelledby="sidebar"}
 ## Sidebar {.sidebar}
 
 <br>
 
-To explore the data first select a category and then a topic. You can navigate the boxes below using the mouse or keyboard. For keyboard users, once the box is highlighted you can press backspace and begin typing the selection into the box.
+To explore the data first select a category and then a topic. You can
+navigate the boxes below using the mouse or keyboard. For keyboard
+users, once the box is highlighted you can press backspace and begin
+typing the selection into the box.
 
 ```{r national-sidebar, context="server", message=FALSE, warning=FALSE, fig.alt = "A sidebar containing two drop down menus. One selects a category, and the other selects a topic within that category. These other elements of this page will change based on the selected category and topic."}
 
@@ -337,14 +287,11 @@ output$national_map_summary <- renderUI({
 withSpinner(uiOutput("national_map_summary"))
 
 ```
+:::
 
-</div>
+## Row {data-height="50"}
 
-## Row {data-height=50}
-
-<div role="region" aria-labelledby="section-national-title">
-
-
+::: {role="region" aria-labelledby="section-national-title"}
 ```{r national-map-title, fig.alt = "Map title the selected topic."}
 
 output$national_map_title <- renderUI({
@@ -364,13 +311,11 @@ withSpinner(uiOutput("national_map_title"))
 
 
 ```
-
-</div>
+:::
 
 ## Row
 
-<div role="region" aria-labelledby="section-state-by-state-map-of-selected-topic">
-
+::: {role="region" aria-labelledby="section-state-by-state-map-of-selected-topic"}
 ### 
 
 ```{r national-map, out.width = "100%", fig.align = "center", fig.cap= "A map of the United States, with each state shaded according to the quartiles described in the summary.", fig.alt= "A map of the United States, with each state shaded according to the quartiles described in the summary."}
@@ -401,14 +346,13 @@ uiOutput("national_map")
 # )
 
 ```
+:::
 
-</div>
+## Row
 
-## Row 
+::: {role="region" aria-labelledby="section-table-of-selected-topic"}
+###  {.table-wrapper}
 
-<div role="region" aria-labelledby="section-table-of-selected-topic">
-
-### {.table-wrapper}
 ```{r national-table, fig.alt = "Data table including state-level data for variables relevant to the selected topic."}
 
 # Get variable group based on selected variable
@@ -517,19 +461,18 @@ output$national_table <- renderUI({
 withSpinner(uiOutput("national_table"))
 
 ```
+:::
+:::
 
-</div>
-
-</div>
-
-<div role="main">
-
+::: {role="main"}
 # City Data
 
 ## Sidebar {.sidebar}
 
-To explore the data select a city below. You can navigate the selection boxes using the mouse or keyboard. For keyboard users, once the box is highlighted you can press backspace and begin typing the selection into the box. A state must be selected first.
-
+To explore the data select a city below. You can navigate the selection
+boxes using the mouse or keyboard. For keyboard users, once the box is
+highlighted you can press backspace and begin typing the selection into
+the box. A state must be selected first.
 
 ```{r city-sidebar}
 
@@ -645,11 +588,9 @@ city_tract <- reactive ({
 })
 ```
 
-## Row {data-height=50}
+## Row {data-height="50"}
 
-<div role="region" aria-labelledby="section-national-title">
-
-
+::: {role="region" aria-labelledby="section-national-title"}
 ```{r city-map-title, fig.alt = "City Map Title"}
 
 output$city_map_title <- renderUI({
@@ -670,14 +611,11 @@ output$city_map_title <- renderUI({
 withSpinner(uiOutput("city_map_title"))
 
 ```
-
-</div>
-
+:::
 
 ## Row
 
-<div role="region" aria-labelledby="section-people-with-disabilities-map">
-
+::: {role="region" aria-labelledby="section-people-with-disabilities-map"}
 ### 
 
 ```{r city-pwd-map, fig.alt="Map of people with disabilities by census tract in the selected city", context="server"}
@@ -761,13 +699,11 @@ withSpinner(leafletOutput("snapshotmap"))
 
 
 ```
-
-</div>
+:::
 
 ## Row
 
-<div role="region" aria-labelledby="section-city-summary">
-
+::: {role="region" aria-labelledby="section-city-summary"}
 ### 
 
 ```{r city-summary}
@@ -910,11 +846,10 @@ output$city_summary <- renderUI({
 withSpinner(uiOutput("city_summary"))
 
 ```
+:::
+:::
 
-</div>
-
-</div>
-
+:::{role="main"}
 
 # About
 
@@ -924,7 +859,9 @@ withSpinner(uiOutput("city_summary"))
 
 ```
 
-Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research project of ten Americans with Disabilities Act (ADA) Regional Centers.
+Welcome to the ADA-PARC website. The ADA-PARC is a collaborative
+research project of ten Americans with Disabilities Act (ADA) Regional
+Centers.
 
 <br>
 
@@ -932,21 +869,32 @@ Welcome to the ADA-PARC website. The ADA-PARC is a collaborative research projec
 
 The ADA-PARC research has four purposes:
 
-1.  **To look at participation disparities** experienced by people with disabilities post ADA & Olmstead
-2.  **To identify & examine key environmental factors** contributing to these disparities
-3.  **To benchmark participation disparities and highlight promising practices** at state & city levels
-4.  **To action-plan strategies for dissemination and utilization of findings** to be used by ADA Centers and others in community capacity building & systems change initiatives
+1.  **To look at participation disparities** experienced by people with
+    disabilities post ADA & Olmstead
+2.  **To identify & examine key environmental factors** contributing to
+    these disparities
+3.  **To benchmark participation disparities and highlight promising
+    practices** at state & city levels
+4.  **To action-plan strategies for dissemination and utilization of
+    findings** to be used by ADA Centers and others in community
+    capacity building & systems change initiatives
 
 <br>
 
 #### The Work of the ADA-PARC
 
-The ADA-PARC has research teams focused on Community Living, Community Participation & Work/Economic Participation measures and uses Regional Steering Committees in each of the ten participating regions to gather, review, and choose appropriate data to achieve the project's purposes. The data are mainly from national data sources that have enough statistical power to be relevant on the local level.
+The ADA-PARC has research teams focused on Community Living, Community
+Participation & Work/Economic Participation measures and uses Regional
+Steering Committees in each of the ten participating regions to gather,
+review, and choose appropriate data to achieve the project's purposes.
+The data are mainly from national data sources that have enough
+statistical power to be relevant on the local level.
 
 The intent of this effort is to use this information to inform:
 
 1.  ADA Center technical assistance and resource dissemination, and
-2.  Community level stakeholders to increase participation opportunities in their communities.
+2.  Community level stakeholders to increase participation opportunities
+    in their communities.
 
 <br>
 
@@ -976,19 +924,35 @@ Other institutions collaborating in the ADA-PARC are:
 
 <br>
 
-<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%">
+<img src="./www/participant_logos.png" alt="The ten participating ADA-Regional Centers" width="75%"/>
 
 <br>
 
-The ADA-PARC website is a collection of public data sets that can help shed light on the status of people with disabilities in local communities. The data includes national, state, county, and city data. In addition to Demographic data describing the population, the three main areas of data to illuminate the status of disability in an area are: Community Living, Community Participation and Work & Economics. Each of the three areas presents data in map form as well as in tabular form. A summary of what is important about the data is presented on each page. The data source is described along with the calculation to arrive at the values used in the tables and maps. Data is first presented by state, and then if available, at county and city level.
+The ADA-PARC website is a collection of public data sets that can help
+shed light on the status of people with disabilities in local
+communities. The data includes national, state, county, and city data.
+In addition to Demographic data describing the population, the three
+main areas of data to illuminate the status of disability in an area
+are: Community Living, Community Participation and Work & Economics.
+Each of the three areas presents data in map form as well as in tabular
+form. A summary of what is important about the data is presented on each
+page. The data source is described along with the calculation to arrive
+at the values used in the tables and maps. Data is first presented by
+state, and then if available, at county and city level.
 
-The ADA Participation Action Consortium is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government.
+The ADA Participation Action Consortium is funded by the National
+Institute on Disability, Independent Living, and Rehabilitation Research
+(NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the
+Administration for Community Living (ACL), Department of Health and
+Human Services (HHS). The contents of this website do not necessarily
+represent the policy of NIDILRR, ACL, HHS, and you should not assume
+endorsement by the Federal Government.
 
+:::
 
 # Settings
 
-<div role="main">
-
+::: {role="main"}
 ###  {.long-row}
 
 ```{r accessibility-page-body}
@@ -1028,8 +992,7 @@ ggplot_fill_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggp
 ggplot_color_selected <- reactive({ access_ggplot_theme_choices[[input$access_ggplot_theme]][3] }) 
 
 ```
-
-</div>
+:::
 
 <!-- Custom Javascript  -->
 
@@ -1040,7 +1003,6 @@ Shiny.setInputValue("active_tab", $(e.target).parent().index());
 })
 </script>
 ```
-
 <!-- CSS for dashboard  -->
 
 ```{=html}
@@ -1132,3 +1094,6 @@ overflow-y: scroll;
 
 </style>
 ```
+
+
+
