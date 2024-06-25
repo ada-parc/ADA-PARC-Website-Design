@@ -129,6 +129,10 @@ disabilities at the national and state level.
 Use the **City Data** tab to investigate people with disabilities
 statistics at the municipal level.
 
+Use the **Community Reports** tab to view our state by state report cards.
+
+Use the **About** tab to learn more about the ADA-PARC project. 
+
 Use the **Settings** tab to set color palettes for the visualizations in
 this dashboard.
 
