@@ -167,6 +167,14 @@ rights law which protects people with disabilities from discrimination.
 
 **Since the ADA**, insert preferred info here
 
+<br>
+
+<div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+  <img src="./www/002_Percent of People with Disabilities.png" alt="Percent of People with Disabilities" width="70%">
+</div>
+
+<br>
+
 **Did You Know?**
 <br>
 Insert preferred info here
