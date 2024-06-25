@@ -157,7 +157,19 @@ Welcome to the ADA-PARC website. The ADA-PARC is a collaborative
 research project of ten Americans with Disabilities Act (ADA) Regional
 Centers.
 
-Since ADA...
+**What is the ADA?**
+<br>
+
+Established in 1990, the Americans with Disabilities Act (ADA), is a civil
+rights law which protects people with disabilities from discrimination.
+
+<br>
+
+**Since the ADA**, insert preferred info here
+
+**Did You Know?**
+<br>
+Insert preferred info here
 
 <br>
 :::
