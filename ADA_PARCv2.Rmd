@@ -851,6 +851,19 @@ withSpinner(uiOutput("city_summary"))
 
 :::{role="main"}
 
+# Community Reports
+```{r community_reports_documentation}
+
+# creating a page for the state report cards per website re-design vision
+
+```
+
+Embed report card information here. 
+
+:::
+
+:::{role="main"}
+
 # About
 
 ```{r about_documentation}
