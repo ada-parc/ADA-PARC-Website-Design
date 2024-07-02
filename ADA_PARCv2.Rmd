@@ -48,6 +48,9 @@ library(sf)
 library(tigris)
 library(RColorBrewer)
 library(cowplot)
+library(readxl)
+library(kableExtra)
+
 
 options(scipen = 999999,
         tigris_use_cache = TRUE,
@@ -170,7 +173,7 @@ rights law which protects people with disabilities from discrimination.
 <br>
 
 <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-  <img src="./www/002_Percent of People with Disabilities.png" alt="Percent of People with Disabilities" width="70%">
+  <img src="./www/002_Percent of People with Disabilities.png" alt="Percent of People with Disabilities" width="50%">
 </div>
 
 <br>
@@ -876,13 +879,57 @@ withSpinner(uiOutput("city_summary"))
 :::{role="main"}
 
 # Community Reports
-```{r community_reports_documentation}
+```{r community-living-scorecard-heat-test, echo=FALSE, message=FALSE, warning=FALSE}
 
-# creating a page for the state report cards per website re-design vision
+# Read the first sheet
+file_path <- "community_living_scorecard_heat_test.xlsx"
+sheet1 <- read_excel(file_path, sheet = "Raw Data", skip = 0) 
+
+# Rename columns to improve readability
+colnames(sheet1) <- c("State", 
+                      "% with a disability among head, spouse, co-head of household aged 61 and under: Public Housing", 
+                      "% with a disability among head, spouse, co-head of household aged 61 and under: Housing Choice Vouchers",
+                      "Expenditure Ratio for HCBS vs. Institution", 
+                      "HCBS or Community Waiver Spending ($) per Medicaid Recipient ",
+                      "% of People with a Disability Aged 18-64 Residing in Community",
+                      "% of People with a Disability Aged 18-64 residing in Medical Institutions",
+                      "% of People with Disabilities Residing in a Correctional Facility")
+
+# Make the 'INDEX' column bold
+sheet1 <- sheet1 %>%
+  mutate(across(where(is.numeric), ~ round(., 2)))
+
+# Display the data from the first sheet in a neat table format
+sheet1 %>%
+  kable("html", caption = "Raw Data - Community Living") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+# Read the second sheet
+sheet2 <- read_excel(file_path, sheet = "Index", skip = 0)
+
+# Rename columns to improve readability
+colnames(sheet2) <- c("State", 
+                      "Head of Household in Public Housing 61 and under with a Disability", 
+                      "Head of Household Housing Choice Vouchers 61 and under with a Disability",
+                      "Ratio HCBS to instititutional expenditure",
+                      "HCBS Spending on waivers(amount per medicaid recipient",
+                      "PWD in Community Living (18-64 age)",
+                      "PWD in Medical Institutions (18-64 age)",
+                      "PWD in Correctional Facilities (18-64 age) ",
+                      "INDEX")
+
+# Make the 'INDEX' column bold
+sheet2 <- sheet2 %>%
+  mutate(across(where(is.numeric), ~ round(., 2))) %>%
+  mutate(INDEX = cell_spec(INDEX, "html", bold = TRUE))
+
+# Display the data from the second sheet in a neat table format
+sheet2 %>%
+  kable("html", escape = FALSE, caption = "Index - Community Living") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 
 ```
 
-Embed report card information here. 
 
 :::
 
