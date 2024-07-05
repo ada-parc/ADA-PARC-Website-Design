@@ -145,7 +145,7 @@ this dashboard.
 <br> Director of Graduate Studies <br> UIC College of Applied Health
 Sciences
 
-Application authors: <br> Ethan Jantz, Sean Connelly, Jane Huber, and
+Application authors: <br> Ethan Jantz, Sean Connelly, Jane Huber,Colin Heeneman, and
 Randy D. Colón <br> [UIC Voorhees
 Center](https://voorheescenter.uic.edu/)
 
@@ -183,7 +183,28 @@ rights law which protects people with disabilities from discrimination.
 Insert preferred info here
 
 <br>
+
+**Grant Identifying Information**
+<br>
+
+input info here
+
+<br>
 :::
+
+
+```{r}
+
+
+
+
+
+
+
+
+
+```
+
 
 ::: {role="main"}
 # National Data
@@ -918,16 +939,42 @@ colnames(sheet2) <- c("State",
                       "PWD in Correctional Facilities (18-64 age) ",
                       "INDEX")
 
-# Make the 'INDEX' column bold
+# Ensure the INDEX column is numeric
 sheet2 <- sheet2 %>%
   mutate(across(where(is.numeric), ~ round(., 2))) %>%
-  mutate(INDEX = cell_spec(INDEX, "html", bold = TRUE))
+  mutate(INDEX = as.numeric(INDEX))
 
-# Display the data from the second sheet in a neat table format
+# Create a heatmap visualization for the 'INDEX' column
 sheet2 %>%
-  kable("html", escape = FALSE, caption = "Index - Community Living") %>%
+  mutate(INDEX = cell_spec(INDEX, "html", bold = TRUE, color = "white",
+                           background = spec_color(INDEX, end = 0.7, option = "D"))) %>%
+  kable("html", escape = FALSE, caption = "Index - Community Living ") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 
+
+# Prepare US states map data
+states_map <- map_data("state")
+
+# Merge the map data with your sheet2 data
+sheet2$State <- tolower(sheet2$State)
+states_map <- states_map %>%
+  left_join(sheet2, by = c("region" = "State"))
+
+# Create a ggplot heatmap for the 'INDEX' column
+#community_index_plot <- ggplot(states_map, aes(x = long, y = lat, group = group, fill = INDEX)) +
+  #geom_polygon(color = "white") +
+  #scale_fill_gradient(low = "lightblue", high = "blue", na.value = "grey50") +
+  #theme_minimal() +
+  #theme(axis.text.x = element_blank(),
+        #axis.text.y = element_blank(),
+        #axis.ticks = element_blank(),
+        #axis.title.x = element_blank(),
+       # axis.title.y = element_blank()) +
+  #labs(title = "Heatmap of INDEX Values by State", fill = "INDEX")
+
+
+# Display the plot
+#print(community_index_plot)
 ```
 
 
