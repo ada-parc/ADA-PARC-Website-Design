@@ -415,11 +415,11 @@
       <aliases enabled='yes' />
       <column caption='Abbr' datatype='string' name='[ABBR]' role='dimension' type='nominal' />
       <column caption='Geoid' datatype='integer' name='[GEOID]' role='measure' type='quantitative' />
-      <column caption='INDEX pwd below poverty' datatype='real' name='[INDEX_pwd_below_poverty]' role='measure' type='quantitative' />
-      <column caption='INDEX pwd employed pct' datatype='real' name='[INDEX_pwd_employed_pct]' role='measure' type='quantitative' />
-      <column caption='INDEX pwd groteq 16 med individual income' datatype='real' name='[INDEX_pwd_groteq_16_med_individual_income]' role='measure' type='quantitative' />
-      <column caption='INDEX pwd notlabor pct' datatype='real' name='[INDEX_pwd_notlabor_pct]' role='measure' type='quantitative' />
-      <column caption='INDEX pwd unemployed pct' datatype='real' name='[INDEX_pwd_unemployed_pct]' role='measure' type='quantitative' />
+      <column caption='Below Poverty Index' datatype='real' name='[INDEX_pwd_below_poverty]' role='measure' type='quantitative' />
+      <column caption='Employment Index' datatype='real' name='[INDEX_pwd_employed_pct]' role='measure' type='quantitative' />
+      <column caption='Median Individual Income Index' datatype='real' name='[INDEX_pwd_groteq_16_med_individual_income]' role='measure' type='quantitative' />
+      <column caption='Not in Labor Force Index' datatype='real' name='[INDEX_pwd_notlabor_pct]' role='measure' type='quantitative' />
+      <column caption='Unemployment Index' datatype='real' name='[INDEX_pwd_unemployed_pct]' role='measure' type='quantitative' />
       <column caption='Name' datatype='string' name='[NAME]' role='dimension' semantic-role='[State].[Name]' type='nominal' />
       <column caption='Work Economic Index' datatype='real' name='[WORK_ECONOMIC_INDEX]' role='measure' type='quantitative' />
       <_.fcp.ObjectModelTableType.true...column caption='updated - Final_Updated_Economi' datatype='table' name='[__tableau_internal_object_id__].[updated - Final!Updated!Economi_3AD22612B3354C66A791D412BDEBE82C]' role='measure' type='quantitative' />
@@ -486,7 +486,7 @@
             <mapsource name='Tableau' />
           </mapsources>
           <datasource-dependencies datasource='federated.0h0ukty1o2c1cp1bo90rg1s8przl'>
-            <column caption='INDEX pwd below poverty' datatype='real' name='[INDEX_pwd_below_poverty]' role='measure' type='quantitative' />
+            <column caption='Below Poverty Index' datatype='real' name='[INDEX_pwd_below_poverty]' role='measure' type='quantitative' />
             <column caption='Name' datatype='string' name='[NAME]' role='dimension' semantic-role='[State].[Name]' type='nominal' />
             <column-instance column='[NAME]' derivation='None' name='[none:NAME:nk]' pivot='key' type='nominal' />
             <column-instance column='[INDEX_pwd_below_poverty]' derivation='Sum' name='[sum:INDEX_pwd_below_poverty:qk]' pivot='key' type='quantitative' />
@@ -590,7 +590,7 @@
             <mapsource name='Tableau' />
           </mapsources>
           <datasource-dependencies datasource='federated.0h0ukty1o2c1cp1bo90rg1s8przl'>
-            <column caption='INDEX pwd employed pct' datatype='real' name='[INDEX_pwd_employed_pct]' role='measure' type='quantitative' />
+            <column caption='Employment Index' datatype='real' name='[INDEX_pwd_employed_pct]' role='measure' type='quantitative' />
             <column caption='Name' datatype='string' name='[NAME]' role='dimension' semantic-role='[State].[Name]' type='nominal' />
             <column-instance column='[NAME]' derivation='None' name='[none:NAME:nk]' pivot='key' type='nominal' />
             <column-instance column='[INDEX_pwd_employed_pct]' derivation='Sum' name='[sum:INDEX_pwd_employed_pct:qk]' pivot='key' type='quantitative' />
@@ -691,11 +691,11 @@
             <datasource caption='updated - Updated_Economic_Data (work_economic_excel)' name='federated.0h0ukty1o2c1cp1bo90rg1s8przl' />
           </datasources>
           <datasource-dependencies datasource='federated.0h0ukty1o2c1cp1bo90rg1s8przl'>
-            <column caption='INDEX pwd below poverty' datatype='real' name='[INDEX_pwd_below_poverty]' role='measure' type='quantitative' />
-            <column caption='INDEX pwd employed pct' datatype='real' name='[INDEX_pwd_employed_pct]' role='measure' type='quantitative' />
-            <column caption='INDEX pwd groteq 16 med individual income' datatype='real' name='[INDEX_pwd_groteq_16_med_individual_income]' role='measure' type='quantitative' />
-            <column caption='INDEX pwd notlabor pct' datatype='real' name='[INDEX_pwd_notlabor_pct]' role='measure' type='quantitative' />
-            <column caption='INDEX pwd unemployed pct' datatype='real' name='[INDEX_pwd_unemployed_pct]' role='measure' type='quantitative' />
+            <column caption='Below Poverty Index' datatype='real' name='[INDEX_pwd_below_poverty]' role='measure' type='quantitative' />
+            <column caption='Employment Index' datatype='real' name='[INDEX_pwd_employed_pct]' role='measure' type='quantitative' />
+            <column caption='Median Individual Income Index' datatype='real' name='[INDEX_pwd_groteq_16_med_individual_income]' role='measure' type='quantitative' />
+            <column caption='Not in Labor Force Index' datatype='real' name='[INDEX_pwd_notlabor_pct]' role='measure' type='quantitative' />
+            <column caption='Unemployment Index' datatype='real' name='[INDEX_pwd_unemployed_pct]' role='measure' type='quantitative' />
             <column caption='Name' datatype='string' name='[NAME]' role='dimension' semantic-role='[State].[Name]' type='nominal' />
             <column caption='Work Economic Index' datatype='real' name='[WORK_ECONOMIC_INDEX]' role='measure' type='quantitative' />
             <column-instance column='[NAME]' derivation='None' name='[none:NAME:nk]' pivot='key' type='nominal' />
@@ -761,7 +761,7 @@
             <mapsource name='Tableau' />
           </mapsources>
           <datasource-dependencies datasource='federated.0h0ukty1o2c1cp1bo90rg1s8przl'>
-            <column caption='INDEX pwd groteq 16 med individual income' datatype='real' name='[INDEX_pwd_groteq_16_med_individual_income]' role='measure' type='quantitative' />
+            <column caption='Median Individual Income Index' datatype='real' name='[INDEX_pwd_groteq_16_med_individual_income]' role='measure' type='quantitative' />
             <column caption='Name' datatype='string' name='[NAME]' role='dimension' semantic-role='[State].[Name]' type='nominal' />
             <column-instance column='[NAME]' derivation='None' name='[none:NAME:nk]' pivot='key' type='nominal' />
             <column-instance column='[INDEX_pwd_groteq_16_med_individual_income]' derivation='Sum' name='[sum:INDEX_pwd_groteq_16_med_individual_income:qk]' pivot='key' type='quantitative' />
@@ -855,7 +855,7 @@
       </table>
       <simple-id uuid='{EA3510A7-A973-4041-A712-810800E717C0}' />
     </worksheet>
-    <worksheet name='Not Labor Map'>
+    <worksheet name='Not In Labor Force Map'>
       <table>
         <view>
           <datasources>
@@ -959,7 +959,7 @@
       </table>
       <simple-id uuid='{6F255B42-BF43-4FE9-95D5-B13B1400BB69}' />
     </worksheet>
-    <worksheet name='Unemployed Map'>
+    <worksheet name='Unemployment Map'>
       <table>
         <view>
           <datasources>
@@ -969,7 +969,7 @@
             <mapsource name='Tableau' />
           </mapsources>
           <datasource-dependencies datasource='federated.0h0ukty1o2c1cp1bo90rg1s8przl'>
-            <column caption='INDEX pwd unemployed pct' datatype='real' name='[INDEX_pwd_unemployed_pct]' role='measure' type='quantitative' />
+            <column caption='Unemployment Index' datatype='real' name='[INDEX_pwd_unemployed_pct]' role='measure' type='quantitative' />
             <column caption='Name' datatype='string' name='[NAME]' role='dimension' semantic-role='[State].[Name]' type='nominal' />
             <column-instance column='[NAME]' derivation='None' name='[none:NAME:nk]' pivot='key' type='nominal' />
             <column-instance column='[INDEX_pwd_unemployed_pct]' derivation='Sum' name='[sum:INDEX_pwd_unemployed_pct:qk]' pivot='key' type='quantitative' />
@@ -1200,7 +1200,7 @@
       </viewpoint>
       <simple-id uuid='{8CBDA835-FAE1-4887-967D-0F926827DE90}' />
     </window>
-    <window class='worksheet' maximized='true' name='Work Economic Map'>
+    <window class='worksheet' name='Work Economic Map'>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -1344,7 +1344,7 @@
       </viewpoint>
       <simple-id uuid='{4E1DF0C5-6955-43AE-9241-F598DD2CA685}' />
     </window>
-    <window class='worksheet' name='Not Labor Map'>
+    <window class='worksheet' name='Not In Labor Force Map'>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -1380,7 +1380,7 @@
       </viewpoint>
       <simple-id uuid='{64B7C0C7-E39E-4706-BEE9-D569D3956C06}' />
     </window>
-    <window class='worksheet' name='Unemployed Map'>
+    <window class='worksheet' maximized='true' name='Unemployment Map'>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -2822,7 +2822,7 @@
       ++XMKDhmgGNEhsotye9v5lMr+MO4+DQNsU6+PvHbCIetBh0zwDG6Br+/WZZSERQQ4+sA1Ixy
       WDAcx+lLQ8f4ZIEPfInp20GrgHhm0mEzwn8HXaNxlPOkeNkAAAAASUVORK5CYII=
     </thumbnail>
-    <thumbnail height='192' name='Not Labor Map' width='192'>
+    <thumbnail height='192' name='Not In Labor Force Map' width='192'>
       iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAACXBIWXMAAA7DAAAOwwHHb6hk
       AAAgAElEQVR4nO29aYxkyX0n9ot35lmVdZ9d1cdMd0/33JwZDjkcDi/xpilxtdYCsteG1/Ia
       hmzD+8kf9GEB+8MChv1hYcPw7hoWDK9greW1IIpYSuJyyRE5lDg3556ePuq+j7wz3xX+kBVZ
@@ -3183,7 +3183,7 @@
       3Y7yYeaT6m+W+hyWLyT7jkGc1em7BUP8asoD3BtgxMRMIp45ZO+U1yJ8HexenPbYVskwJpAt
       8vGm3VlYP+Dx/wPV5yxNdBD55wAAAABJRU5ErkJggg==
     </thumbnail>
-    <thumbnail height='192' name='Unemployed Map' width='192'>
+    <thumbnail height='192' name='Unemployment Map' width='192'>
       iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAACXBIWXMAAA7DAAAOwwHHb6hk
       AAAgAElEQVR4nO29aYxcR54n9ot47+WdlXWyWFW8SZGUqIstqdUt9X2pp1szs9vTnu3d8cwY
       NmyMDQNrf/B+2w+GDcNewDYM2DAM2AbGBhazM5gxdgbdvT09fanV6tbROlsSSYkURbKKdVfl
