@@ -900,81 +900,107 @@ withSpinner(uiOutput("city_summary"))
 :::{role="main"}
 
 # Community Reports
-```{r community-living-scorecard-heat-test, echo=FALSE, message=FALSE, warning=FALSE}
 
-# Read the first sheet
-file_path <- "community_living_scorecard_heat_test.xlsx"
-sheet1 <- read_excel(file_path, sheet = "Raw Data", skip = 0) 
+```{r}
+library(shiny)
+library(DT)
+library(readxl)
 
-# Rename columns to improve readability
-colnames(sheet1) <- c("State", 
-                      "% with a disability among head, spouse, co-head of household aged 61 and under: Public Housing", 
-                      "% with a disability among head, spouse, co-head of household aged 61 and under: Housing Choice Vouchers",
-                      "Expenditure Ratio for HCBS vs. Institution", 
-                      "HCBS or Community Waiver Spending ($) per Medicaid Recipient ",
-                      "% of People with a Disability Aged 18-64 Residing in Community",
-                      "% of People with a Disability Aged 18-64 residing in Medical Institutions",
-                      "% of People with Disabilities Residing in a Correctional Facility")
+# Load relative datasets
+relative_community_living_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/between_states/between_states_relative_data/community_living_between_2022_excel.xlsx")
+relative_community_participation_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/between_states/between_states_relative_data/community_participation_between_2022_excel.xlsx")
+relative_work_economic_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/between_states/between_states_relative_data/work_economic_between_2022_excel.xlsx")
 
-# Make the 'INDEX' column bold
-sheet1 <- sheet1 %>%
-  mutate(across(where(is.numeric), ~ round(., 2)))
+# Load equity datasets
+equity_community_living_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/within_states/within_state_disparity_data/community_living_within_2022_excel.xlsx")
+equity_community_participation_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/within_states/within_state_disparity_data/community_participation_within_2022_excel.xlsx")
+equity_work_economic_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/within_states/within_state_disparity_data/work_economic_within_2022_excel.xlsx")
 
-# Display the data from the first sheet in a neat table format
-sheet1 %>%
-  kable("html", caption = "Raw Data - Community Living") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+shinyApp(
+  ui = fluidPage(
+    tags$head(
+      tags$style(HTML("
+        .dataTables_wrapper .dataTables_scrollBody {
+          max-height: 1000px;
+        }
+      "))
+    ),
+    selectInput("dimension", "Select a dimension:", choices = c("Relative Scores", "Equity Scores"), selected = "Relative Scores"),
+    uiOutput("category_selector"),
+    uiOutput("scorecard_output")
+  ),
+  
+  server = function(input, output, session) {
+    
+    # Dynamic UI for category selection based on the selected dimension
+    output$category_selector <- renderUI({
+      req(input$dimension)
+      dimension <- input$dimension
+      
+      if (dimension == "Relative Scores") {
+        selectInput("category", "Select a category:", 
+                    choices = c("Community Living" = "relative_community_living", 
+                                "Community Participation" = "relative_community_participation", 
+                                "Work Economic" = "relative_work_economic"), 
+                    selected = "relative_community_living")
+      } else {
+        selectInput("category", "Select a category:", 
+                    choices = c("Community Living" = "equity_community_living", 
+                                "Community Participation" = "equity_community_participation", 
+                                "Work Economic" = "equity_work_economic"), 
+                    selected = "equity_community_living")
+      }
+    })
+    
+    # Observe the selected dimension and category to render the corresponding scorecard
+    output$scorecard_output <- renderUI({
+      req(input$category)
+      category <- input$category
+      
+      if (category == "relative_community_living") {
+        DT::dataTableOutput("relative_community_living_table")
+      } else if (category == "relative_community_participation") {
+        DT::dataTableOutput("relative_community_participation_table")
+      } else if (category == "relative_work_economic") {
+        DT::dataTableOutput("relative_work_economic_table")
+      } else if (category == "equity_community_living") {
+        DT::dataTableOutput("equity_community_living_table")
+      } else if (category == "equity_community_participation") {
+        DT::dataTableOutput("equity_community_participation_table")
+      } else if (category == "equity_work_economic") {
+        DT::dataTableOutput("equity_work_economic_table")
+      }
+    })
+    
+    # Render Relative Scorecards
+    output$relative_community_living_table <- DT::renderDataTable({
+      DT::datatable(relative_community_living_data, options = list(pageLength = 20, autoWidth = TRUE, scrollY = "600px"))
+    })
+    
+    output$relative_community_participation_table <- DT::renderDataTable({
+      DT::datatable(relative_community_participation_data, options = list(pageLength = 20, autoWidth = TRUE, scrollY = "600px"))
+    })
+    
+    output$relative_work_economic_table <- DT::renderDataTable({
+      DT::datatable(relative_work_economic_data, options = list(pageLength = 20, autoWidth = TRUE, scrollY = "600px"))
+    })
+    
+    # Render Equity Scorecards
+    output$equity_community_living_table <- DT::renderDataTable({
+      DT::datatable(equity_community_living_data, options = list(pageLength = 20, autoWidth = TRUE, scrollY = "600px"))
+    })
+    
+    output$equity_community_participation_table <- DT::renderDataTable({
+      DT::datatable(equity_community_participation_data, options = list(pageLength = 20, autoWidth = TRUE, scrollY = "600px"))
+    })
+    
+    output$equity_work_economic_table <- DT::renderDataTable({
+      DT::datatable(equity_work_economic_data, options = list(pageLength = 20, autoWidth = TRUE, scrollY = "600px"))
+    })
+  }
+)
 
-# Read the second sheet
-sheet2 <- read_excel(file_path, sheet = "Index", skip = 0)
 
-# Rename columns to improve readability
-colnames(sheet2) <- c("State", 
-                      "Head of Household in Public Housing 61 and under with a Disability", 
-                      "Head of Household Housing Choice Vouchers 61 and under with a Disability",
-                      "Ratio HCBS to instititutional expenditure",
-                      "HCBS Spending on waivers(amount per medicaid recipient",
-                      "PWD in Community Living (18-64 age)",
-                      "PWD in Medical Institutions (18-64 age)",
-                      "PWD in Correctional Facilities (18-64 age) ",
-                      "INDEX")
-
-# Ensure the INDEX column is numeric
-sheet2 <- sheet2 %>%
-  mutate(across(where(is.numeric), ~ round(., 2))) %>%
-  mutate(INDEX = as.numeric(INDEX))
-
-# Create a heatmap visualization for the 'INDEX' column
-sheet2 %>%
-  mutate(INDEX = cell_spec(INDEX, "html", bold = TRUE, color = "white",
-                           background = spec_color(INDEX, end = 0.7, option = "D"))) %>%
-  kable("html", escape = FALSE, caption = "Index - Community Living ") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
-
-# Prepare US states map data
-states_map <- map_data("state")
-
-# Merge the map data with your sheet2 data
-sheet2$State <- tolower(sheet2$State)
-states_map <- states_map %>%
-  left_join(sheet2, by = c("region" = "State"))
-
-# Create a ggplot heatmap for the 'INDEX' column
-#community_index_plot <- ggplot(states_map, aes(x = long, y = lat, group = group, fill = INDEX)) +
-  #geom_polygon(color = "white") +
-  #scale_fill_gradient(low = "lightblue", high = "blue", na.value = "grey50") +
-  #theme_minimal() +
-  #theme(axis.text.x = element_blank(),
-        #axis.text.y = element_blank(),
-        #axis.ticks = element_blank(),
-        #axis.title.x = element_blank(),
-       # axis.title.y = element_blank()) +
-  #labs(title = "Heatmap of INDEX Values by State", fill = "INDEX")
-
-
-# Display the plot
-#print(community_index_plot)
 ```
 
 
