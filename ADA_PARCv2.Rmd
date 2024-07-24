@@ -168,43 +168,37 @@ rights law which protects people with disabilities from discrimination.
 
 <br>
 
-**Since the ADA**, insert preferred info here
+**Since the ADA**, public and private organizations have worked tirelessly to 
+collect, interpret, and analyze data which sheds light on the quality of life
+for individuals with a disability in the United States. 
 
 <br>
 
+**ADA PARC** highlights key components of Census and HUD data related to disability
+outcomes to better elucidate the realities on the ground. 
+
+
+
 <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-  <img src="./www/002_Percent of People with Disabilities.png" alt="Percent of People with Disabilities" width="50%">
+  <img src="/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/ovrall_score_snapshot.png" alt="Overall Score Snapshot" width="75%">
 </div>
 
 <br>
 
 **Did You Know?**
 <br>
-Insert preferred info here
+
+*Illinois is the state with the highest percentage of its disabled population age 18-64 living in a nursing home.*
 
 <br>
 
 **Grant Identifying Information**
 <br>
 
-input info here
+The ADA Participation Action Consortium is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government.
 
 <br>
 :::
-
-
-```{r}
-
-
-
-
-
-
-
-
-
-```
-
 
 ::: {role="main"}
 # National Data
@@ -900,6 +894,18 @@ withSpinner(uiOutput("city_summary"))
 :::{role="main"}
 
 # Community Reports
+
+Scorecards for ADA-PARC translate measures across the three categories of Community Living, Community Participation, and Work Economic into an easy to interpret, comparative 100-point scale.
+
+
+There are two basic ways we can think about the ‘state of affairs’ for the disabled population in any given state x for metric y:
+
+1. How does disabled population in state x fare on metric y compared to disabled population in other states? (relative)
+2. How does disabled population ins tate x fare on metric y compared to non-disabled population in own state? (disparity/equity)
+
+Relative scores indicate how favorable conditions are for a given state’s disabled population compared to the disabled population of other states, the higher the value, the more favorable conditions for that state's disabled population relative to the median state's disabled population.
+
+Equity scores measures how favorable conditions are for a given state’s disabled population relative to the non-disabled population of the same state, the higher the value, the more favorable conditions are for that state's disabled population relative to the non-disabled population of that state. 
 
 ```{r}
 library(shiny)
