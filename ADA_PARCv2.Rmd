@@ -177,12 +177,6 @@ for individuals with a disability in the United States.
 **ADA PARC** highlights key components of Census and HUD data related to disability
 outcomes to better elucidate the realities on the ground. 
 
-
-
-<div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-  <img src="/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/ovrall_score_snapshot.png" alt="Overall Score Snapshot" width="75%">
-</div>
-
 <br>
 
 **Did You Know?**
@@ -897,6 +891,7 @@ withSpinner(uiOutput("city_summary"))
 
 Scorecards for ADA-PARC translate measures across the three categories of Community Living, Community Participation, and Work Economic into an easy to interpret, comparative 100-point scale.
 
+[Download PDF Report](../Documents/GitHub/ADA-PARC-Website-Design/ADA-PARC_scorecard_report_pdf.pdf)
 
 There are two basic ways we can think about the ‘state of affairs’ for the disabled population in any given state x for metric y:
 
@@ -913,14 +908,14 @@ library(DT)
 library(readxl)
 
 # Load relative datasets
-relative_community_living_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/between_states/between_states_relative_data/community_living_between_2022_excel.xlsx")
-relative_community_participation_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/between_states/between_states_relative_data/community_participation_between_2022_excel.xlsx")
-relative_work_economic_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/between_states/between_states_relative_data/work_economic_between_2022_excel.xlsx")
+relative_community_living_data <- read_excel("between_states/between_states_relative_data/community_living_between_2022_excel.xlsx")
+relative_community_participation_data <- read_excel("between_states/between_states_relative_data/community_participation_between_2022_excel.xlsx")
+relative_work_economic_data <- read_excel("between_states/between_states_relative_data/work_economic_between_2022_excel.xlsx")
 
 # Load equity datasets
-equity_community_living_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/within_states/within_state_disparity_data/community_living_within_2022_excel.xlsx")
-equity_community_participation_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/within_states/within_state_disparity_data/community_participation_within_2022_excel.xlsx")
-equity_work_economic_data <- read_excel("/Users/heener/Documents/GitHub/ADA-PARC-Website-Design/within_states/within_state_disparity_data/work_economic_within_2022_excel.xlsx")
+equity_community_living_data <- read_excel("within_states/within_state_disparity_data/community_living_within_2022_excel.xlsx")
+equity_community_participation_data <- read_excel("within_states/within_state_disparity_data/community_participation_within_2022_excel.xlsx")
+equity_work_economic_data <- read_excel("within_states/within_state_disparity_data/work_economic_within_2022_excel.xlsx")
 
 shinyApp(
   ui = fluidPage(
