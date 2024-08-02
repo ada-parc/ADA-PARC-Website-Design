@@ -887,7 +887,7 @@ withSpinner(uiOutput("city_summary"))
 
 :::{role="main"}
 
-# Community Reports
+# Scorecards - Excel Version
 
 Scorecards for ADA-PARC translate measures across the three categories of Community Living, Community Participation, and Work Economic into an easy to interpret, comparative 100-point scale.
 
@@ -1009,6 +1009,80 @@ shinyApp(
 
 :::{role="main"}
 
+# Scorecards - Tableau Version
+
+```{r}
+library(shiny)
+
+shinyApp(
+  ui = fluidPage(
+    tags$head(
+      tags$style(HTML("
+        .dataTables_wrapper .dataTables_scrollBody {
+          max-height: 1000px;
+        }
+      "))
+    ),
+    selectInput("dimension", "Select a dimension:", choices = c("Relative Scores", "Equity Scores"), selected = "Relative Scores"),
+    uiOutput("category_selector"),
+    uiOutput("scorecard_output")
+  ),
+  
+  server = function(input, output, session) {
+    
+    # Dynamic UI for category selection based on the selected dimension
+    output$category_selector <- renderUI({
+      req(input$dimension)
+      dimension <- input$dimension
+      
+      if (dimension == "Relative Scores") {
+        selectInput("category", "Select a category:", 
+                    choices = c("Community Living" = "relative_community_living", 
+                                "Community Participation" = "relative_community_participation", 
+                                "Work Economic" = "relative_work_economic"), 
+                    selected = "relative_community_living")
+      } else {
+        selectInput("category", "Select a category:", 
+                    choices = c("Community Living" = "equity_community_living", 
+                                "Community Participation" = "equity_community_participation", 
+                                "Work Economic" = "equity_work_economic"), 
+                    selected = "equity_community_living")
+      }
+    })
+    
+    # Observe the selected dimension and category to render the corresponding Tableau dashboard
+    output$scorecard_output <- renderUI({
+      req(input$category)
+      category <- input$category
+      
+      if (category == "relative_community_living") {
+        tags$iframe(src = "https://your-server.com/views/relative_community_living", 
+                    style = "width:100%; height:600px;")
+      } else if (category == "relative_community_participation") {
+        tags$iframe(src = "https://your-server.com/views/relative_community_participation", 
+                    style = "width:100%; height:600px;")
+      } else if (category == "relative_work_economic") {
+        tags$iframe(src = "https://your-server.com/views/relative_work_economic", 
+                    style = "width:100%; height:600px;")
+      } else if (category == "equity_community_living") {
+        tags$iframe(src = "https://your-server.com/views/equity_community_living", 
+                    style = "width:100%; height:600px;")
+      } else if (category == "equity_community_participation") {
+        tags$iframe(src = "https://your-server.com/views/equity_community_participation", 
+                    style = "width:100%; height:600px;")
+      } else if (category == "equity_work_economic") {
+        tags$iframe(src = "https://your-server.com/views/equity_work_economic", 
+                    style = "width:100%; height:600px;")
+      }
+    })
+  }
+)
+```
+:::
+
+
+:::{role="main"}
+
 # About
 
 ```{r about_documentation}
@@ -1031,11 +1105,11 @@ The ADA-PARC research has four purposes:
     disabilities post ADA & Olmstead
 2.  **To identify & examine key environmental factors** contributing to
     these disparities
-3.  **To benchmark participation disparities and highlight promising
-    practices** at state & city levels
-4.  **To action-plan strategies for dissemination and utilization of
-    findings** to be used by ADA Centers and others in community
-    capacity building & systems change initiatives
+3.  **To benchmark participation disparities and highlight promising practices** 
+    at state & city levels
+4.  **To action-plan strategies for dissemination and utilization of  findings**
+    to be used by ADA Centers and others in community capacity building & systems
+    change initiatives
 
 <br>
 
