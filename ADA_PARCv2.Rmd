@@ -745,25 +745,25 @@ withSpinner(leafletOutput("snapshotmap"))
 ```{r city-summary}
 
 output$city_summary <- renderUI({
-  
+
   create_number_percent_string <- function(num, pct) {
-    
+
     #PCT requires special handling if it's NA because we want to construct it like " (NA%)"
-    if(is.na(pct)) {
+    if (is.na(pct)) {
       pct_string <- " (NA%)"
     } else {
       pct_string <- paste0(" (",
-                     scales::percent(as.numeric(pct), 
-                        accuracy = 0.1,
-                        scale = 1),
-                     ")")
+                           scales::percent(as.numeric(pct), 
+                                           accuracy = 0.1,
+                                           scale = 1),
+                           ")")
     }
-    
+
     string <- paste0(num, pct_string)
-    
+
     return(string)
   }
-  
+
   # Overview text
   city_summary_text <- paste0(
     "<h5>People with Disabilities - Summary Tables</h5>",
@@ -777,110 +777,87 @@ output$city_summary <- renderUI({
     city_place() %>%
       pull(pwd_pct),
     "%</b>) are people with disabilities.<br><br>")
-  
-  # # Summary tables side by side
-  # # Create individual summary tables
-  # # Demographics
+
+  # Create summary items for Demographics
   city_summary_demo <- city_place() %>%
     mutate(
       "White" = create_number_percent_string(pwd_white_nonhisp, pwd_white_nonhisp_dis_pct),
-      "Black" =  create_number_percent_string(pwd_black, pwd_black_dis_pct),
+      "Black" = create_number_percent_string(pwd_black, pwd_black_dis_pct),
       "Hispanic" = create_number_percent_string(pwd_hisp, pwd_hisp_dis_pct),
       "Asian" = create_number_percent_string(pwd_asian, pwd_asian_dis_pct),
       "Other" = create_number_percent_string(pwd_other_multiple, pwd_other_multiple_dis_pct),
-      "<b>Total" =
-        paste0(pwd_total,
-               "</b>"),
+      "Male" = create_number_percent_string(pwd_male, pwd_male_pct),
+      "Female" = create_number_percent_string(pwd_female, pwd_female_pct),
       .keep = "none"
     ) %>%
     pivot_longer(everything(),
                  names_to = "Race/Ethnicity",
-                 values_to = "PWD (%)") %>%
+                 values_to = "Value (%)") %>%
     mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-    
+                              `Value (%)`, '</li>')) %>%
     pull(Bullets) %>%
     str_c(collapse = "")
 
-  # Poverty
-    city_summary_poverty <- city_place() %>%
+ # Create summary items for Type of Disability (no percentages)
+  city_summary_disability <- city_place() %>%
     mutate(
-      "People With Disabilities Living In Poverty" = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
-      "People Without Disabilities Living In Poverty" =  create_number_percent_string(pwod_below_poverty, pwod_below_poverty_pct),
+      "Hearing" = pwd_hearing,
+      "Vision" = pwd_vision,
+      "Cognitive" = pwd_cognitive,
+      "Ambulatory" = pwd_ambulatory,
+      "Self-Care" = pwd_selfcare,
+      "Independent Living" = pwd_indliving,
       .keep = "none"
     ) %>%
     pivot_longer(everything(),
-                 names_to = "Race/Ethnicity",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Race/Ethnicity`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-
+                 names_to = "Type of Disability",
+                 values_to = "Total") %>%
+    mutate("Bullets" = paste0('<li>', `Type of Disability`, " &mdash; ",
+                              Total, '</li>')) %>%
     pull(Bullets) %>%
     str_c(collapse = "")
 
-  # # Community Participation
-  city_summary_cp <- city_place() %>%
-    mutate(
-      "Car" = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
-      "Public Transit" =  create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
-      "Walk or Bike" = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
-      "<b>Total" =
-        paste0(pwd_total_commute,
-               "</b>"),
-      .keep = "none"
-    ) %>%
-    pivot_longer(everything(),
-                 names_to = "Transportation, Workers 16+",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Transportation, Workers 16+`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-    pull(Bullets) %>%
-    str_c(collapse = "")
+  # Create summary items for 10 Key Indicators
+city_summary_items <- city_place() %>%
+  mutate(
+    "PWD Living In Poverty" = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
+    "PWD Car Commute" = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
+    "PWD Public Transit" = create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
+    "PWD Walk or Bike" = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
+    "PWD Employed" = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
+    "PWD Not in Labor Force" = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj),
+    .keep = "none"
+  ) %>%
+  pivot_longer(everything(),
+               names_to = "Indicator",
+               values_to = "Value (%)") %>%
+  mutate("Bullets" = paste0('<li>', Indicator, " &mdash; ",
+                            `Value (%)`, '</li>')) %>%
+  pull(Bullets) %>%
+  str_c(collapse = "")
 
-  # # Work/Economic
-  city_summary_we <- city_place() %>%
-    mutate("Employed" = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
-              "Not in Labor Force" = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj),
-              "<b>Total" = paste0(pwd_16_plus_subj,"</b>"),
-              .keep = "none") %>%
-    pivot_longer(everything(),
-                 names_to = "Employment, 16+",
-                 values_to = "PWD (%)") %>%
-    mutate("Bullets" = paste0('<li>', `Employment, 16+`, " &mdash; ",
-                              `PWD (%)`, '</li>')) %>%
-
-    pull(Bullets) %>%
-    str_c(collapse = "")
-  
-  # Place dataframes in 3 columns side-by-side
+  # Place data in three separate columns under respective headers
   city_summary_tables <- paste0('<div class = "row">',
-                                '<div class = "col-md-4">',
-                                '<b>Race/Ethnicity</b><ul>',
+                                '<div class = "col-md-12">',
+                                '<b>Demographics of Disabled Population</b><ul>',
                                 city_summary_demo,
                                 '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Living In Poverty</b><ul>',
-                                city_summary_poverty,
+                                '<div class = "col-md-12">',
+                                '<b>Types of Disability</b><ul>',
+                                city_summary_disability,
                                 '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Transportation, Workers 16+</b><ul>',
-                                city_summary_cp,
-                                '</ul></div>',
-                                '<div class = "col-md-4">',
-                                '<b>Employment, 16+</b><ul>',
-                                city_summary_we,
+                                '<div class = "col-md-12">',
+                                '<b>Key Indicators</b><ul>',
+                                city_summary_items,
                                 '</ul></div>',
                                 '</div>')
-  
-  
-  
+
   # UI Output
   HTML(paste(city_summary_text, city_summary_tables, sep = ""))
-  
+
 })
 
 withSpinner(uiOutput("city_summary"))
-
 ```
 :::
 :::
@@ -888,10 +865,7 @@ withSpinner(uiOutput("city_summary"))
 :::{role="main"}
 
 # Scorecards - Excel Version
-
 Scorecards for ADA-PARC translate measures across the three categories of Community Living, Community Participation, and Work Economic into an easy to interpret, comparative 100-point scale.
-
-[Download PDF Report](../Documents/GitHub/ADA-PARC-Website-Design/ADA-PARC_scorecard_report_pdf.pdf)
 
 There are two basic ways we can think about the ‘state of affairs’ for the disabled population in any given state x for metric y:
 
@@ -908,14 +882,16 @@ library(DT)
 library(readxl)
 
 # Load relative datasets
-relative_community_living_data <- read_excel("between_states/between_states_relative_data/community_living_between_2022_excel.xlsx")
-relative_community_participation_data <- read_excel("between_states/between_states_relative_data/community_participation_between_2022_excel.xlsx")
-relative_work_economic_data <- read_excel("between_states/between_states_relative_data/work_economic_between_2022_excel.xlsx")
+relative_community_living_data <- read_excel("scorecard/scorecard_data/relative/community_living_between_2022_excel.xlsx")
+relative_community_participation_data <- read_excel("scorecard/scorecard_data/relative/community_participation_between_2022_excel.xlsx")
+relative_work_economic_data <- read_excel("scorecard/scorecard_data/relative/work_economic_between_2022_excel.xlsx")
+
+
 
 # Load equity datasets
-equity_community_living_data <- read_excel("within_states/within_state_disparity_data/community_living_within_2022_excel.xlsx")
-equity_community_participation_data <- read_excel("within_states/within_state_disparity_data/community_participation_within_2022_excel.xlsx")
-equity_work_economic_data <- read_excel("within_states/within_state_disparity_data/work_economic_within_2022_excel.xlsx")
+equity_community_living_data <- read_excel("scorecard/scorecard_data/equity/community_living_within_2022_excel.xlsx")
+equity_community_participation_data <- read_excel("scorecard/scorecard_data/equity/community_participation_within_2022_excel.xlsx")
+equity_work_economic_data <- read_excel("scorecard/scorecard_data/equity/work_economic_within_2022_excel.xlsx")
 
 shinyApp(
   ui = fluidPage(
@@ -1009,75 +985,15 @@ shinyApp(
 
 :::{role="main"}
 
-# Scorecards - Tableau Version
+# Scorecards - Report
+Below is the scorecard report, with the option for download!
 
 ```{r}
-library(shiny)
-
-shinyApp(
-  ui = fluidPage(
-    tags$head(
-      tags$style(HTML("
-        .dataTables_wrapper .dataTables_scrollBody {
-          max-height: 1000px;
-        }
-      "))
-    ),
-    selectInput("dimension", "Select a dimension:", choices = c("Relative Scores", "Equity Scores"), selected = "Relative Scores"),
-    uiOutput("category_selector"),
-    uiOutput("scorecard_output")
-  ),
-  
-  server = function(input, output, session) {
-    
-    # Dynamic UI for category selection based on the selected dimension
-    output$category_selector <- renderUI({
-      req(input$dimension)
-      dimension <- input$dimension
-      
-      if (dimension == "Relative Scores") {
-        selectInput("category", "Select a category:", 
-                    choices = c("Community Living" = "relative_community_living", 
-                                "Community Participation" = "relative_community_participation", 
-                                "Work Economic" = "relative_work_economic"), 
-                    selected = "relative_community_living")
-      } else {
-        selectInput("category", "Select a category:", 
-                    choices = c("Community Living" = "equity_community_living", 
-                                "Community Participation" = "equity_community_participation", 
-                                "Work Economic" = "equity_work_economic"), 
-                    selected = "equity_community_living")
-      }
-    })
-    
-    # Observe the selected dimension and category to render the corresponding Tableau dashboard
-    output$scorecard_output <- renderUI({
-      req(input$category)
-      category <- input$category
-      
-      if (category == "relative_community_living") {
-        tags$iframe(src = "https://your-server.com/views/relative_community_living", 
-                    style = "width:100%; height:600px;")
-      } else if (category == "relative_community_participation") {
-        tags$iframe(src = "https://your-server.com/views/relative_community_participation", 
-                    style = "width:100%; height:600px;")
-      } else if (category == "relative_work_economic") {
-        tags$iframe(src = "https://your-server.com/views/relative_work_economic", 
-                    style = "width:100%; height:600px;")
-      } else if (category == "equity_community_living") {
-        tags$iframe(src = "https://your-server.com/views/equity_community_living", 
-                    style = "width:100%; height:600px;")
-      } else if (category == "equity_community_participation") {
-        tags$iframe(src = "https://your-server.com/views/equity_community_participation", 
-                    style = "width:100%; height:600px;")
-      } else if (category == "equity_work_economic") {
-        tags$iframe(src = "https://your-server.com/views/equity_work_economic", 
-                    style = "width:100%; height:600px;")
-      }
-    })
-  }
-)
+# Embed the PDF using iframe
+tags$iframe(style="height:600px; width:100%; scrolling=yes", 
+            src="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf")
 ```
+
 :::
 
 
