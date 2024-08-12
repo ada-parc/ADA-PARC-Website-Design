@@ -132,9 +132,10 @@ disabilities at the national and state level.
 Use the **City Data** tab to investigate people with disabilities
 statistics at the municipal level.
 
-Use the **Community Reports** tab to view our state by state report cards.
+Use the **Scorecard** tabs to view our state by state report cards for
+each category.
 
-Use the **About** tab to learn more about the ADA-PARC project. 
+Use the **About** tab to learn more about the ADA-PARC project.
 
 Use the **Settings** tab to set color palettes for the visualizations in
 this dashboard.
@@ -145,53 +146,56 @@ this dashboard.
 <br> Director of Graduate Studies <br> UIC College of Applied Health
 Sciences
 
-Application authors: <br> Ethan Jantz, Sean Connelly, Jane Huber,Colin Heeneman, and
-Randy D. Colón <br> [UIC Voorhees
+Application authors: <br> Ethan Jantz, Sean Connelly, Jane Huber, Colin
+Heeneman, and Randy D. Colón <br> [UIC Voorhees
 Center](https://voorheescenter.uic.edu/)
 
-::: {role="main"}
-## Row
+## Main Content {.main}
 
-### 
+::: main
+### Welcome to ADA-PARC
 
-<br>
+ADA-PARC is a collaborative research initiative comprising ten regional
+centers focused on the Americans with Disabilities Act (ADA).
+:::
 
-Welcome to the ADA-PARC website. The ADA-PARC is a collaborative
-research project of ten Americans with Disabilities Act (ADA) Regional
-Centers.
+::: main
+### What is the ADA?
 
-**What is the ADA?**
-<br>
+The Americans with Disabilities Act (ADA), established in 1990, is a
+landmark civil rights law that prohibits discrimination against
+individuals with disabilities in all areas of public life.
+:::
 
-Established in 1990, the Americans with Disabilities Act (ADA), is a civil
-rights law which protects people with disabilities from discrimination.
+::: main
+### Since the ADA:
 
-<br>
+-   Organizations across public and private sectors have diligently
+    worked to collect, interpret, and analyze data to improve the
+    quality of life for individuals with disabilities in the U.S.
+-   ADA-PARC emphasizes key components of Census and HUD data to shed
+    light on the lived experiences and outcomes for people with
+    disabilities.
+:::
 
-**Since the ADA**, public and private organizations have worked tirelessly to 
-collect, interpret, and analyze data which sheds light on the quality of life
-for individuals with a disability in the United States. 
+::: main
+### Did You Know?
 
-<br>
+*Illinois has the highest percentage of its disabled population aged
+18-64 living in nursing homes.*
+:::
 
-**ADA PARC** highlights key components of Census and HUD data related to disability
-outcomes to better elucidate the realities on the ground. 
+::: main
+### Grant Information
 
-<br>
+ADA-PARC is funded by the National Institute on Disability, Independent
+Living, and Rehabilitation Research (NIDILRR) under grant numbers
+90DP0026 and 90DPAD0001.
 
-**Did You Know?**
-<br>
-
-*Illinois is the state with the highest percentage of its disabled population age 18-64 living in a nursing home.*
-
-<br>
-
-**Grant Identifying Information**
-<br>
-
-The ADA Participation Action Consortium is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) (90DP0026 and 90DPAD0001). NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government.
-
-<br>
+NIDILRR is a center within the Administration for Community Living (ACL)
+at the Department of Health and Human Services (HHS). The content of
+this website does not necessarily reflect the policy of NIDILRR, ACL, or
+HHS and should not be regarded as endorsed by the Federal Government.
 :::
 
 ::: {role="main"}
@@ -862,19 +866,32 @@ withSpinner(uiOutput("city_summary"))
 :::
 :::
 
-:::{role="main"}
-
+::: {role="main"}
 # Scorecards - Excel Version
-Scorecards for ADA-PARC translate measures across the three categories of Community Living, Community Participation, and Work Economic into an easy to interpret, comparative 100-point scale.
 
-There are two basic ways we can think about the ‘state of affairs’ for the disabled population in any given state x for metric y:
+Scorecards for ADA-PARC translate measures across the three categories
+of Community Living, Community Participation, and Work Economic into an
+easy to interpret, comparative 100-point scale.
 
-1. How does disabled population in state x fare on metric y compared to disabled population in other states? (relative)
-2. How does disabled population ins tate x fare on metric y compared to non-disabled population in own state? (disparity/equity)
+There are two basic ways we can think about the 'state of affairs' for
+the disabled population in any given state x for metric y:
 
-Relative scores indicate how favorable conditions are for a given state’s disabled population compared to the disabled population of other states, the higher the value, the more favorable conditions for that state's disabled population relative to the median state's disabled population.
+1.  How does disabled population in state x fare on metric y compared to
+    disabled population in other states? (relative)
+2.  How does disabled population ins tate x fare on metric y compared to
+    non-disabled population in own state? (disparity/equity)
 
-Equity scores measures how favorable conditions are for a given state’s disabled population relative to the non-disabled population of the same state, the higher the value, the more favorable conditions are for that state's disabled population relative to the non-disabled population of that state. 
+Relative scores indicate how favorable conditions are for a given
+state's disabled population compared to the disabled population of other
+states, the higher the value, the more favorable conditions for that
+state's disabled population relative to the median state's disabled
+population.
+
+Equity scores measures how favorable conditions are for a given state's
+disabled population relative to the non-disabled population of the same
+state, the higher the value, the more favorable conditions are for that
+state's disabled population relative to the non-disabled population of
+that state.
 
 ```{r}
 library(shiny)
@@ -979,13 +996,356 @@ shinyApp(
 
 
 ```
+:::
+
+::: {role="main"}
+# Scorecards - Tableau Dashboard 
+
+```{r}
+shinyApp(
+  ui = fluidPage(
+    fluidRow(
+      column(
+        width = 3,
+        div(class = "sidebar",
+            br(),
+            h4("To explore the data, select a dimension and a category below."),
+            selectInput("dimension", "Select a dimension:", 
+                        choices = c("Relative Scores", "Equity Scores"), 
+                        selected = "Relative Scores"),
+            uiOutput("category_selector")
+        )
+      ),
+      column(
+        width = 9,
+        div(class = "main-content",
+            tags$head(
+              tags$style(HTML("
+                /* Setting a fixed height for the Tableau container */
+                #tableauContainer {
+                  width: 100%;
+                  height: 800px; /* Set the height to 800px or any value you prefer */
+                  padding: 0;
+                  margin: 0;
+                }
+                .tableauPlaceholder object {
+                  width: 100%;
+                  height: 100%;
+                }
+              "))
+            ),
+            div(id = "tableauContainer",
+                uiOutput("scorecard_output")
+            )
+        )
+      )
+    )
+  ),
+  server = function(input, output, session) {
+    
+    
+    # Dynamic UI for category selection based on the selected dimension
+    output$category_selector <- renderUI({
+      req(input$dimension)
+      dimension <- input$dimension
+      
+      if (dimension == "Relative Scores") {
+        selectInput("category", "Select a category:", 
+                    choices = c("Community Living" = "relative_community_living", 
+                                "Community Participation" = "relative_community_participation", 
+                                "Work Economic" = "relative_work_economic"), 
+                    selected = "relative_community_living")
+      } else {
+        selectInput("category", "Select a category:", 
+                    choices = c("Community Living" = "equity_community_living", 
+                                "Community Participation" = "equity_community_participation", 
+                                "Work Economic" = "equity_work_economic"), 
+                    selected = "equity_community_living")
+      }
+    })
+    
+    # Observe the selected dimension and category to render the corresponding Tableau dashboard
+    output$scorecard_output <- renderUI({
+      req(input$category)
+      category <- input$category
+      
+      if (category == "relative_community_living") {
+        tags$div(
+          class = 'tableauPlaceholder', 
+          id = 'viz1723223564502',
+          style = 'width: 100%; height: 100%;',
+          tags$noscript(
+            tags$a(
+              href = '#',
+              tags$img(
+                alt = 'Community Living - Relative Scores - Select State',
+                src = 'https://public.tableau.com/static/images/Re/Relative_Living_Dash/CommunityLiving-RelativeScores-SelectState/1_rss.png',
+                style = 'border: none'
+              )
+            )
+          ),
+          tags$object(
+            class = 'tableauViz',
+            style = 'width: 100%; height: 100%;',
+            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+            tags$param(name = 'embed_code_version', value = '3'),
+            tags$param(name = 'site_root', value = ''),
+            tags$param(name = 'name', value = 'Relative_Living_Dash/CommunityLiving-RelativeScores-SelectState'),
+            tags$param(name = 'tabs', value = 'yes'),
+            tags$param(name = 'toolbar', value = 'yes'),
+            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Living_Dash/CommunityLiving-RelativeScores-SelectState/1.png'),
+            tags$param(name = 'animate_transition', value = 'yes'),
+            tags$param(name = 'display_static_image', value = 'yes'),
+            tags$param(name = 'display_spinner', value = 'yes'),
+            tags$param(name = 'display_overlay', value = 'yes'),
+            tags$param(name = 'display_count', value = 'yes'),
+            tags$param(name = 'language', value = 'en-US'),
+            tags$param(name = 'filter', value = 'publish=yes')
+          ),
+          tags$script(
+            HTML("
+              var divElement = document.getElementById('viz1723223564502');
+              var vizElement = divElement.getElementsByTagName('object')[0];
+              vizElement.style.width='100%';
+              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+              var scriptElement = document.createElement('script');
+              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+              vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            ")
+          )
+        )
+      } else if (category == "relative_community_participation") {
+        tags$div(
+          class = 'tableauPlaceholder', 
+          id = 'viz1723236124105',
+          style = 'width: 100%; height: 100%;',
+          tags$noscript(
+            tags$a(
+              href = '#',
+              tags$img(
+                alt = 'Community Participation - Relative Scores By State - Bar Chart',
+                src = 'https://public.tableau.com/static/images/Re/Relative_Participation_Dash/CommunityParticipation-RelativeScoresByState-BarChart/1_rss.png',
+                style = 'border: none'
+              )
+            )
+          ),
+          tags$object(
+            class = 'tableauViz',
+            style = 'width: 100%; height: 100%;',
+            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+            tags$param(name = 'embed_code_version', value = '3'),
+            tags$param(name = 'site_root', value = ''),
+            tags$param(name = 'name', value = 'Relative_Participation_Dash/CommunityParticipation-RelativeScoresByState-BarChart'),
+            tags$param(name = 'tabs', value = 'yes'),
+            tags$param(name = 'toolbar', value = 'yes'),
+            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Participation_Dash/CommunityParticipation-RelativeScoresByState-BarChart/1.png'),
+            tags$param(name = 'animate_transition', value = 'yes'),
+            tags$param(name = 'display_static_image', value = 'yes'),
+            tags$param(name = 'display_spinner', value = 'yes'),
+            tags$param(name = 'display_overlay', value = 'yes'),
+            tags$param(name = 'display_count', value = 'yes'),
+            tags$param(name = 'language', value = 'en-US')
+          ),
+          tags$script(
+            HTML("
+              var divElement = document.getElementById('viz1723236124105');
+              var vizElement = divElement.getElementsByTagName('object')[0];
+              vizElement.style.width='100%';
+              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+              var scriptElement = document.createElement('script');
+              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+              vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            ")
+          )
+        )
+      } else if (category == "relative_work_economic") {
+        tags$div(
+          class = 'tableauPlaceholder', 
+          id = 'viz1723236150123',
+          style = 'width: 100%; height: 100%;',
+          tags$noscript(
+            tags$a(
+              href = '#',
+              tags$img(
+                alt = 'Relative Work Economic - Scores By State - Map',
+                src = 'https://public.tableau.com/static/images/Re/Relative_Work_Dash/RelativeWorkEconomic-ScoresByState-Map/1_rss.png',
+                style = 'border: none'
+              )
+            )
+          ),
+          tags$object(
+            class = 'tableauViz',
+            style = 'width: 100%; height: 100%;',
+            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+            tags$param(name = 'embed_code_version', value = '3'),
+            tags$param(name = 'site_root', value = ''),
+            tags$param(name = 'name', value = 'Relative_Work_Dash/RelativeWorkEconomic-ScoresByState-Map'),
+            tags$param(name = 'tabs', value = 'yes'),
+            tags$param(name = 'toolbar', value = 'yes'),
+            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Work_Dash/RelativeWorkEconomic-ScoresByState-Map/1.png'),
+            tags$param(name = 'animate_transition', value = 'yes'),
+            tags$param(name = 'display_static_image', value = 'yes'),
+            tags$param(name = 'display_spinner', value = 'yes'),
+            tags$param(name = 'display_overlay', value = 'yes'),
+            tags$param(name = 'display_count', value = 'yes'),
+            tags$param(name = 'language', value = 'en-US')
+          ),
+          tags$script(
+            HTML("
+              var divElement = document.getElementById('viz1723236150123');
+              var vizElement = divElement.getElementsByTagName('object')[0];
+              vizElement.style.width='100%';
+              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+              var scriptElement = document.createElement('script');
+              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+              vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            ")
+          )
+        )
+      } else if (category == "equity_community_living") {
+        tags$div(
+          class = 'tableauPlaceholder', 
+          id = 'viz1723236194478',
+          style = 'width: 100%; height: 100%;',
+          tags$noscript(
+            tags$a(
+              href = '#',
+              tags$img(
+                alt = 'Community Living Equity Scores - Select Measure',
+                src = 'https://public.tableau.com/static/images/Di/Disparity_Living_Dash/CommunityLivingEquityScores-SelectMeasure/1_rss.png',
+                style = 'border: none'
+              )
+            )
+          ),
+          tags$object(
+            class = 'tableauViz',
+            style = 'width: 100%; height: 100%;',
+            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+            tags$param(name = 'embed_code_version', value = '3'),
+            tags$param(name = 'site_root', value = ''),
+            tags$param(name = 'name', value = 'Disparity_Living_Dash/CommunityLivingEquityScores-SelectMeasure'),
+            tags$param(name = 'tabs', value = 'yes'),
+            tags$param(name = 'toolbar', value = 'yes'),
+            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Living_Dash/CommunityLivingEquityScores-SelectMeasure/1.png'),
+            tags$param(name = 'animate_transition', value = 'yes'),
+            tags$param(name = 'display_static_image', value = 'yes'),
+            tags$param(name = 'display_spinner', value = 'yes'),
+            tags$param(name = 'display_overlay', value = 'yes'),
+            tags$param(name = 'display_count', value = 'yes'),
+            tags$param(name = 'language', value = 'en-US')
+          ),
+          tags$script(
+            HTML("
+              var divElement = document.getElementById('viz1723236194478');
+              var vizElement = divElement.getElementsByTagName('object')[0];
+              vizElement.style.width='100%';
+              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+              var scriptElement = document.createElement('script');
+              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+              vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            ")
+          )
+        )
+      } else if (category == "equity_community_participation") {
+        tags$div(
+          class = 'tableauPlaceholder', 
+          id = 'viz1723236229625',
+          style = 'width: 100%; height: 100%;',
+          tags$noscript(
+            tags$a(
+              href = '#',
+              tags$img(
+                alt = 'Community Participation Equity Scores - Select Measure',
+                src = 'https://public.tableau.com/static/images/Di/Disparity_Participation_Dash/CommunityParticipationEquityScores-SelectMeasure/1_rss.png',
+                style = 'border: none'
+              )
+            )
+          ),
+          tags$object(
+            class = 'tableauViz',
+            style = 'width: 100%; height: 100%;',
+            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+            tags$param(name = 'embed_code_version', value = '3'),
+            tags$param(name = 'site_root', value = ''),
+            tags$param(name = 'name', value = 'Disparity_Participation_Dash/CommunityParticipationEquityScores-SelectMeasure'),
+            tags$param(name = 'tabs', value = 'yes'),
+            tags$param(name = 'toolbar', value = 'yes'),
+            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Participation_Dash/CommunityParticipationEquityScores-SelectMeasure/1.png'),
+            tags$param(name = 'animate_transition', value = 'yes'),
+            tags$param(name = 'display_static_image', value = 'yes'),
+            tags$param(name = 'display_spinner', value = 'yes'),
+            tags$param(name = 'display_overlay', value = 'yes'),
+            tags$param(name = 'display_count', value = 'yes'),
+            tags$param(name = 'language', value = 'en-US')
+          ),
+          tags$script(
+            HTML("
+              var divElement = document.getElementById('viz1723236229625');
+              var vizElement = divElement.getElementsByTagName('object')[0];
+              vizElement.style.width='100%';
+              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+              var scriptElement = document.createElement('script');
+              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+              vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            ")
+          )
+        )
+      } else if (category == "equity_work_economic") {
+        tags$div(
+          class = 'tableauPlaceholder', 
+          id = 'viz1723236258470',
+          style = 'width: 100%; height: 100%;',
+          tags$noscript(
+            tags$a(
+              href = '#',
+              tags$img(
+                alt = 'Work Economic Equity Scores - Select State',
+                src = 'https://public.tableau.com/static/images/Di/Disparity_Work_Dash/WorkEconomicEquityScores-SelectState/1_rss.png',
+                style = 'border: none'
+              )
+            )
+          ),
+          tags$object(
+            class = 'tableauViz',
+            style = 'width: 100%; height: 100%;',
+            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+            tags$param(name = 'embed_code_version', value = '3'),
+            tags$param(name = 'site_root', value = ''),
+            tags$param(name = 'name', value = 'Disparity_Work_Dash/WorkEconomicEquityScores-SelectState'),
+            tags$param(name = 'tabs', value = 'yes'),
+            tags$param(name = 'toolbar', value = 'yes'),
+            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Work_Dash/WorkEconomicEquityScores-SelectState/1.png'),
+            tags$param(name = 'animate_transition', value = 'yes'),
+            tags$param(name = 'display_static_image', value = 'yes'),
+            tags$param(name = 'display_spinner', value = 'yes'),
+            tags$param(name = 'display_overlay', value = 'yes'),
+            tags$param(name = 'display_count', value = 'yes'),
+            tags$param(name = 'language', value = 'en-US')
+          ),
+          tags$script(
+            HTML("
+              var divElement = document.getElementById('viz1723236258470');
+              var vizElement = divElement.getElementsByTagName('object')[0];
+              vizElement.style.width='100%';
+              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+              var scriptElement = document.createElement('script');
+              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+              vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            ")
+          )
+        )
+      }
+    })
+  }
+)
+```
 
 
 :::
 
-:::{role="main"}
-
+::: {role="main"}
 # Scorecards - Report
+
 Below is the scorecard report, with the option for download!
 
 ```{r}
@@ -993,12 +1353,9 @@ Below is the scorecard report, with the option for download!
 tags$iframe(style="height:600px; width:100%; scrolling=yes", 
             src="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf")
 ```
-
 :::
 
-
-:::{role="main"}
-
+::: {role="main"}
 # About
 
 ```{r about_documentation}
@@ -1021,11 +1378,11 @@ The ADA-PARC research has four purposes:
     disabilities post ADA & Olmstead
 2.  **To identify & examine key environmental factors** contributing to
     these disparities
-3.  **To benchmark participation disparities and highlight promising practices** 
-    at state & city levels
-4.  **To action-plan strategies for dissemination and utilization of  findings**
-    to be used by ADA Centers and others in community capacity building & systems
-    change initiatives
+3.  **To benchmark participation disparities and highlight promising
+    practices** at state & city levels
+4.  **To action-plan strategies for dissemination and utilization of
+    findings** to be used by ADA Centers and others in community
+    capacity building & systems change initiatives
 
 <br>
 
@@ -1095,7 +1452,6 @@ Administration for Community Living (ACL), Department of Health and
 Human Services (HHS). The contents of this website do not necessarily
 represent the policy of NIDILRR, ACL, HHS, and you should not assume
 endorsement by the Federal Government.
-
 :::
 
 # Settings
@@ -1242,6 +1598,3 @@ overflow-y: scroll;
 
 </style>
 ```
-
-
-
