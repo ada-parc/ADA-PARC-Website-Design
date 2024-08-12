@@ -2114,6 +2114,17 @@
       ],
       "Hash": "802e4786b353a4bb27116957558548d5"
     },
+    "shinythemes": {
+      "Package": "shinythemes",
+      "Version": "1.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "shiny"
+      ],
+      "Hash": "30f0ebc41feba25691073626ff5e2cf4"
+    },
     "snakecase": {
       "Package": "snakecase",
       "Version": "0.11.1",

@@ -1,10 +1,10 @@
 ---
-title: "ADA-PARC v2"
+title: "ADA-PARC"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_layout: scroll
-    theme: cosmo
+    vertical_layout: fill
+    theme: yeti
     includes:
       in_header: www/cssloaders.html
     css: www/styles.css
@@ -50,6 +50,7 @@ library(RColorBrewer)
 library(cowplot)
 library(readxl)
 library(kableExtra)
+library(shinythemes)
 
 
 options(scipen = 999999,
@@ -120,83 +121,120 @@ source(here::here("scripts", "functions.R"), local = TRUE)
 
 # Home
 
-## Sidebar {.sidebar}
+```{r}
+library(shiny)
+library(bslib)
+library(shinythemes)
 
-<br>
+# Define UI
+ui <- fluidPage(
+  theme = shinytheme("cosmo"), 
+  tags$head(
+    tags$style(HTML("
+      .welcome-text {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-top: 20px;
+        margin-bottom: 5px;
+      }
+      .section-content {
+        font-size: 14px;
+        color: #2c3e50;
+        line-height: 1.4;
+        margin-bottom: 10px;
+      }
+      .list-content {
+        font-size: 14px;
+        color: #2c3e50;
+        line-height: 1.4;
+        margin-left: 20px;
+      }
+      .grant-info {
+        font-size: 14px;
+        color: #2c3e50;
+        margin-top: 10px;
+        line-height: 1.4;
+      }
+      .container {
+        height: 100vh; /* 100% of viewport height */
+        display: flex;
+        flex-direction: column;
+      }
+      .main-content {
+        flex-grow: 1; /* Makes sure the content fills up the space */
+        overflow-y: auto; /* Allows scrolling if content overflows */
+      }
+      .footer {
+        font-size: 12px;
+        color: #2c3e50;
+        padding: 10px;
+        text-align: center;
+        border-top: 1px solid #ddd;
+      }
+      .sidebar {
+        background-color: #f8f9fa;
+        height: 100vh;
+        padding: 20px;
+      }
+    "))
+  ),
+  fluidRow(
+    column(3, class = "sidebar",
+           div(
+             h4("How to Navigate this Website"),
+             p("Use the National Data tab to examine the status of people with disabilities at the national and state level."),
+             p("Use the City Data tab to investigate people with disabilities statistics at the municipal level."),
+             p("Use the Scorecard tabs to view our state by state report cards for each category."),
+             p("Use the About tab to learn more about the ADA-PARC project."),
+             p("Use the Settings tab to set color palettes for the visualizations in this dashboard."),
+             h5("Questions?"),
+             tags$a(href="mailto:joyhammel@uic.edu", "Contact Joy Hammel (email)"),
+             p("Director of Graduate Studies UIC College of Applied Health Sciences")
+           )
+    ),
+    column(9, class = "container",
+           div(class = "main-content",
+               div(class = "welcome-text", "Welcome to ADA-PARC!"),
+               div(class = "section-title", "What is the ADA?"),
+               div(class = "section-content", "The Americans with Disabilities Act (ADA), established in 1990, is a landmark civil rights law that prohibits discrimination against individuals with disabilities in all areas of public life."),
+               div(class = "section-title", "Since the ADA:"),
+               tags$ul(
+                 class = "list-content",
+                 tags$li("Organizations across public and private sectors have diligently worked to collect, interpret, and analyze data to improve the quality of life for individuals with disabilities in the U.S."),
+                 tags$li("ADA-PARC emphasizes key components of Census and HUD data to shed light on the lived experiences and outcomes for people with disabilities.")
+               ),
+               div(class = "section-title", "Grant Information"),
+               div(class = "grant-info",
+                   "ADA-PARC is funded by the National Institute on Disability, Independent Living, and Rehabilitation Research (NIDILRR) under grant numbers 90DP0026 and 90DPAD0001.",
+                   tags$br(),
+                   "NIDILRR is a center within the Administration for Community Living (ACL) at the Department of Health and Human Services (HHS). The content of this website does not necessarily reflect the policy of NIDILRR, ACL, or HHS and should not be regarded as endorsed by the Federal Government."
+               )
+           ),
+           div(class = "footer",
+               "Application authors: Ethan Jantz, Sean Connelly, Jane Huber, Colin Heeneman, and Randy D. Colón",
+               tags$br(),
+               tags$a(href = "https://voorheescenter.uic.edu/", "UIC Voorhees Center")
+           )
+    )
+  )
+)
 
-#### How to Navigate<br>this Website
+# Define server logic
+server <- function(input, output, session) {}
 
-<br> Use the **National Data** tab to examine the status of people with
-disabilities at the national and state level.
+# Run the application 
+shinyApp(ui = ui, server = server)
 
-Use the **City Data** tab to investigate people with disabilities
-statistics at the municipal level.
 
-Use the **Scorecard** tabs to view our state by state report cards for
-each category.
+```
 
-Use the **About** tab to learn more about the ADA-PARC project.
-
-Use the **Settings** tab to set color palettes for the visualizations in
-this dashboard.
-
-<br>
-
-**Questions?** <br> [Contact Joy Hammel (email)](mailto:hammel@uic.edu)
-<br> Director of Graduate Studies <br> UIC College of Applied Health
-Sciences
-
-Application authors: <br> Ethan Jantz, Sean Connelly, Jane Huber, Colin
-Heeneman, and Randy D. Colón <br> [UIC Voorhees
-Center](https://voorheescenter.uic.edu/)
-
-## Main Content {.main}
-
-::: main
-### Welcome to ADA-PARC
-
-ADA-PARC is a collaborative research initiative comprising ten regional
-centers focused on the Americans with Disabilities Act (ADA).
-:::
-
-::: main
-### What is the ADA?
-
-The Americans with Disabilities Act (ADA), established in 1990, is a
-landmark civil rights law that prohibits discrimination against
-individuals with disabilities in all areas of public life.
-:::
-
-::: main
-### Since the ADA:
-
--   Organizations across public and private sectors have diligently
-    worked to collect, interpret, and analyze data to improve the
-    quality of life for individuals with disabilities in the U.S.
--   ADA-PARC emphasizes key components of Census and HUD data to shed
-    light on the lived experiences and outcomes for people with
-    disabilities.
-:::
-
-::: main
-### Did You Know?
-
-*Illinois has the highest percentage of its disabled population aged
-18-64 living in nursing homes.*
-:::
-
-::: main
-### Grant Information
-
-ADA-PARC is funded by the National Institute on Disability, Independent
-Living, and Rehabilitation Research (NIDILRR) under grant numbers
-90DP0026 and 90DPAD0001.
-
-NIDILRR is a center within the Administration for Community Living (ACL)
-at the Department of Health and Human Services (HHS). The content of
-this website does not necessarily reflect the policy of NIDILRR, ACL, or
-HHS and should not be regarded as endorsed by the Federal Government.
-:::
 
 ::: {role="main"}
 # National Data
@@ -1024,7 +1062,7 @@ shinyApp(
                 /* Setting a fixed height for the Tableau container */
                 #tableauContainer {
                   width: 100%;
-                  height: 800px; /* Set the height to 800px or any value you prefer */
+                  height: 1000px; /* Set the height to 800px or any value you prefer */
                   padding: 0;
                   margin: 0;
                 }
