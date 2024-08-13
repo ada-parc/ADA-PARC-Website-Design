@@ -124,7 +124,7 @@ source(here::here("scripts", "functions.R"), local = TRUE)
 
 ```{r}
 ui <- fluidPage(
-  theme = shinytheme("cosmo"), 
+  theme = shinytheme("yeti"), 
   tags$head(
     tags$style(HTML("
       body, html {
@@ -213,7 +213,38 @@ ui <- fluidPage(
         tags$li("Use the Settings tab to set color palettes for the visualizations in this dashboard.")
       ),
       
-      uiOutput("markdown_image"),
+      # Embed Tableau dashboard here
+      div(class = 'tableauPlaceholder', id = 'viz1723579194780', style = 'position: relative;',
+          tags$noscript(
+            a(href = '#',
+              img(src = 'https://public.tableau.com/static/images/De/Demographic_Dash/DisabilitybyRaceTotal-SelectState/1_rss.png', style = 'border: none'))
+          ),
+          tags$object(class = 'tableauViz', style = 'display:none;',
+                      tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+                      tags$param(name = 'embed_code_version', value = '3'),
+                      tags$param(name = 'site_root', value = ''),
+                      tags$param(name = 'name', value = 'Demographic_Dash/DisabilitybyRaceTotal-SelectState'),
+                      tags$param(name = 'tabs', value = 'yes'),
+                      tags$param(name = 'toolbar', value = 'yes'),
+                      tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/De/Demographic_Dash/DisabilitybyRaceTotal-SelectState/1.png'),
+                      tags$param(name = 'animate_transition', value = 'yes'),
+                      tags$param(name = 'display_static_image', value = 'yes'),
+                      tags$param(name = 'display_spinner', value = 'yes'),
+                      tags$param(name = 'display_overlay', value = 'yes'),
+                      tags$param(name = 'display_count', value = 'yes'),
+                      tags$param(name = 'language', value = 'en-US'),
+                      tags$param(name = 'filter', value = 'publish=yes')
+          )
+      ),
+      tags$script(type = 'text/javascript',
+                  HTML("var divElement = document.getElementById('viz1723579194780');
+                   var vizElement = divElement.getElementsByTagName('object')[0];
+                   vizElement.style.width = '100%';
+                   vizElement.style.height = (divElement.offsetWidth * 0.75) + 'px';
+                   var scriptElement = document.createElement('script');
+                   scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                   vizElement.parentNode.insertBefore(scriptElement, vizElement);")
+      ),
       
       div(class = "section-title", "Since the ADA:"),
       tags$ul(
@@ -235,9 +266,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-  output$markdown_image <- renderUI({
-    HTML(markdown::markdownToHTML(text = "![Status for Disabled Image](www/Status_for_Disabled_image.png){style='width:80%;'}"))
-  })
+
 }
 
 shinyApp(ui = ui, server = server)
