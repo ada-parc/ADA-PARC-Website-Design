@@ -14,7 +14,7 @@
     <_.fcp.VConnDownstreamExtractsWithWarnings.true...VConnDownstreamExtractsWithWarnings />
     <WindowsPersistSimpleIdentifiers />
   </document-format-change-manifest>
-  <repository-location id='Demographic_Dash' path='/workbooks' revision='1.0' />
+  <repository-location id='Demographic_Dash' path='/workbooks' revision='1.3' />
   <preferences>
     <preference name='ui.encoding.shelf.height' value='24' />
     <preference name='ui.shelf.height' value='26' />
@@ -8339,20 +8339,6 @@
       <layout _.fcp.SchemaViewerObjectModel.false...dim-percentage='0.5' _.fcp.SchemaViewerObjectModel.false...measure-percentage='0.4' dim-ordering='ordinal' measure-ordering='ordinal' show-structure='true' />
       <style>
         <style-rule element='mark'>
-          <encoding attr='color' field='[none:Calculation_94505273817780225:nk]' palette='color_blind_10_0' type='palette'>
-            <map to='#1170aa'>
-              <bucket>&quot;Q4&quot;</bucket>
-            </map>
-            <map to='#a3cce9'>
-              <bucket>&quot;Q3&quot;</bucket>
-            </map>
-            <map to='#c85200'>
-              <bucket>&quot;Q1&quot;</bucket>
-            </map>
-            <map to='#ffbc79'>
-              <bucket>&quot;Q2&quot;</bucket>
-            </map>
-          </encoding>
           <encoding attr='color' field='[:Measure Names]' palette='color_blind_10_0' type='palette'>
             <map to='#1170aa'>
               <bucket>&quot;[federated.0atwvvj0hdmqh01gxf0cz0g4c6vx].[sum:pwd_ambulatory:qk]&quot;</bucket>
@@ -8488,6 +8474,20 @@
             </map>
             <map to='#ffbc79'>
               <bucket>&quot;[federated.0atwvvj0hdmqh01gxf0cz0g4c6vx].[sum:pwd_multiple:qk]&quot;</bucket>
+            </map>
+          </encoding>
+          <encoding attr='color' field='[none:Calculation_94505273817780225:nk]' palette='color_blind_10_0' type='palette'>
+            <map to='#1170aa'>
+              <bucket>&quot;Q4&quot;</bucket>
+            </map>
+            <map to='#a3cce9'>
+              <bucket>&quot;Q3&quot;</bucket>
+            </map>
+            <map to='#c85200'>
+              <bucket>&quot;Q1&quot;</bucket>
+            </map>
+            <map to='#ffbc79'>
+              <bucket>&quot;Q2&quot;</bucket>
             </map>
           </encoding>
         </style-rule>
@@ -8803,7 +8803,7 @@
     <mapsource name='Tableau' />
   </mapsources>
   <worksheets>
-    <worksheet name='% of Selected Population with a Disability (Map)'>
+    <worksheet name='% of Population with a Disability '>
       <layout-options>
         <title>
           <formatted-text>
@@ -8950,7 +8950,7 @@
       </table>
       <simple-id uuid='{D82C7A8A-2299-4CCC-9387-EB2D6EF605AD}' />
     </worksheet>
-    <worksheet name='Total # of Disabled by Disability Type'>
+    <worksheet name='Total # of Disability Type'>
       <layout-options>
         <title>
           <formatted-text>
@@ -9023,7 +9023,7 @@
     </worksheet>
   </worksheets>
   <windows source-height='30'>
-    <window class='worksheet' name='% of Selected Population with a Disability (Map)' tab-color='#f66273'>
+    <window class='worksheet' maximized='true' name='% of Population with a Disability '>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -9068,7 +9068,7 @@
       </viewpoint>
       <simple-id uuid='{A5D6B0D5-8C25-435D-A90B-FD8A91407CC7}' />
     </window>
-    <window class='worksheet' maximized='true' name='Total # of Disabled by Disability Type' tab-color='#f66273'>
+    <window class='worksheet' name='Total # of Disability Type'>
       <cards>
         <edge name='left'>
           <strip size='160'>
@@ -9115,7 +9115,7 @@
     </window>
   </windows>
   <thumbnails>
-    <thumbnail height='384' name='% of Selected Population with a Disability (Map)' width='384'>
+    <thumbnail height='384' name='% of Population with a Disability ' width='384'>
       iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAYAAACkx7W/AAAACXBIWXMAAA7DAAAOwwHHb6hk
       AAAgAElEQVR4nO3dd5AcWWIe+O+lKW+7qz3aAQ3XAGZgx2HHz+zszu5yjVakSIlHUcE4kXHk
       RZyOIYVCOuniTsdVXMTxjsE4xYWkCImiSK1oRO4ud9aOxcxgAMxgYAa+G91o7015k5nv/mgA
@@ -9402,7 +9402,7 @@
       iMilGABERC7FACAicikGABGRSzEAiIhcigFARORSDAAiIpfSLMuCYRjVLgcREW0xzTAMpNPp
       apeDiIi22P8PfO1ZQdIOIY4AAAAASUVORK5CYII=
     </thumbnail>
-    <thumbnail height='384' name='Total # of Disabled by Disability Type' width='384'>
+    <thumbnail height='384' name='Total # of Disability Type' width='384'>
       iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAYAAACkx7W/AAAACXBIWXMAAA7DAAAOwwHHb6hk
       AAAgAElEQVR4nO3dW3AUd2Lv8W/3XDQjjaTRXSAQQjYIFoQR2Jj1GjAG3zDYxuB4jWuTPORh
       a8/DVk6SqlRtVeI8nFSlKsleHvy0VanEWRvfdg34BjaLgdjmIoPNzRiDkBASErqMRoOkufd5
