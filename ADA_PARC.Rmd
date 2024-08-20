@@ -196,6 +196,14 @@ ui <- fluidPage(
         background-color: #34495e;
         text-decoration: none;
       }
+      .demographic-header {
+        font-size: 22px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
     "))
   ),
   div(class = "main-content",
@@ -213,20 +221,22 @@ ui <- fluidPage(
         tags$li("Use the Settings tab to set color palettes for the visualizations in this dashboard.")
       ),
       
-      # Embed Tableau dashboard here
-      div(class = 'tableauPlaceholder', id = 'viz1723579194780', style = 'position: relative;',
+      div(class = "demographic-header", "Demographic Explorer"),  # Header added here
+      
+      # Updated Tableau embed code
+      div(class = 'tableauPlaceholder', id = 'viz1724171392978', style = 'position: relative;',
           tags$noscript(
             a(href = '#',
-              img(src = 'https://public.tableau.com/static/images/De/Demographic_Dash/DisabilitybyRaceTotal-SelectState/1_rss.png', style = 'border: none'))
+              img(alt = ' ', src = 'https://public.tableau.com/static/images/De/DemographicExplorer/ofPopulationwithaDisability/1_rss.png', style = 'border: none'))
           ),
           tags$object(class = 'tableauViz', style = 'display:none;',
                       tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
                       tags$param(name = 'embed_code_version', value = '3'),
                       tags$param(name = 'site_root', value = ''),
-                      tags$param(name = 'name', value = 'Demographic_Dash/DisabilitybyRaceTotal-SelectState'),
+                      tags$param(name = 'name', value = 'DemographicExplorer/ofPopulationwithaDisability'),
                       tags$param(name = 'tabs', value = 'yes'),
                       tags$param(name = 'toolbar', value = 'yes'),
-                      tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/De/Demographic_Dash/DisabilitybyRaceTotal-SelectState/1.png'),
+                      tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/De/DemographicExplorer/ofPopulationwithaDisability/1.png'),
                       tags$param(name = 'animate_transition', value = 'yes'),
                       tags$param(name = 'display_static_image', value = 'yes'),
                       tags$param(name = 'display_spinner', value = 'yes'),
@@ -237,7 +247,7 @@ ui <- fluidPage(
           )
       ),
       tags$script(type = 'text/javascript',
-                  HTML("var divElement = document.getElementById('viz1723579194780');
+                  HTML("var divElement = document.getElementById('viz1724171392978');
                    var vizElement = divElement.getElementsByTagName('object')[0];
                    vizElement.style.width = '100%';
                    vizElement.style.height = (divElement.offsetWidth * 0.75) + 'px';
@@ -270,6 +280,7 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
+
 
 ```
 
