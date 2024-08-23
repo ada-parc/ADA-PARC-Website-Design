@@ -124,7 +124,7 @@ source(here::here("scripts", "functions.R"), local = TRUE)
 
 ```{r}
 ui <- fluidPage(
-  theme = shinytheme("yeti"), 
+  theme = shinytheme("yeti"),
   tags$head(
     tags$style(HTML("
       body, html {
@@ -148,11 +148,11 @@ ui <- fluidPage(
         margin-top: 10px;
       }
       .section-title {
-        font-size: 18px;
+        font-size: 20px; /* Increased font size for better emphasis */
         font-weight: bold;
         color: #2c3e50;
-        margin-top: 20px;
-        margin-bottom: 5px;
+        margin-top: 25px; /* Added more margin to separate from previous section */
+        margin-bottom: 10px; /* Increased margin for better spacing */
       }
       .section-content {
         font-size: 14px;
@@ -161,10 +161,11 @@ ui <- fluidPage(
         margin-bottom: 10px;
       }
       .list-content {
-        font-size: 14px;
+        font-size: 16px; /* Increased font size for better readability */
         color: #2c3e50;
-        line-height: 1.4;
-        margin-left: 20px;
+        line-height: 1.6; /* Increased line height for better spacing */
+        margin-left: 25px; /* Adjusted margin for better alignment */
+        margin-bottom: 10px; /* Added bottom margin to space out list items */
       }
       .footer {
         font-size: 12px;
@@ -202,7 +203,7 @@ ui <- fluidPage(
         color: #2c3e50;
         margin-top: 30px;
         margin-bottom: 15px;
-        text-align: center;
+        text-align: left; /* Align the header to the left */
       }
     "))
   ),
@@ -211,20 +212,20 @@ ui <- fluidPage(
       div(class = "section-title", "What is the ADA?"),
       div(class = "section-content", "The Americans with Disabilities Act (ADA), established in 1990, is a landmark civil rights law that prohibits discrimination against individuals with disabilities in all areas of public life."),
       
-      div(class = "section-title", "How to Navigate this Website"),
+      div(class = "section-title", "How to Navigate this Website"),  # Adjusted section title
       tags$ul(
         class = "list-content",
-        tags$li("Use the National Data tab to examine the status of people with disabilities at the national and state level."),
-        tags$li("Use the City Data tab to investigate people with disabilities statistics at the municipal level."),
-        tags$li("Use the Scorecard tabs to view our state by state report cards for each category."),
-        tags$li("Use the About tab to learn more about the ADA-PARC project."),
-        tags$li("Use the Settings tab to set color palettes for the visualizations in this dashboard.")
+        tags$li("National Data: examine the status of people with disabilities at the national and state level."),
+        tags$li("City Data: investigate people with disabilities statistics at the municipal level."),
+        tags$li("Scorecard: view our state by state report cards for each category."),
+        tags$li("About: learn more about the ADA-PARC project."),
+        tags$li("Settings: set color palettes for the visualizations in this dashboard.")
       ),
       
-      div(class = "demographic-header", "Demographic Explorer"),  # Header added here
+      div(class = "demographic-header", "Demographic Explorer"),
       
-      # Updated Tableau embed code
-      div(class = 'tableauPlaceholder', id = 'viz1724171392978', style = 'position: relative;',
+      # Tableau embed code
+      div(class = 'tableauPlaceholder', id = 'viz1724361483716', style = 'position: relative;',
           tags$noscript(
             a(href = '#',
               img(alt = ' ', src = 'https://public.tableau.com/static/images/De/DemographicExplorer/ofPopulationwithaDisability/1_rss.png', style = 'border: none'))
@@ -242,18 +243,18 @@ ui <- fluidPage(
                       tags$param(name = 'display_spinner', value = 'yes'),
                       tags$param(name = 'display_overlay', value = 'yes'),
                       tags$param(name = 'display_count', value = 'yes'),
-                      tags$param(name = 'language', value = 'en-US'),
-                      tags$param(name = 'filter', value = 'publish=yes')
+                      tags$param(name = 'language', value = 'en-US')
           )
       ),
       tags$script(type = 'text/javascript',
-                  HTML("var divElement = document.getElementById('viz1724171392978');
-                   var vizElement = divElement.getElementsByTagName('object')[0];
-                   vizElement.style.width = '100%';
-                   vizElement.style.height = (divElement.offsetWidth * 0.75) + 'px';
-                   var scriptElement = document.createElement('script');
-                   scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-                   vizElement.parentNode.insertBefore(scriptElement, vizElement);")
+                  HTML("
+                     var divElement = document.getElementById('viz1724361483716');
+                     var vizElement = divElement.getElementsByTagName('object')[0];
+                     vizElement.style.width='100%';
+                     vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+                     var scriptElement = document.createElement('script');
+                     scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                     vizElement.parentNode.insertBefore(scriptElement, vizElement);")
       ),
       
       div(class = "section-title", "Since the ADA:"),
@@ -280,8 +281,6 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
-
-
 ```
 
 ::: {role="main"}
@@ -959,25 +958,7 @@ Scorecards for ADA-PARC translate measures across the three categories
 of Community Living, Community Participation, and Work Economic into an
 easy to interpret, comparative 100-point scale.
 
-There are two basic ways we can think about the 'state of affairs' for
-the disabled population in any given state x for metric y:
-
-1.  How does disabled population in state x fare on metric y compared to
-    disabled population in other states? (relative)
-2.  How does disabled population ins tate x fare on metric y compared to
-    non-disabled population in own state? (disparity/equity)
-
-Relative scores indicate how favorable conditions are for a given
-state's disabled population compared to the disabled population of other
-states, the higher the value, the more favorable conditions for that
-state's disabled population relative to the median state's disabled
-population.
-
-Equity scores measures how favorable conditions are for a given state's
-disabled population relative to the non-disabled population of the same
-state, the higher the value, the more favorable conditions are for that
-state's disabled population relative to the non-disabled population of
-that state.
+For more information on their structure, visit the 'Scorecards - Report' tab.
 
 ```{r}
 library(shiny)
@@ -1099,7 +1080,10 @@ shinyApp(
             selectInput("dimension", "Select a dimension:", 
                         choices = c("Relative Scores", "Equity Scores"), 
                         selected = "Relative Scores"),
-            uiOutput("category_selector")
+            uiOutput("category_selector"),
+            br(),
+            p(style = "font-size: 85%;",  # Adjusts the font size to be slightly smaller
+              "Scorecard dashboards are based on data from 2022 Census Data via the ACS. For more information on their logical structure and calculation methods, see the ‘Scorecards - Report’ tab.")
         )
       ),
       column(
@@ -1150,274 +1134,272 @@ shinyApp(
       }
     })
     
-    # Observe the selected dimension and category to render the corresponding Tableau dashboard
-    output$scorecard_output <- renderUI({
-      req(input$category)
-      category <- input$category
-      
-      if (category == "relative_community_living") {
-        tags$div(
-          class = 'tableauPlaceholder', 
-          id = 'viz1723223564502',
-          style = 'width: 100%; height: 100%;',
-          tags$noscript(
-            tags$a(
-              href = '#',
-              tags$img(
-                alt = 'Community Living - Relative Scores - Select State',
-                src = 'https://public.tableau.com/static/images/Re/Relative_Living_Dash/CommunityLiving-RelativeScores-SelectState/1_rss.png',
-                style = 'border: none'
-              )
-            )
-          ),
-          tags$object(
-            class = 'tableauViz',
-            style = 'width: 100%; height: 100%;',
-            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
-            tags$param(name = 'embed_code_version', value = '3'),
-            tags$param(name = 'site_root', value = ''),
-            tags$param(name = 'name', value = 'Relative_Living_Dash/CommunityLiving-RelativeScores-SelectState'),
-            tags$param(name = 'tabs', value = 'yes'),
-            tags$param(name = 'toolbar', value = 'yes'),
-            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Living_Dash/CommunityLiving-RelativeScores-SelectState/1.png'),
-            tags$param(name = 'animate_transition', value = 'yes'),
-            tags$param(name = 'display_static_image', value = 'yes'),
-            tags$param(name = 'display_spinner', value = 'yes'),
-            tags$param(name = 'display_overlay', value = 'yes'),
-            tags$param(name = 'display_count', value = 'yes'),
-            tags$param(name = 'language', value = 'en-US'),
-            tags$param(name = 'filter', value = 'publish=yes')
-          ),
-          tags$script(
-            HTML("
-              var divElement = document.getElementById('viz1723223564502');
-              var vizElement = divElement.getElementsByTagName('object')[0];
-              vizElement.style.width='100%';
-              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
-              var scriptElement = document.createElement('script');
-              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-              vizElement.parentNode.insertBefore(scriptElement, vizElement);
-            ")
+output$scorecard_output <- renderUI({
+  req(input$category)
+  category <- input$category
+  
+  if (category == "relative_community_living") {
+    tags$div(
+      class = 'tableauPlaceholder', 
+      id = 'viz1724259305927',
+      style = 'width: 100%; height: 100%;',
+      tags$noscript(
+        tags$a(
+          href = '#',
+          tags$img(
+            alt = 'Housing Voucher Choice Table',
+            src = 'https://public.tableau.com/static/images/Re/Relative_Living_Dash/HousingVoucherChoiceTable/1_rss.png',
+            style = 'border: none'
           )
         )
-      } else if (category == "relative_community_participation") {
-        tags$div(
-          class = 'tableauPlaceholder', 
-          id = 'viz1723236124105',
-          style = 'width: 100%; height: 100%;',
-          tags$noscript(
-            tags$a(
-              href = '#',
-              tags$img(
-                alt = 'Community Participation - Relative Scores By State - Bar Chart',
-                src = 'https://public.tableau.com/static/images/Re/Relative_Participation_Dash/CommunityParticipation-RelativeScoresByState-BarChart/1_rss.png',
-                style = 'border: none'
-              )
-            )
-          ),
-          tags$object(
-            class = 'tableauViz',
-            style = 'width: 100%; height: 100%;',
-            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
-            tags$param(name = 'embed_code_version', value = '3'),
-            tags$param(name = 'site_root', value = ''),
-            tags$param(name = 'name', value = 'Relative_Participation_Dash/CommunityParticipation-RelativeScoresByState-BarChart'),
-            tags$param(name = 'tabs', value = 'yes'),
-            tags$param(name = 'toolbar', value = 'yes'),
-            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Participation_Dash/CommunityParticipation-RelativeScoresByState-BarChart/1.png'),
-            tags$param(name = 'animate_transition', value = 'yes'),
-            tags$param(name = 'display_static_image', value = 'yes'),
-            tags$param(name = 'display_spinner', value = 'yes'),
-            tags$param(name = 'display_overlay', value = 'yes'),
-            tags$param(name = 'display_count', value = 'yes'),
-            tags$param(name = 'language', value = 'en-US')
-          ),
-          tags$script(
-            HTML("
-              var divElement = document.getElementById('viz1723236124105');
-              var vizElement = divElement.getElementsByTagName('object')[0];
-              vizElement.style.width='100%';
-              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
-              var scriptElement = document.createElement('script');
-              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-              vizElement.parentNode.insertBefore(scriptElement, vizElement);
-            ")
+      ),
+      tags$object(
+        class = 'tableauViz',
+        style = 'width: 100%; height: 100%;',
+        tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+        tags$param(name = 'embed_code_version', value = '3'),
+        tags$param(name = 'site_root', value = ''),
+        tags$param(name = 'name', value = 'Relative_Living_Dash/HousingVoucherChoiceTable'),
+        tags$param(name = 'tabs', value = 'yes'),
+        tags$param(name = 'toolbar', value = 'yes'),
+        tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Living_Dash/HousingVoucherChoiceTable/1.png'),
+        tags$param(name = 'animate_transition', value = 'yes'),
+        tags$param(name = 'display_static_image', value = 'yes'),
+        tags$param(name = 'display_spinner', value = 'yes'),
+        tags$param(name = 'display_overlay', value = 'yes'),
+        tags$param(name = 'display_count', value = 'yes'),
+        tags$param(name = 'language', value = 'en-US')
+      ),
+      tags$script(
+        HTML("
+          var divElement = document.getElementById('viz1724259305927');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          vizElement.style.width='100%';
+          vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        ")
+      )
+    )
+  } else if (category == "relative_community_participation") {
+    tags$div(
+      class = 'tableauPlaceholder', 
+      id = 'viz1724259347079',
+      style = 'width: 100%; height: 100%;',
+      tags$noscript(
+        tags$a(
+          href = '#',
+          tags$img(
+            alt = 'Smartphone Access Table',
+            src = 'https://public.tableau.com/static/images/Re/Relative_Participation_Dash/SmartphoneAccessTable/1_rss.png',
+            style = 'border: none'
           )
         )
-      } else if (category == "relative_work_economic") {
-        tags$div(
-          class = 'tableauPlaceholder', 
-          id = 'viz1723236150123',
-          style = 'width: 100%; height: 100%;',
-          tags$noscript(
-            tags$a(
-              href = '#',
-              tags$img(
-                alt = 'Relative Work Economic - Scores By State - Map',
-                src = 'https://public.tableau.com/static/images/Re/Relative_Work_Dash/RelativeWorkEconomic-ScoresByState-Map/1_rss.png',
-                style = 'border: none'
-              )
-            )
-          ),
-          tags$object(
-            class = 'tableauViz',
-            style = 'width: 100%; height: 100%;',
-            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
-            tags$param(name = 'embed_code_version', value = '3'),
-            tags$param(name = 'site_root', value = ''),
-            tags$param(name = 'name', value = 'Relative_Work_Dash/RelativeWorkEconomic-ScoresByState-Map'),
-            tags$param(name = 'tabs', value = 'yes'),
-            tags$param(name = 'toolbar', value = 'yes'),
-            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Work_Dash/RelativeWorkEconomic-ScoresByState-Map/1.png'),
-            tags$param(name = 'animate_transition', value = 'yes'),
-            tags$param(name = 'display_static_image', value = 'yes'),
-            tags$param(name = 'display_spinner', value = 'yes'),
-            tags$param(name = 'display_overlay', value = 'yes'),
-            tags$param(name = 'display_count', value = 'yes'),
-            tags$param(name = 'language', value = 'en-US')
-          ),
-          tags$script(
-            HTML("
-              var divElement = document.getElementById('viz1723236150123');
-              var vizElement = divElement.getElementsByTagName('object')[0];
-              vizElement.style.width='100%';
-              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
-              var scriptElement = document.createElement('script');
-              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-              vizElement.parentNode.insertBefore(scriptElement, vizElement);
-            ")
+      ),
+      tags$object(
+        class = 'tableauViz',
+        style = 'width: 100%; height: 100%;',
+        tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+        tags$param(name = 'embed_code_version', value = '3'),
+        tags$param(name = 'site_root', value = ''),
+        tags$param(name = 'name', value = 'Relative_Participation_Dash/SmartphoneAccessTable'),
+        tags$param(name = 'tabs', value = 'yes'),
+        tags$param(name = 'toolbar', value = 'yes'),
+        tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Participation_Dash/SmartphoneAccessTable/1.png'),
+        tags$param(name = 'animate_transition', value = 'yes'),
+        tags$param(name = 'display_static_image', value = 'yes'),
+        tags$param(name = 'display_spinner', value = 'yes'),
+        tags$param(name = 'display_overlay', value = 'yes'),
+        tags$param(name = 'display_count', value = 'yes'),
+        tags$param(name = 'language', value = 'en-US')
+      ),
+      tags$script(
+        HTML("
+          var divElement = document.getElementById('viz1724259347079');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          vizElement.style.width='100%';
+          vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        ")
+      )
+    )
+  } else if (category == "relative_work_economic") {
+  tags$div(
+    class = 'tableauPlaceholder', 
+    id = 'viz1724260870153',
+    style = 'position: relative;',
+    tags$noscript(
+      tags$a(
+        href = '#',
+        tags$img(
+          alt = ' ',
+          src = 'https://public.tableau.com/static/images/Re/Relative_Work_Dash/WorkEconomicOverallMap/1_rss.png',
+          style = 'border: none'
+        )
+      )
+    ),
+    tags$object(
+      class = 'tableauViz',
+      style = 'display: none;',
+      tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+      tags$param(name = 'embed_code_version', value = '3'),
+      tags$param(name = 'site_root', value = ''),
+      tags$param(name = 'name', value = 'Relative_Work_Dash/WorkEconomicOverallMap'),
+      tags$param(name = 'tabs', value = 'yes'),
+      tags$param(name = 'toolbar', value = 'yes'),
+      tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Re/Relative_Work_Dash/WorkEconomicOverallMap/1.png'),
+      tags$param(name = 'animate_transition', value = 'yes'),
+      tags$param(name = 'display_static_image', value = 'yes'),
+      tags$param(name = 'display_spinner', value = 'yes'),
+      tags$param(name = 'display_overlay', value = 'yes'),
+      tags$param(name = 'display_count', value = 'yes'),
+      tags$param(name = 'language', value = 'en-US')
+    ),
+    tags$script(
+      HTML("
+        var divElement = document.getElementById('viz1724260870153');
+        var vizElement = divElement.getElementsByTagName('object')[0];
+        vizElement.style.width='100%';
+        vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+        var scriptElement = document.createElement('script');
+        scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+        vizElement.parentNode.insertBefore(scriptElement, vizElement);
+      ")
+      )
+    )
+  } else if (category == "equity_community_living") {
+    tags$div(
+      class = 'tableauPlaceholder', 
+      id = 'viz1724259389021',
+      style = 'width: 100%; height: 100%;',
+      tags$noscript(
+        tags$a(
+          href = '#',
+          tags$img(
+            alt = 'All Measures Table - Community Living',
+            src = 'https://public.tableau.com/static/images/Di/Disparity_Living_Dash/AllMeasuresTable/1_rss.png',
+            style = 'border: none'
           )
         )
-      } else if (category == "equity_community_living") {
-        tags$div(
-          class = 'tableauPlaceholder', 
-          id = 'viz1723236194478',
-          style = 'width: 100%; height: 100%;',
-          tags$noscript(
-            tags$a(
-              href = '#',
-              tags$img(
-                alt = 'Community Living Equity Scores - Select Measure',
-                src = 'https://public.tableau.com/static/images/Di/Disparity_Living_Dash/CommunityLivingEquityScores-SelectMeasure/1_rss.png',
-                style = 'border: none'
-              )
-            )
-          ),
-          tags$object(
-            class = 'tableauViz',
-            style = 'width: 100%; height: 100%;',
-            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
-            tags$param(name = 'embed_code_version', value = '3'),
-            tags$param(name = 'site_root', value = ''),
-            tags$param(name = 'name', value = 'Disparity_Living_Dash/CommunityLivingEquityScores-SelectMeasure'),
-            tags$param(name = 'tabs', value = 'yes'),
-            tags$param(name = 'toolbar', value = 'yes'),
-            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Living_Dash/CommunityLivingEquityScores-SelectMeasure/1.png'),
-            tags$param(name = 'animate_transition', value = 'yes'),
-            tags$param(name = 'display_static_image', value = 'yes'),
-            tags$param(name = 'display_spinner', value = 'yes'),
-            tags$param(name = 'display_overlay', value = 'yes'),
-            tags$param(name = 'display_count', value = 'yes'),
-            tags$param(name = 'language', value = 'en-US')
-          ),
-          tags$script(
-            HTML("
-              var divElement = document.getElementById('viz1723236194478');
-              var vizElement = divElement.getElementsByTagName('object')[0];
-              vizElement.style.width='100%';
-              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
-              var scriptElement = document.createElement('script');
-              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-              vizElement.parentNode.insertBefore(scriptElement, vizElement);
-            ")
+      ),
+      tags$object(
+        class = 'tableauViz',
+        style = 'width: 100%; height: 100%;',
+        tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+        tags$param(name = 'embed_code_version', value = '3'),
+        tags$param(name = 'site_root', value = ''),
+        tags$param(name = 'name', value = 'Disparity_Living_Dash/AllMeasuresTable'),
+        tags$param(name = 'tabs', value = 'yes'),
+        tags$param(name = 'toolbar', value = 'yes'),
+        tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Living_Dash/AllMeasuresTable/1.png'),
+        tags$param(name = 'animate_transition', value = 'yes'),
+        tags$param(name = 'display_static_image', value = 'yes'),
+        tags$param(name = 'display_spinner', value = 'yes'),
+        tags$param(name = 'display_overlay', value = 'yes'),
+        tags$param(name = 'display_count', value = 'yes'),
+        tags$param(name = 'language', value = 'en-US')
+      ),
+      tags$script(
+        HTML("
+          var divElement = document.getElementById('viz1724259389021');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          vizElement.style.width='100%';
+          vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        ")
+      )
+    )
+  } else if (category == "equity_community_participation") {
+    tags$div(
+      class = 'tableauPlaceholder', 
+      id = 'viz1724259406272',
+      style = 'width: 100%; height: 100%;',
+      tags$noscript(
+        tags$a(
+          href = '#',
+          tags$img(
+            alt = 'All Measures Table - Community Participation',
+            src = 'https://public.tableau.com/static/images/Di/Disparity_Participation_Dash/AllMeasuresTable/1_rss.png',
+            style = 'border: none'
           )
         )
-      } else if (category == "equity_community_participation") {
-        tags$div(
-          class = 'tableauPlaceholder', 
-          id = 'viz1723236229625',
-          style = 'width: 100%; height: 100%;',
-          tags$noscript(
-            tags$a(
-              href = '#',
-              tags$img(
-                alt = 'Community Participation Equity Scores - Select Measure',
-                src = 'https://public.tableau.com/static/images/Di/Disparity_Participation_Dash/CommunityParticipationEquityScores-SelectMeasure/1_rss.png',
-                style = 'border: none'
-              )
-            )
-          ),
-          tags$object(
-            class = 'tableauViz',
-            style = 'width: 100%; height: 100%;',
-            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
-            tags$param(name = 'embed_code_version', value = '3'),
-            tags$param(name = 'site_root', value = ''),
-            tags$param(name = 'name', value = 'Disparity_Participation_Dash/CommunityParticipationEquityScores-SelectMeasure'),
-            tags$param(name = 'tabs', value = 'yes'),
-            tags$param(name = 'toolbar', value = 'yes'),
-            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Participation_Dash/CommunityParticipationEquityScores-SelectMeasure/1.png'),
-            tags$param(name = 'animate_transition', value = 'yes'),
-            tags$param(name = 'display_static_image', value = 'yes'),
-            tags$param(name = 'display_spinner', value = 'yes'),
-            tags$param(name = 'display_overlay', value = 'yes'),
-            tags$param(name = 'display_count', value = 'yes'),
-            tags$param(name = 'language', value = 'en-US')
-          ),
-          tags$script(
-            HTML("
-              var divElement = document.getElementById('viz1723236229625');
-              var vizElement = divElement.getElementsByTagName('object')[0];
-              vizElement.style.width='100%';
-              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
-              var scriptElement = document.createElement('script');
-              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-              vizElement.parentNode.insertBefore(scriptElement, vizElement);
-            ")
+      ),
+      tags$object(
+        class = 'tableauViz',
+        style = 'width: 100%; height: 100%;',
+        tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+        tags$param(name = 'embed_code_version', value = '3'),
+        tags$param(name = 'site_root', value = ''),
+        tags$param(name = 'name', value = 'Disparity_Participation_Dash/AllMeasuresTable'),
+        tags$param(name = 'tabs', value = 'yes'),
+        tags$param(name = 'toolbar', value = 'yes'),
+        tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Participation_Dash/AllMeasuresTable/1.png'),
+        tags$param(name = 'animate_transition', value = 'yes'),
+        tags$param(name = 'display_static_image', value = 'yes'),
+        tags$param(name = 'display_spinner', value = 'yes'),
+        tags$param(name = 'display_overlay', value = 'yes'),
+        tags$param(name = 'display_count', value = 'yes'),
+        tags$param(name = 'language', value = 'en-US')
+      ),
+      tags$script(
+        HTML("
+          var divElement = document.getElementById('viz1724259406272');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          vizElement.style.width='100%';
+          vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        ")
+      )
+    )
+  } else if (category == "equity_work_economic") {
+    tags$div(
+      class = 'tableauPlaceholder', 
+      id = 'viz1724259422737',
+      style = 'width: 100%; height: 100%;',
+      tags$noscript(
+        tags$a(
+          href = '#',
+          tags$img(
+            alt = 'Not in Labor Force Table',
+            src = 'https://public.tableau.com/static/images/Di/Disparity_Work_Dash/NotinLaborForceTable/1_rss.png',
+            style = 'border: none'
           )
         )
-      } else if (category == "equity_work_economic") {
-        tags$div(
-          class = 'tableauPlaceholder', 
-          id = 'viz1723236258470',
-          style = 'width: 100%; height: 100%;',
-          tags$noscript(
-            tags$a(
-              href = '#',
-              tags$img(
-                alt = 'Work Economic Equity Scores - Select State',
-                src = 'https://public.tableau.com/static/images/Di/Disparity_Work_Dash/WorkEconomicEquityScores-SelectState/1_rss.png',
-                style = 'border: none'
-              )
-            )
-          ),
-          tags$object(
-            class = 'tableauViz',
-            style = 'width: 100%; height: 100%;',
-            tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
-            tags$param(name = 'embed_code_version', value = '3'),
-            tags$param(name = 'site_root', value = ''),
-            tags$param(name = 'name', value = 'Disparity_Work_Dash/WorkEconomicEquityScores-SelectState'),
-            tags$param(name = 'tabs', value = 'yes'),
-            tags$param(name = 'toolbar', value = 'yes'),
-            tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Work_Dash/WorkEconomicEquityScores-SelectState/1.png'),
-            tags$param(name = 'animate_transition', value = 'yes'),
-            tags$param(name = 'display_static_image', value = 'yes'),
-            tags$param(name = 'display_spinner', value = 'yes'),
-            tags$param(name = 'display_overlay', value = 'yes'),
-            tags$param(name = 'display_count', value = 'yes'),
-            tags$param(name = 'language', value = 'en-US')
-          ),
-          tags$script(
-            HTML("
-              var divElement = document.getElementById('viz1723236258470');
-              var vizElement = divElement.getElementsByTagName('object')[0];
-              vizElement.style.width='100%';
-              vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
-              var scriptElement = document.createElement('script');
-              scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
-              vizElement.parentNode.insertBefore(scriptElement, vizElement);
-            ")
+      ),
+      tags$object(
+        class = 'tableauViz',
+        style = 'width: 100%; height: 100%;',
+        tags$param(name = 'host_url', value = 'https%3A%2F%2Fpublic.tableau.com%2F'),
+        tags$param(name = 'embed_code_version', value = '3'),
+        tags$param(name = 'site_root', value = ''),
+        tags$param(name = 'name', value = 'Disparity_Work_Dash/NotinLaborForceTable'),
+        tags$param(name = 'tabs', value = 'yes'),
+        tags$param(name = 'toolbar', value = 'yes'),
+        tags$param(name = 'static_image', value = 'https://public.tableau.com/static/images/Di/Disparity_Work_Dash/NotinLaborForceTable/1.png'),
+        tags$param(name = 'animate_transition', value = 'yes'),
+        tags$param(name = 'display_static_image', value = 'yes'),
+        tags$param(name = 'display_spinner', value = 'yes'),
+        tags$param(name = 'display_overlay', value = 'yes'),
+        tags$param(name = 'display_count', value = 'yes'),
+        tags$param(name = 'language', value = 'en-US')
+      ),
+      tags$script(
+        HTML("
+          var divElement = document.getElementById('viz1724259422737');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          vizElement.style.width='100%';
+          vizElement.style.height=(divElement.offsetWidth*0.75)+'px';
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        ")
           )
         )
       }
@@ -1430,13 +1412,27 @@ shinyApp(
 ::: {role="main"}
 # Scorecards - Report
 
-Below is the scorecard report, with the option for download!
+The scorecard report is available below. You can scroll through the report and download it directly from the viewer.
 
 ```{r}
-# Embed the PDF using iframe
-tags$iframe(style="height:600px; width:100%; scrolling=yes", 
-            src="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf")
+# Embed the PDF using iframe with improved style and added download link
+tags$div(
+  style="text-align: center;",
+  tags$iframe(
+    style="height:600px; width:100%; border:none; overflow-y:scroll;", 
+    src="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf"
+  ),
+  tags$br(),
+  tags$a(
+    href="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf", 
+    download="ADA-PARC_scorecard_report.pdf",
+    "Download the report"
+  )
+)
+
+
 ```
+
 :::
 
 ::: {role="main"}
