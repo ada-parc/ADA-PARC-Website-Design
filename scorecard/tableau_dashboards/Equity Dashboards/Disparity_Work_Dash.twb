@@ -15,7 +15,7 @@
     <_.fcp.VConnDownstreamExtractsWithWarnings.true...VConnDownstreamExtractsWithWarnings />
     <WindowsPersistSimpleIdentifiers />
   </document-format-change-manifest>
-  <repository-location id='Disparity_Work_Dash' path='/workbooks' revision='1.4' />
+  <repository-location id='Disparity_Work_Dash' path='/workbooks' revision='1.5' />
   <preferences>
     <preference name='ui.encoding.shelf.height' value='24' />
     <preference name='ui.shelf.height' value='26' />
@@ -1528,6 +1528,20 @@
       <layout _.fcp.SchemaViewerObjectModel.false...dim-percentage='0.5' _.fcp.SchemaViewerObjectModel.false...measure-percentage='0.4' dim-ordering='ordinal' measure-ordering='ordinal' show-structure='true' />
       <style>
         <style-rule element='mark'>
+          <encoding attr='color' field='[none:Calculation_6951024600216911873:nk]' type='palette'>
+            <map to='#8074a8'>
+              <bucket>&quot;Q3&quot;</bucket>
+            </map>
+            <map to='#c46487'>
+              <bucket>&quot;Q4&quot;</bucket>
+            </map>
+            <map to='#c6c1f0'>
+              <bucket>&quot;Q2&quot;</bucket>
+            </map>
+            <map to='#ffbed1'>
+              <bucket>&quot;Q1&quot;</bucket>
+            </map>
+          </encoding>
           <encoding attr='color' field='[none:Calculation_2710674442340564992:nk]' type='palette'>
             <map to='#9b93c9'>
               <bucket>&quot;Q3&quot;</bucket>
@@ -1599,20 +1613,6 @@
             </map>
           </encoding>
           <encoding attr='color' field='[none:Employment Equity Score Quartiles (copy)_2710674442341126148:nk]' type='palette'>
-            <map to='#8074a8'>
-              <bucket>&quot;Q3&quot;</bucket>
-            </map>
-            <map to='#c46487'>
-              <bucket>&quot;Q4&quot;</bucket>
-            </map>
-            <map to='#c6c1f0'>
-              <bucket>&quot;Q2&quot;</bucket>
-            </map>
-            <map to='#ffbed1'>
-              <bucket>&quot;Q1&quot;</bucket>
-            </map>
-          </encoding>
-          <encoding attr='color' field='[none:Calculation_6951024600216911873:nk]' type='palette'>
             <map to='#8074a8'>
               <bucket>&quot;Q3&quot;</bucket>
             </map>

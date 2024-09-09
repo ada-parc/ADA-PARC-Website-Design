@@ -122,7 +122,7 @@ source(here::here("scripts", "functions.R"), local = TRUE)
 
 # Home
 
-```{r}
+```{r home}
 ui <- fluidPage(
   theme = shinytheme("yeti"),
   tags$head(
@@ -960,7 +960,7 @@ easy to interpret, comparative 100-point scale.
 
 For more information on their structure, visit the 'Scorecards - Report' tab.
 
-```{r}
+```{r excel scorecards}
 library(shiny)
 library(DT)
 library(readxl)
@@ -1068,7 +1068,7 @@ shinyApp(
 ::: {role="main"}
 # Scorecards - Tableau Dashboard
 
-```{r}
+```{r tableau scorecards}
 shinyApp(
   ui = fluidPage(
     fluidRow(
@@ -1082,7 +1082,7 @@ shinyApp(
                         selected = "Relative Scores"),
             uiOutput("category_selector"),
             br(),
-            p(style = "font-size: 85%;",  # Adjusts the font size to be slightly smaller
+            p(style = "font-size: 85%;",  
               "Scorecard dashboards are based on data from 2022 Census Data via the ACS. For more information on their logical structure and calculation methods, see the ‘Scorecards - Report’ tab.")
         )
       ),
@@ -1414,7 +1414,7 @@ output$scorecard_output <- renderUI({
 
 The scorecard report is available below. You can scroll through the report and download it directly from the viewer.
 
-```{r}
+```{r scorecard report}
 # Embed the PDF using iframe with improved style and added download link
 tags$div(
   style="text-align: center;",
@@ -1429,7 +1429,6 @@ tags$div(
     "Download the report"
   )
 )
-
 
 ```
 
