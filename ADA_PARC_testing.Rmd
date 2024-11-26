@@ -1,5 +1,5 @@
 ---
-title: "ADA-PARC"
+title: "ADA-PARC TESTING (currently:2022)"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -11,6 +11,7 @@ output:
 runtime: shiny
 resource_files:
 - www/participant_logos.png
+- www/participants.png
 - scripts/functions.R
 - data/dict_vars.csv
 - data/final/city_place_full.Rds
@@ -24,10 +25,9 @@ editor_options:
   markdown: 
     wrap: 72
 ---
-
 ```{r}
+# TESTING VERSION
 
-# v2 of 2022 
 
 
 ```
@@ -198,12 +198,6 @@ ui <- fluidPage(
         border-top: 1px solid #ddd;
         padding: 10px;
       }
-      img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        margin: 10px auto 20px auto;
-      }
       .email-button {
         display: inline-block;
         padding: 10px 15px;
@@ -244,9 +238,10 @@ ui <- fluidPage(
           " Since the ADA, organizations across public and private sectors have worked to improve the quality of life for individuals with disabilities in the U.S. ADA-PARC emphasizes key components of Census and HUD data to shed light on the lived experiences and outcomes for people with disabilities."
       ),
       
-      # Did You Know Section
+      # Did You Know Section with HTML image for Poverty
       div(class = "section-title", "Did You Know?"),
       div(class = "section-content", "According to 2022 ACS data, between the ages of 18 to 64, 1 in 4 individuals with a disability live below the poverty line."),
+      img(src = "below_poverty.png", alt = "Below Poverty Line Statistics", style = "width: 75%;"),
       
       # About ADA-PARC Section
       div(class = "section-title", "About the ADA-PARC"),
@@ -297,11 +292,15 @@ ui <- fluidPage(
           " NIDILRR is a Center within the Administration for Community Living (ACL), Department of Health and Human Services (HHS). The contents of this website do not necessarily represent the policy of NIDILRR, ACL, HHS, and you should not assume endorsement by the Federal Government."
       ),
       
-      # Questions Section
+      # Questions Section with HTML email button
       div(class = "section-title", "Questions?"),
       a(href = "mailto:joyhammel@uic.edu", class = "email-button", "Email Joy Hammel"),
       div(class = "section-content", "Director of Graduate Studies UIC College of Applied Health Sciences"),
       
+      # HTML image for participant logos
+      img(src = "participant_logos.png", alt = "The ten participating ADA-Regional Centers", style = "width: 75%;"),
+      
+      # Footer section
       div(class = "footer",
           "Application authors: Ethan Jantz, Sean Connelly, Jane Huber, Colin Heeneman, and Randy D. Colón",
           tags$br(),
@@ -317,9 +316,9 @@ shinyApp(ui = ui, server = server)
 
 ```
 
-# National Data
+# National Data {#national_data}
 
-```{r National Data}
+```{r national_data}
 library(shiny)
 library(dplyr)
 library(tibble)
@@ -336,8 +335,8 @@ ui <- fluidPage(
       .table_national th {
         position: sticky;
         top: 0;
-        background-color: #E2E2E0; /* Gray background */
-        color: #000000 ; /* Black text color for contrast */
+        background-color: #F8D7DA; /* Pastel red background color for the header */
+        color: #000000; /* Black text color for contrast */
         z-index: 1;
       }
       .table_national {
@@ -476,13 +475,11 @@ server <- function(input, output, session) {
 # Run the app
 shinyApp(ui, server)
 
-
 ```
 
 # City Data
 
 ```{r}
-
 library(shiny)
 library(leaflet)
 library(dplyr)
@@ -707,9 +704,237 @@ shinyApp(ui, server)
 
 ```
 
-# Scorecards
+# Scorecard Work Economic
 
 ```{r tableau scorecards}
+library(shiny)
+
+# Define UI
+ui <- fluidPage(
+  # Application title
+  titlePanel("Work Economic Tableau Dashboard"),
+  
+  # Static embed for Work Economic dashboard
+  fluidRow(
+    column(
+      width = 12,
+      HTML("
+        <div class='tableauPlaceholder' id='viz1732576247026' style='position: relative'>
+          <noscript>
+            <a href='#'>
+              <img alt=' ' src='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallDash/1_rss.png' style='border: none' />
+            </a>
+          </noscript>
+          <object class='tableauViz' style='display:none;'>
+            <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+            <param name='embed_code_version' value='3' />
+            <param name='site_root' value='' />
+            <param name='name' value='WorkEconomic2022ADAPARCACS/WorkEconomicOverallDash' />
+            <param name='tabs' value='yes' />
+            <param name='toolbar' value='yes' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallDash/1.png' />
+            <param name='animate_transition' value='yes' />
+            <param name='display_static_image' value='yes' />
+            <param name='display_spinner' value='yes' />
+            <param name='display_overlay' value='yes' />
+            <param name='display_count' value='yes' />
+            <param name='language' value='en-US' />
+          </object>
+        </div>
+        <script type='text/javascript'>
+          var divElement = document.getElementById('viz1732576247026');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          if (divElement.offsetWidth > 800) {
+            vizElement.style.minWidth = '1000px';
+            vizElement.style.maxWidth = '100%';
+            vizElement.style.minHeight = '850px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+          } else if (divElement.offsetWidth > 500) {
+            vizElement.style.minWidth = '1000px';
+            vizElement.style.maxWidth = '100%';
+            vizElement.style.minHeight = '850px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+          } else {
+            vizElement.style.width = '100%';
+            vizElement.style.minHeight = '800px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 1.77) + 'px';
+          }
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        </script>
+      ")
+    )
+  )
+)
+
+# Define server logic (no server logic needed for static display)
+server <- function(input, output, session) {
+  # No dynamic content to render
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
+
+
+```
+
+# Scorecard Community Participation
+```{r}
+library(shiny)
+
+# Define UI
+ui <- fluidPage(
+  # Application title
+  titlePanel("Community Participation Tableau Dashboard"),
+  
+  # Static embed for Community Participation dashboard
+  fluidRow(
+    column(
+      width = 12,
+      HTML("
+        <div class='tableauPlaceholder' id='viz1732576408249' style='position: relative'>
+          <noscript>
+            <a href='#'>
+              <img alt='Community Participation Dashboard' src='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/CommunityParticipationOverallDash/1_rss.png' style='border: none' />
+            </a>
+          </noscript>
+          <object class='tableauViz' style='display:none;'>
+            <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+            <param name='embed_code_version' value='3' />
+            <param name='site_root' value='' />
+            <param name='name' value='CommunityParticipation2022ADAPARCACS/CommunityParticipationOverallDash' />
+            <param name='tabs' value='yes' />
+            <param name='toolbar' value='yes' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/CommunityParticipationOverallDash/1.png' />
+            <param name='animate_transition' value='yes' />
+            <param name='display_static_image' value='yes' />
+            <param name='display_spinner' value='yes' />
+            <param name='display_overlay' value='yes' />
+            <param name='display_count' value='yes' />
+            <param name='language' value='en-US' />
+          </object>
+        </div>
+        <script type='text/javascript'>
+          var divElement = document.getElementById('viz1732576408249');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          if ( divElement.offsetWidth > 800 ) {
+            vizElement.style.minWidth = '1000px';
+            vizElement.style.maxWidth = '100%';
+            vizElement.style.minHeight = '850px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+          } else if ( divElement.offsetWidth > 500 ) {
+            vizElement.style.minWidth = '1000px';
+            vizElement.style.maxWidth = '100%';
+            vizElement.style.minHeight = '850px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+          } else {
+            vizElement.style.width = '100%';
+            vizElement.style.minHeight = '800px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 1.77) + 'px';
+          }
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        </script>
+      ")
+    )
+  )
+)
+
+# Define server logic (no server logic needed for static display)
+server <- function(input, output, session) {
+  # No dynamic content to render
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
+
+
+
+```
+
+# Scorecard Community Living
+
+```{r}
+library(shiny)
+
+# Define UI
+ui <- fluidPage(
+  # Application title
+  titlePanel("Community Living Tableau Dashboard"),
+  
+  # Static embed for Community Living dashboard
+  fluidRow(
+    column(
+      width = 12,
+      HTML("
+        <div class='tableauPlaceholder' id='viz1732576520400' style='position: relative'>
+          <noscript>
+            <a href='#'>
+              <img alt='Community Living Dashboard' src='https://public.tableau.com/static/images/Co/CommunityLiving2022ADA-PARCACS/CommunityLivingGeneralDash/1_rss.png' style='border: none' />
+            </a>
+          </noscript>
+          <object class='tableauViz' style='display:none;'>
+            <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+            <param name='embed_code_version' value='3' />
+            <param name='site_root' value='' />
+            <param name='name' value='CommunityLiving2022ADA-PARCACS/CommunityLivingGeneralDash' />
+            <param name='tabs' value='yes' />
+            <param name='toolbar' value='yes' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityLiving2022ADA-PARCACS/CommunityLivingGeneralDash/1.png' />
+            <param name='animate_transition' value='yes' />
+            <param name='display_static_image' value='yes' />
+            <param name='display_spinner' value='yes' />
+            <param name='display_overlay' value='yes' />
+            <param name='display_count' value='yes' />
+            <param name='language' value='en-US' />
+          </object>
+        </div>
+        <script type='text/javascript'>
+          var divElement = document.getElementById('viz1732576520400');
+          var vizElement = divElement.getElementsByTagName('object')[0];
+          if ( divElement.offsetWidth > 800 ) {
+            vizElement.style.minWidth = '1000px';
+            vizElement.style.maxWidth = '100%';
+            vizElement.style.minHeight = '850px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+          } else if ( divElement.offsetWidth > 500 ) {
+            vizElement.style.minWidth = '1000px';
+            vizElement.style.maxWidth = '100%';
+            vizElement.style.minHeight = '850px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+          } else {
+            vizElement.style.width = '100%';
+            vizElement.style.minHeight = '800px';
+            vizElement.style.maxHeight = (divElement.offsetWidth * 1.77) + 'px';
+          }
+          var scriptElement = document.createElement('script');
+          scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+          vizElement.parentNode.insertBefore(scriptElement, vizElement);
+        </script>
+      ")
+    )
+  )
+)
+
+# Define server logic (no server logic needed for static display)
+server <- function(input, output, session) {
+  # No dynamic content to render
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
+
+
+
+```
+
+# Scorecard Dynamic
+```{r}
 library(shiny)
 
 # Define UI
@@ -894,7 +1119,6 @@ shinyApp(ui = ui, server = server)
 ```
 
 
-
 # Help
 
 ```{r accessibility-page-body}
@@ -912,7 +1136,7 @@ access_map_palette_choices <- list(
   "Grayscale Gradient" = "Greys",
   "Teal-Blue Gradient" = "GnBu",  # Retained option
   "Green-Yellow Gradient" = "YlGn",  # New option
-  "Brown-Blue Diverging" = "BrBG"  # New option
+  "Red-Blue Diverging" = "RdBu"  # New option
 )
 
 # Select Input for Map Palette
@@ -951,7 +1175,6 @@ tags$div(
 )
 
 ```
-:::
 
 <!-- Custom Javascript  -->
 
