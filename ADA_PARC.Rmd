@@ -710,6 +710,7 @@ shinyApp(ui, server)
 # Scorecards
 
 ```{r tableau scorecards}
+
 library(shiny)
 
 # Define UI
@@ -717,9 +718,10 @@ ui <- fluidPage(
   # Application title
   titlePanel("Dynamic Scorecard Dashboard"),
   
-  # Dropdown to select the scorecard
-  sidebarLayout(
-    sidebarPanel(
+  # Selector and body text
+  fluidRow(
+    column(12,
+      # Dropdown to select the scorecard
       selectInput(
         inputId = "scorecard_choice",
         label = "Select a Scorecard:",
@@ -729,10 +731,18 @@ ui <- fluidPage(
           "Work Economic" = "work_economic"
         ),
         selected = "participation"
-      )
-    ),
-    
-    mainPanel(
+      ),
+      # Body text
+      HTML("<p style='margin-top: 20px; font-size: 16px;'>
+        <strong>Scorecards are based on 2022 ACS Census data.</strong> Quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
+        <strong>Q1</strong> represents the bottom 25%, <strong>Q2</strong> is 25-50%, <strong>Q3</strong> is 50-75%, and <strong>Q4</strong> is the top 25%.
+      </p>")
+    )
+  ),
+  
+  # Dashboard display
+  fluidRow(
+    column(12,
       uiOutput("scorecard_ui")
     )
   )
@@ -889,6 +899,7 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
 
 
 ```
