@@ -2,30 +2,23 @@
 # Dashboard functions -----------------------------------------------------
 
 altTitle <- function(variable) {
-  
   # Title, vars_pretty field for variable
-  title <- dict_vars %>% 
+  title <- dict_vars %>%
     filter(!is.na(national_dropdown_label),
-           var_readable == sym(variable)) %>% 
-    head(1) %>% 
+           var_readable == sym(variable)) %>%
+    head(1) %>%
     pull(var_pretty)
   
-  title <- str_trim(str_replace_all(title,
-                                    " (with|without) Disabilities", ""))
-  
-  title <- str_trim(str_replace_all(title,
-                                    " (with|without) Disability", ""))
+  title <- str_trim(str_replace_all(title, " (with|without) Disabilities", ""))
+  title <- str_trim(str_replace_all(title, " (with|without) Disability", ""))
   
   return(title)
-  
 }
 
 # Create non-overlapping quartile buckets
 create_non_overlapping_buckets <- function(data) {
-  
   probs <- seq(0, 1, length.out = 5)
-  
-  quantiles <- quantile(data, probs, na.rm=TRUE)
+  quantiles <- quantile(data, probs, na.rm = TRUE)
   
   round_dynamic <- function(x, precision) {
     return(round(x * 10^precision) / 10^precision)
@@ -60,7 +53,6 @@ create_non_overlapping_buckets <- function(data) {
 format_ranges <- function(breaks, col_name) {
   if (grepl("pct", col_name, ignore.case = TRUE)) {
     # Format as percentages
-    
     formatted_ranges <- paste0(head(breaks, -1), "%-", tail(breaks, -1), "%")
   } else {
     # Format with commas for large numbers
@@ -70,224 +62,107 @@ format_ranges <- function(breaks, col_name) {
   return(formatted_ranges)
 }
 
-render_national_map <- function(selected,
-                                palette_selected = "YlOrBr") {
-  # Static check (Standalone, Comp, HUD Source)
-  # selected <- "pwd_pct"
-  # selected <- "pwd_19_64_insured_public_pct"
-  # selected <- "pwd_housing_choice_voucher_pct"
-  # Comp Map:
-  # selected <- "pwd_unemployed_pct"
-    
+render_national_map <- function(selected, palette_selected = "YlOrBr") {
   is_comp <- dict_vars %>%
     filter(var_readable == selected) %>%
     pull(display_type) %>%
     head(1) %>%
-    {
-      . == "comp"
-    } 
+    {. == "comp"}
+  
+  palette <- brewer.pal(4, palette_selected)
+  
+  if (!is_comp) {
+    legend_title <- paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
     
-    palette <-
-      brewer.pal(4, palette_selected)
+    us_states_with_data <- us_states %>%
+      filter(ABBR != "USA") %>%
+      select(1:8, estimate = sym(selected)) %>%
+      mutate(estimate = as.numeric(gsub(pattern = "[,]", replacement = "", x = estimate)))
     
-    if (!is_comp) {
-      
-      legend_title <-
-        paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
-      
-      us_states_with_data <- us_states %>%
-        filter(ABBR != "USA") %>%
-        select(1:8, estimate = sym(selected)) %>%
-        mutate(estimate = as.numeric(gsub(
-          pattern = "[,]",
-          replacement = "",
-          x = estimate
-        )))
-
-      # Calculate quantile breaks and create custom labels
-
-      buckets <- create_non_overlapping_buckets(us_states_with_data$estimate)
-      
-      labels <- format_ranges(buckets, selected)
-
-      us_states_with_data <- us_states_with_data  %>% 
-        mutate(estimate_cat = cut(
-          estimate,
-          breaks = buckets,
-          include.lowest = TRUE,
-          labels = labels))
-      
-      # Create the map
-      ggplot(data = us_states_with_data) +
-        geom_sf(aes(fill = estimate_cat)) +
-        geom_text(data = us_states_with_data,
-                  aes(label = ABBR,
-                      x = x_lab,
-                      y = y_lab)) +
-        geom_segment(data = us_states_with_data %>%
-                       filter(ABBR %in% east_coast_states_to_relocate), 
-                     aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
-        scale_fill_manual(values = palette, name = legend_title) +
-        theme_void() +
+    buckets <- create_non_overlapping_buckets(us_states_with_data$estimate)
+    labels <- format_ranges(buckets, selected)
+    
+    us_states_with_data <- us_states_with_data %>%
+      mutate(estimate_cat = cut(estimate, breaks = buckets, include.lowest = TRUE, labels = labels))
+    
+    ggplot(data = us_states_with_data) +
+      geom_sf(aes(fill = estimate_cat)) +
+      scale_fill_manual(values = palette, name = legend_title) +
+      theme_void() +
+      theme(legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.title = element_text(size = 14),
+            legend.box = "horizontal",
+            legend.text = element_text(size = 14))
+    
+  } else {
+    base_var <- dict_vars %>%
+      filter(var_readable == selected) %>%
+      pull(var_base)
+    
+    comp_var <- dict_vars %>%
+      filter(var_base == base_var, var_readable != selected) %>%
+      pull(var_readable)
+    
+    us_states_with_data <- us_states %>%
+      filter(ABBR != "USA") %>%
+      select(1:8, estimate = sym(selected), estimate_2 = sym(comp_var)) %>%
+      mutate(
+        estimate = as.numeric(gsub(pattern = "[,]", replacement = "", x = estimate)),
+        estimate_2 = as.numeric(gsub(pattern = "[,]", replacement = "", x = estimate_2))
+      )
+    
+    combined_var <- c(us_states_with_data$estimate, us_states_with_data$estimate_2)
+    breaks <- create_non_overlapping_buckets(combined_var)
+    labels <- format_ranges(breaks, selected)
+    
+    us_states_with_data <- us_states_with_data %>%
+      mutate(
+        estimate_cat = cut(estimate, breaks = breaks, include.lowest = TRUE, labels = labels),
+        estimate_2_cat = cut(estimate_2, breaks = breaks, include.lowest = TRUE, labels = labels)
+      )
+    
+    shared_scale <- scale_fill_manual(values = palette, drop = FALSE, name = "Legend Title")
+    
+    map1 <- ggplot(data = us_states_with_data) +
+      geom_sf(aes(fill = estimate_cat)) +
+      shared_scale +
+      theme_void() +
+      theme(
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        legend.box = "horizontal"
+        ) +
+      ggtitle("People with Disabilities")
+    
+    map2 <- ggplot(data = us_states_with_data) +
+      geom_sf(aes(fill = estimate_2_cat)) +
+      shared_scale +
+      theme_void() +
+      theme(
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 13),
+        legend.box = "horizontal"
+      ) +
+      ggtitle("People without Disabilities")
+    
+    legend <- cowplot::get_legend(
+      map1 +
         theme(
           legend.position = "bottom",
           legend.direction = "horizontal",
-          legend.title = element_text(size = 14, hjust = 0.5),
-          legend.text = element_text(size = 10),
-          legend.title.align = 0.5,
-          legend.box = "horizontal",
-          legend.box.just = "center",
-        ) +
-        guides(
-          fill = guide_legend(
-            title.position = "top",
-            title.hjust = 0.5,
-            label.position = "bottom",
-            # Move labels below the legend keys
-            label.hjust = 0.5,
-            # Center the labels below the legend keys
-            nrow = 1 # Ensure the legend items are in a single row
-          )
+          legend.title = element_blank(),
+          legend.text = element_text(size = 20),
+          legend.box = "horizontal"
         )
-      
-      
-    } else {
-
-      base_var <- dict_vars %>%
-        filter(var_readable == selected) %>%
-        pull(var_base)
-      
-      comp_var <- dict_vars %>%
-        filter(var_base == base_var, var_readable != selected) %>%
-        pull(var_readable)
-      
-      us_states_with_data <- us_states %>%
-        filter(ABBR != "USA") %>%
-        select(1:8, 
-               estimate = sym(selected),
-               estimate_2 = sym(comp_var)) %>%
-        mutate(estimate = as.numeric(gsub(
-          pattern = "[,]",
-          replacement = "",
-          x = estimate
-        )),
-        estimate_2 = as.numeric(gsub(
-          pattern = "[,]",
-          replacement = "",
-          x = estimate_2
-        )))
-      
-      # Combine PWD and PWOD
-      combined_var <- c(us_states_with_data$estimate, us_states_with_data$estimate_2)
-      
-      breaks <- create_non_overlapping_buckets(combined_var)
-      labels <- format_ranges(breaks, selected)
-      
-      us_states_with_data <- us_states_with_data %>% 
-        mutate(
-        estimate_cat = factor(
-          cut(
-            estimate,
-            breaks = breaks,
-            include.lowest = TRUE,
-            labels = labels
-          ),
-          levels = labels
-        ),
-        estimate_2_cat = factor(
-          cut(
-            estimate_2,
-            breaks = breaks,
-            include.lowest = TRUE,
-            labels = labels
-          ),
-          levels = labels
-        )
-      )
-      
-      # Map title reworking
-      legend_title_comp <-
-        paste0(dict_vars$var_pretty[which(dict_vars$var_readable == selected)][1])
-      
-      legend_title_comp <-
-        str_trim(str_replace_all(legend_title_comp,
-                                 " (with|without) Disabilities", ""))
-      
-      legend_title_comp <-
-        str_trim(str_replace_all(legend_title_comp,
-                                 " (with|without) Disability", ""))
-      
-      plot_1_title <- "People with Disabilities"
-      plot_2_title <- "People without Disabilities"
-      
-
-      map1 <- ggplot(data = us_states_with_data) +
-        geom_sf(aes(fill = estimate_cat)) +
-        geom_text(data = us_states_with_data,
-                  aes(label = ABBR,
-                      x = x_lab,
-                      y = y_lab)) +
-        geom_segment(data = us_states_with_data %>%
-                       filter(ABBR %in% east_coast_states_to_relocate), 
-                     aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
-        scale_fill_manual(values = palette, drop = FALSE) +
-        ggtitle(plot_1_title) +
-        theme_void() +
-        theme(
-          legend.position = "none" # Hide legend for the first map
-        )
-      
-      # Create the second map for 'estimate_2'
-      map2 <- ggplot(data = us_states_with_data) +
-        geom_sf(aes(fill = estimate_2_cat)) +
-        geom_text(data = us_states_with_data,
-                  aes(label = ABBR,
-                      x = x_lab,
-                      y = y_lab)) +
-        geom_segment(data = us_states_with_data %>%
-                       filter(ABBR %in% east_coast_states_to_relocate), 
-                     aes(X, Y, xend = x_lab - 100000, yend = y_lab)) +
-        scale_fill_manual(values = palette, drop = FALSE) +
-        ggtitle(plot_2_title) +
-        theme_void() +
-        theme(
-          legend.position = "none" # Hide legend for the second map
-        )
-      
-      
-      # Extract the legend from one of the maps
-      legend <- cowplot::get_legend(
-        ggplot(data = us_states_with_data) +
-          geom_sf(aes(fill = estimate_cat)) +
-          scale_fill_manual(values = palette, name = legend_title_comp, drop = FALSE) +
-          theme_void() +
-          theme(
-            legend.position = "bottom",
-            legend.direction = "horizontal",
-            legend.title = element_text(size = 10, hjust = 0.5),
-            legend.text = element_text(size = 8),
-            legend.title.align = 0.5,
-            legend.box = "horizontal",
-            legend.box.just = "center"
-          ) +
-          guides(
-            fill = guide_legend(
-              title.position = "top",
-              title.hjust = 0.5,
-              label.position = "bottom",
-              label.hjust = 0.5,
-              nrow = 1
-            )
-          )
-      )
-      
-      # Combine the maps and the legend using patchwork
-      combined <- (map1 + map2) / legend + plot_layout(heights = c(10, 1))
-      
-      combined
-    }
+    )
+    
+    combined <- (map1 + map2) / legend + plot_layout(heights = c(10, 3))
+    combined
   }
-
+}
 
 
 # Accessibility Functions -------------------------------------------------
