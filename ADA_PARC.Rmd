@@ -25,13 +25,6 @@ editor_options:
     wrap: 72
 ---
 
-```{r}
-
-# v2 of 2022 
-
-
-```
-
 
 ```{r setup, include=FALSE}
 
@@ -246,7 +239,7 @@ ui <- fluidPage(
       
       # Did You Know Section
       div(class = "section-title", "Did You Know?"),
-      div(class = "section-content", "According to 2022 ACS data, between the ages of 18 to 64, 1 in 4 individuals with a disability live below the poverty line."),
+      div(class = "section-content", "Nationally, between the ages of 18 to 64, 1 in 4 individuals with a disability live below the poverty line."),
       
       # About ADA-PARC Section
       div(class = "section-title", "About the ADA-PARC"),
@@ -357,8 +350,8 @@ ui <- fluidPage(
                                     p("To explore the data first select a category and then a topic. You can navigate the boxes below using the mouse or keyboard."),
                                     selectInput(inputId = "national_category_selector", 
                                                 label = "Select a category", 
-                                                choices = c("Demographics", "Community Participation", 
-                                                            "Community Living", "Work/Economic"),
+                                                choices = c("Demographics", "Community Living", 
+                                                            "Community Participation", "Work/Economic"),
                                                 selected = "Demographics"),
                                     selectInput(inputId = "national_variable_selector",
                                                 label = "Select a topic",
@@ -425,7 +418,7 @@ server <- function(input, output, session) {
     source_text <- if (national_variable_selected() %in% hud_data) {
       "2022 United States Department of Housing and Urban Development"
     } else {
-      "2018-2022 American Community Survey five-year estimates"
+      "2019-2023 American Community Survey five-year estimates"
     }
     full_text <- paste0("Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: ", source_text)
     HTML(paste0(altText(national_data, national_variable_selected()), full_text))
@@ -640,7 +633,7 @@ server <- function(input, output, session) {
     # City summary text for overall population
     city_summary_text <- paste0(
       "<h5>People with Disabilities - Summary Tables</h5>",
-      "Based on ACS 2022 5-Year Estimates, <b>", city_place()$pwd_total, "</b> of the city's <b>", 
+      "Based on ACS 2023 5-Year Estimates, <b>", city_place()$pwd_total, "</b> of the city's <b>", 
       city_place()$pop_total, "</b> residents (<b>", city_place()$pwd_pct, "%</b>) are people with disabilities.<br><br>"
     )
     
@@ -675,7 +668,7 @@ server <- function(input, output, session) {
     
     # Create summary items for Key Indicators
     key_indicators <- city_place() %>% transmute(
-      LivingInPoverty = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
+    #  LivingInPoverty = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
       CarCommute = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
       PublicTransit = create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
       WalkOrBike = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
@@ -734,7 +727,7 @@ ui <- fluidPage(
       ),
       # Body text
       HTML("<p style='margin-top: 20px; font-size: 16px;'>
-        <strong>Scorecards are based on 2022 ACS Census data.</strong> Quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
+        <strong>Scorecards are based on 2022 ACS Census, currently being updated for 2023 data.</strong> Quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
         <strong>Q1</strong> represents the bottom 25%, <strong>Q2</strong> is 25-50%, <strong>Q3</strong> is 50-75%, and <strong>Q4</strong> is the top 25%.
       </p>")
     )
