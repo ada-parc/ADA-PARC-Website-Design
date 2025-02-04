@@ -420,7 +420,7 @@ server <- function(input, output, session) {
     } else {
       "2019-2023 American Community Survey five-year estimates"
     }
-    full_text <- paste0("Detailed information is available to the right in the interactive map (top) and table (bottom).<br><br>Source: ", source_text)
+    full_text <- paste0(".<br><br>Source: ", source_text)
     HTML(paste0(altText(national_data, national_variable_selected()), full_text))
   })
   
@@ -587,40 +587,41 @@ server <- function(input, output, session) {
   # Palette for map
   pal_city <- reactive({
     req(city_tract())  # Ensure city tract data is available
-    city_tract_pwd_total <- as.numeric(str_replace_all(city_tract()$pwd_total, ",", ""))
+    city_tract_pwd_pct <- as.numeric(city_tract()$pwd_pct)  # Use pwd_pct instead of pwd_total
     map_palette <- access_map_palette_selected()
     
-    if (length(city_tract_pwd_total) < 4) {
-      colorNumeric(palette = map_palette, domain = city_tract_pwd_total)
+    if (length(city_tract_pwd_pct) < 4) {
+      colorNumeric(palette = map_palette, domain = city_tract_pwd_pct)
     } else {
-      colorQuantile(palette = map_palette, domain = city_tract_pwd_total, n = 4)
+      colorQuantile(palette = map_palette, domain = city_tract_pwd_pct, n = 4)
     }
   })
   
   # City map
   output$snapshotmap <- renderLeaflet({
     req(city_tract_sf(), city_tract())  # Ensure both data frames are available
-    data <- left_join(city_tract_sf(), city_tract() %>% select(GEOID, pwd_total), by = c("tract_GEOID" = "GEOID")) %>%
-      mutate(pwd_total = as.numeric(str_replace_all(pwd_total, ",", "")))
+    data <- left_join(city_tract_sf(), city_tract() %>% select(GEOID, pwd_pct), by = c("tract_GEOID" = "GEOID")) %>%  # Use pwd_pct
+      mutate(pwd_pct = as.numeric(pwd_pct))  # Convert to numeric for mapping
     
     leaflet(data) %>%
       addProviderTiles(providers$CartoDB.Positron) %>%
       addResetMapButton() %>%
       addPolygons(
         stroke = TRUE, color = "#444444", weight = 1, smoothFactor = 0,
-        fillColor = ~pal_city()(pwd_total), fillOpacity = 0.5, layerId = ~tract_GEOID
+        fillColor = ~pal_city()(pwd_pct), fillOpacity = 0.75, layerId = ~tract_GEOID  # Use pwd_pct for color fill
       ) %>%
       addLegend(
-        position = "topright", pal = pal_city(), values = ~pwd_total,
+        position = "topright", pal = pal_city(), values = ~pwd_pct,  # Use pwd_pct for legend values
         labFormat = function(type, cuts, p) {
-          paste0(as.numeric(cuts)[-length(cuts)], " – ", as.numeric(cuts)[-1])
+           paste0(round(as.numeric(cuts)[-length(cuts)], 1), " – ", round(as.numeric(cuts)[-1], 1))
         },
-        title = "# People With Disabilities"
+        title = "% With Disability"  # Update legend title
       ) %>%
       addSearchOSM(
         options = searchOptions(autoCollapse = FALSE, minLength = 3, position = "topleft", zoom = 15, autoResize = FALSE, hideMarkerOnCollapse = TRUE)
       )
   })
+
   
   # City Summary Output
   output$city_summary <- renderUI({
@@ -632,7 +633,7 @@ server <- function(input, output, session) {
     
     # City summary text for overall population
     city_summary_text <- paste0(
-      "<h5>People with Disabilities - Summary Tables</h5>",
+      "<h3>People with Disabilities - Summary Tables</h3>",
       "Based on ACS 2023 5-Year Estimates, <b>", city_place()$pwd_total, "</b> of the city's <b>", 
       city_place()$pop_total, "</b> residents (<b>", city_place()$pwd_pct, "%</b>) are people with disabilities.<br><br>"
     )
@@ -652,40 +653,51 @@ server <- function(input, output, session) {
       pull(Bullets) %>% 
       str_c(collapse = "")
     
-    # Create summary items for Disability Types
-    disability_types <- city_place() %>% transmute(
-      Hearing = pwd_hearing,
-      Vision = pwd_vision,
-      Cognitive = pwd_cognitive,
-      Ambulatory = pwd_ambulatory,
-      SelfCare = pwd_selfcare,
-      IndependentLiving = pwd_indliving
-    ) %>% 
-      pivot_longer(everything(), names_to = "Type of Disability", values_to = "Total") %>%
-      mutate("Bullets" = paste0('<li>', `Type of Disability`, " &mdash; ", Total, '</li>')) %>%
-      pull(Bullets) %>% 
-      str_c(collapse = "")
+  # Create summary items for Disability Types
+  disability_types <- city_place() %>% transmute(
+    Hearing = create_number_percent_string(pwd_hearing, pwd_hearing_pct),
+    Vision = create_number_percent_string(pwd_vision, pwd_vision_pct),
+    Cognitive = create_number_percent_string(pwd_cognitive, pwd_cognitive_pct),
+    Ambulatory = create_number_percent_string(pwd_ambulatory, pwd_ambulatory_pct),
+    SelfCare = create_number_percent_string(pwd_selfcare, pwd_selfcare_pct),
+    IndependentLiving = create_number_percent_string(pwd_indliving, pwd_indliving_pct)
+  ) %>%
+    pivot_longer(everything(), names_to = "Type of Disability", values_to = "Value (%)") %>%
+    mutate("Bullets" = paste0('<li>', `Type of Disability`, " &mdash; ", `Value (%)`, '</li>')) %>%
+    pull(Bullets) %>%
+    str_c(collapse = "")
+
     
     # Create summary items for Key Indicators
     key_indicators <- city_place() %>% transmute(
-    #  LivingInPoverty = create_number_percent_string(pwd_below_poverty, pwd_below_poverty_pct),
       CarCommute = create_number_percent_string(pwd_car_commute, pwd_car_commute_pct),
       PublicTransit = create_number_percent_string(pwd_pub_transit, pwd_pub_transit_dis_pct),
       WalkOrBike = create_number_percent_string(pwd_walk_bike, pwd_walk_bike_pct),
       Employed = create_number_percent_string(pop_total_employed_16_plus, pwd_employed_subj),
       NotInLaborForce = create_number_percent_string(pwd_not_in_labor_force, pwd_not_employed_subj)
-    ) %>% 
+    ) %>%
       pivot_longer(everything(), names_to = "Indicator", values_to = "Value (%)") %>%
-      mutate("Bullets" = paste0('<li>', Indicator, " &mdash; ", `Value (%)`, '</li>')) %>%
-      pull(Bullets) %>% 
+      mutate(
+        Indicator = case_when(
+          Indicator == "CarCommute" ~ "Commute to Work by Car",
+          Indicator == "PublicTransit" ~ "Commute to Work by Public Transportation",
+          Indicator == "WalkOrBike" ~ "Commute by Walking or Biking",
+          Indicator == "Employed" ~ "Employment Rate",
+          Indicator == "NotInLaborForce" ~ "Not In Labor Force",
+          TRUE ~ Indicator
+        ),
+        "Bullets" = paste0('<li>', Indicator, " &mdash; ", `Value (%)`, '</li>')
+      ) %>%
+      pull(Bullets) %>%
       str_c(collapse = "")
+
     
     # HTML structure with three sections
     city_summary_tables <- paste0(
       '<div class = "row">',
-      '<div class = "col-md-12"><b>Demographics</b><ul>', demographics, '</ul></div>',
+      '<div class = "col-md-12"><b>Disability Demographics</b><ul>', demographics, '</ul></div>',
       '<div class = "col-md-12"><b>Disability Types</b><ul>', disability_types, '</ul></div>',
-      '<div class = "col-md-12"><b>Key Indicators</b><ul>', key_indicators, '</ul></div>',
+      '<div class = "col-md-12"><b>Disability Key Indicators</b><ul>', key_indicators, '</ul></div>',
       '</div>'
     )
     
@@ -709,7 +721,7 @@ library(shiny)
 # Define UI
 ui <- fluidPage(
   # Application title
-  titlePanel("Dynamic Scorecard Dashboard"),
+  titlePanel("Scorecard Dashboard"),
   
   # Selector and body text
   fluidRow(
@@ -727,8 +739,8 @@ ui <- fluidPage(
       ),
       # Body text
       HTML("<p style='margin-top: 20px; font-size: 16px;'>
-        <strong>Scorecards are based on 2022 ACS Census, currently being updated for 2023 data.</strong> Quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
-        <strong>Q1</strong> represents the bottom 25%, <strong>Q2</strong> is 25-50%, <strong>Q3</strong> is 50-75%, and <strong>Q4</strong> is the top 25%.
+        <strong>Scorecards are based on 2022 ACS Census, currently being updated for 2023 data.</strong> Scores are displayed in two ways: Firstly, a 0-100 score where 100 means FAR BETTER  than the median state and 0 means FAR WORSE than the median state. Secondly, quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
+        <strong>Q1</strong> are the worst scores, representing poor opportunity for people with disabilities <strong>Q2</strong> is below average, <strong>Q3</strong> is above average, and <strong>Q4</strong> are the best scores, representing great opportunity for people with disabilities.
       </p>")
     )
   ),
@@ -747,20 +759,20 @@ server <- function(input, output, session) {
   output$scorecard_ui <- renderUI({
     if (input$scorecard_choice == "participation") {
       HTML("
-        <div class='tableauPlaceholder' id='viz1732576408249' style='position: relative'>
+        <div class='tableauPlaceholder' id='viz1738198322062' style='position: relative'>
           <noscript>
             <a href='#'>
-              <img alt='Community Participation Dashboard' src='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/CommunityParticipationOverallDash/1_rss.png' style='border: none' />
+              <img alt=' ' src='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/EducationAccessScore/1_rss.png' style='border: none' />
             </a>
           </noscript>
           <object class='tableauViz' style='display:none;'>
             <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
             <param name='embed_code_version' value='3' />
             <param name='site_root' value='' />
-            <param name='name' value='CommunityParticipation2022ADAPARCACS/CommunityParticipationOverallDash' />
+            <param name='name' value='CommunityParticipation2022ADAPARCACS/EducationAccessScore' />
             <param name='tabs' value='yes' />
             <param name='toolbar' value='yes' />
-            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/CommunityParticipationOverallDash/1.png' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/EducationAccessScore/1.png' />
             <param name='animate_transition' value='yes' />
             <param name='display_static_image' value='yes' />
             <param name='display_spinner' value='yes' />
@@ -770,22 +782,17 @@ server <- function(input, output, session) {
           </object>
         </div>
         <script type='text/javascript'>
-          var divElement = document.getElementById('viz1732576408249');
+          var divElement = document.getElementById('viz1738198322062');
           var vizElement = divElement.getElementsByTagName('object')[0];
           if (divElement.offsetWidth > 800) {
-            vizElement.style.minWidth = '1000px';
-            vizElement.style.maxWidth = '100%';
-            vizElement.style.minHeight = '850px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+            vizElement.style.width = '1000px';
+            vizElement.style.height = '850px';
           } else if (divElement.offsetWidth > 500) {
-            vizElement.style.minWidth = '1000px';
-            vizElement.style.maxWidth = '100%';
-            vizElement.style.minHeight = '850px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+            vizElement.style.width = '1000px';
+            vizElement.style.height = '850px';
           } else {
             vizElement.style.width = '100%';
-            vizElement.style.minHeight = '800px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 1.77) + 'px';
+            vizElement.style.height = '800px';
           }
           var scriptElement = document.createElement('script');
           scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
@@ -794,20 +801,20 @@ server <- function(input, output, session) {
       ")
     } else if (input$scorecard_choice == "living") {
       HTML("
-        <div class='tableauPlaceholder' id='viz1732576520400' style='position: relative'>
+        <div class='tableauPlaceholder' id='viz1738198301179' style='position: relative'>
           <noscript>
             <a href='#'>
-              <img alt='Community Living Dashboard' src='https://public.tableau.com/static/images/Co/CommunityLiving2022ADA-PARCACS/CommunityLivingGeneralDash/1_rss.png' style='border: none' />
+              <img alt=' ' src='https://public.tableau.com/static/images/Co/CommunityLiving2022ADAPARCACS/LivinginCommunityScore/1_rss.png' style='border: none' />
             </a>
           </noscript>
           <object class='tableauViz' style='display:none;'>
             <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
             <param name='embed_code_version' value='3' />
             <param name='site_root' value='' />
-            <param name='name' value='CommunityLiving2022ADA-PARCACS/CommunityLivingGeneralDash' />
+            <param name='name' value='CommunityLiving2022ADAPARCACS/LivinginCommunityScore' />
             <param name='tabs' value='yes' />
             <param name='toolbar' value='yes' />
-            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityLiving2022ADA-PARCACS/CommunityLivingGeneralDash/1.png' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityLiving2022ADAPARCACS/LivinginCommunityScore/1.png' />
             <param name='animate_transition' value='yes' />
             <param name='display_static_image' value='yes' />
             <param name='display_spinner' value='yes' />
@@ -817,22 +824,17 @@ server <- function(input, output, session) {
           </object>
         </div>
         <script type='text/javascript'>
-          var divElement = document.getElementById('viz1732576520400');
+          var divElement = document.getElementById('viz1738198301179');
           var vizElement = divElement.getElementsByTagName('object')[0];
           if (divElement.offsetWidth > 800) {
-            vizElement.style.minWidth = '1000px';
-            vizElement.style.maxWidth = '100%';
-            vizElement.style.minHeight = '850px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+            vizElement.style.width = '1000px';
+            vizElement.style.height = '850px';
           } else if (divElement.offsetWidth > 500) {
-            vizElement.style.minWidth = '1000px';
-            vizElement.style.maxWidth = '100%';
-            vizElement.style.minHeight = '850px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+            vizElement.style.width = '1000px';
+            vizElement.style.height = '850px';
           } else {
             vizElement.style.width = '100%';
-            vizElement.style.minHeight = '800px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 1.77) + 'px';
+            vizElement.style.height = '800px';
           }
           var scriptElement = document.createElement('script');
           scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
@@ -841,20 +843,20 @@ server <- function(input, output, session) {
       ")
     } else if (input$scorecard_choice == "work_economic") {
       HTML("
-        <div class='tableauPlaceholder' id='viz1732576247026' style='position: relative'>
+        <div class='tableauPlaceholder' id='viz1738198341521' style='position: relative'>
           <noscript>
             <a href='#'>
-              <img alt='Work Economic Dashboard' src='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallDash/1_rss.png' style='border: none' />
+              <img alt=' ' src='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallScore/1_rss.png' style='border: none' />
             </a>
           </noscript>
           <object class='tableauViz' style='display:none;'>
             <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
             <param name='embed_code_version' value='3' />
             <param name='site_root' value='' />
-            <param name='name' value='WorkEconomic2022ADAPARCACS/WorkEconomicOverallDash' />
+            <param name='name' value='WorkEconomic2022ADAPARCACS/WorkEconomicOverallScore' />
             <param name='tabs' value='yes' />
             <param name='toolbar' value='yes' />
-            <param name='static_image' value='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallDash/1.png' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallScore/1.png' />
             <param name='animate_transition' value='yes' />
             <param name='display_static_image' value='yes' />
             <param name='display_spinner' value='yes' />
@@ -864,22 +866,17 @@ server <- function(input, output, session) {
           </object>
         </div>
         <script type='text/javascript'>
-          var divElement = document.getElementById('viz1732576247026');
+          var divElement = document.getElementById('viz1738198341521');
           var vizElement = divElement.getElementsByTagName('object')[0];
           if (divElement.offsetWidth > 800) {
-            vizElement.style.minWidth = '1000px';
-            vizElement.style.maxWidth = '100%';
-            vizElement.style.minHeight = '850px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+            vizElement.style.width = '1000px';
+            vizElement.style.height = '850px';
           } else if (divElement.offsetWidth > 500) {
-            vizElement.style.minWidth = '1000px';
-            vizElement.style.maxWidth = '100%';
-            vizElement.style.minHeight = '850px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 0.75) + 'px';
+            vizElement.style.width = '1000px';
+            vizElement.style.height = '850px';
           } else {
             vizElement.style.width = '100%';
-            vizElement.style.minHeight = '800px';
-            vizElement.style.maxHeight = (divElement.offsetWidth * 1.77) + 'px';
+            vizElement.style.height = '800px';
           }
           var scriptElement = document.createElement('script');
           scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
@@ -892,8 +889,6 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
-
-
 
 ```
 
@@ -918,6 +913,15 @@ access_map_palette_choices <- list(
   "Green-Yellow Gradient" = "YlGn",  # New option
   "Brown-Blue Diverging" = "BrBG"  # New option
 )
+
+#access_map_palette_choices <- list(
+  #"Purple Gradient" = c("#F2F0F7", "#CBC9E2", "#9E9AC8", "#6A51A3"),  # Light to dark purple
+  #"Yellow-Orange-Red" = c("#FFFFCC", "#FF9966", "#FF3300", "#952108"),  # Yellow to orange to red
+  #"Grayscale Gradient" = c("#F0F0F0", "#BDBDBD", "#737373", "#252525"),  # Light to dark gray
+  #"Teal-Blue Gradient" = c("#E0F3F8", "#ABD9E9", "#74ADD1", "#4575B4"),  # Light teal to dark blue
+  #"Green-Yellow Gradient" = c("#F7FCB9", "#D9F0A3", "#ADDD8E", "#78C679"),  # Light green to dark green
+  #"Brown-Blue Diverging" = c("#8C510A", "#D8B365", "#C7EAE5", "#5AB4AC")  # Brown to blue diverging
+#)
 
 # Select Input for Map Palette
 selectInput(
@@ -945,13 +949,6 @@ tags$div(
     src="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf"
   ),
   
-  tags$br(),
-  
-  tags$a(
-    href="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf", 
-    download="ADA-PARC_scorecard_report.pdf",
-    "Download information on the ADA-PARC scorecards"
-  )
 )
 
 ```
