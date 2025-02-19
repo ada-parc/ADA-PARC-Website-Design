@@ -219,6 +219,9 @@ ui <- fluidPage(
   div(class = "main-content",
       div(class = "welcome-text", "Welcome to ADA-PARC!"),
       
+      # Add the ADA-PARC logo image here
+      img(src = "adaparclogo.png", alt = "ADA-PARC logo"),
+      
       # How to Navigate Section
       div(class = "section-title", "How to Navigate this Website"),
       div(class = "section-subtitle", "For more information, see the Help section."),
@@ -306,7 +309,6 @@ ui <- fluidPage(
 server <- function(input, output) {}
 
 shinyApp(ui = ui, server = server)
-
 
 ```
 
@@ -739,8 +741,8 @@ ui <- fluidPage(
       ),
       # Body text
       HTML("<p style='margin-top: 20px; font-size: 16px;'>
-        <strong>Scorecards are based on 2022 ACS Census, currently being updated for 2023 data.</strong> Scores are displayed in two ways: Firstly, a 0-100 score where 100 means FAR BETTER  than the median state and 0 means FAR WORSE than the median state. Secondly, quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
-        <strong>Q1</strong> are the worst scores, representing poor opportunity for people with disabilities <strong>Q2</strong> is below average, <strong>Q3</strong> is above average, and <strong>Q4</strong> are the best scores, representing great opportunity for people with disabilities.
+        <strong>Scorecards are based on 2023 ACS Census data.</strong> Scores are displayed in two ways: Firstly, a 0-100 score where 100 means FAR BETTER  than the median state and 0 means FAR WORSE than the median state. Secondly, quartiles are displayed to show discrepancies in outcomes for people with disabilities across states. 
+        <strong>Q1</strong> are the worst scores, representing poor opportunity for people with disabilities <strong>Q2</strong> is below average, <strong>Q3</strong> is above average, and <strong>Q4</strong> are the best scores, representing great opportunity for people with disabilities. For more information on scorecards, navigate to the 'Help' section and find 'Understanding ADA-PARC Scorecards.
       </p>")
     )
   ),
@@ -759,20 +761,20 @@ server <- function(input, output, session) {
   output$scorecard_ui <- renderUI({
     if (input$scorecard_choice == "participation") {
       HTML("
-        <div class='tableauPlaceholder' id='viz1738198322062' style='position: relative'>
+        <div class='tableauPlaceholder' id='viz1738961749733' style='position: relative'>
           <noscript>
             <a href='#'>
-              <img alt=' ' src='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/EducationAccessScore/1_rss.png' style='border: none' />
+              <img alt=' ' src='https://public.tableau.com/static/images/Co/CommunityParticipation2023ADA-PARC/CommunityParticipationOverallScore/1_rss.png' style='border: none' />
             </a>
           </noscript>
           <object class='tableauViz' style='display:none;'>
             <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
             <param name='embed_code_version' value='3' />
             <param name='site_root' value='' />
-            <param name='name' value='CommunityParticipation2022ADAPARCACS/EducationAccessScore' />
+            <param name='name' value='CommunityParticipation2023ADA-PARC/CommunityParticipationOverallScore' />
             <param name='tabs' value='yes' />
             <param name='toolbar' value='yes' />
-            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityParticipation2022ADAPARCACS/EducationAccessScore/1.png' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityParticipation2023ADA-PARC/CommunityParticipationOverallScore/1.png' />
             <param name='animate_transition' value='yes' />
             <param name='display_static_image' value='yes' />
             <param name='display_spinner' value='yes' />
@@ -782,7 +784,7 @@ server <- function(input, output, session) {
           </object>
         </div>
         <script type='text/javascript'>
-          var divElement = document.getElementById('viz1738198322062');
+          var divElement = document.getElementById('viz1738961749733');
           var vizElement = divElement.getElementsByTagName('object')[0];
           if (divElement.offsetWidth > 800) {
             vizElement.style.width = '1000px';
@@ -801,20 +803,20 @@ server <- function(input, output, session) {
       ")
     } else if (input$scorecard_choice == "living") {
       HTML("
-        <div class='tableauPlaceholder' id='viz1738198301179' style='position: relative'>
+        <div class='tableauPlaceholder' id='viz1738961733477' style='position: relative'>
           <noscript>
             <a href='#'>
-              <img alt=' ' src='https://public.tableau.com/static/images/Co/CommunityLiving2022ADAPARCACS/LivinginCommunityScore/1_rss.png' style='border: none' />
+              <img alt=' ' src='https://public.tableau.com/static/images/Co/CommunityLiving2023ADA-PARC/LivinginCommunityScore/1_rss.png' style='border: none' />
             </a>
           </noscript>
           <object class='tableauViz' style='display:none;'>
             <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
             <param name='embed_code_version' value='3' />
             <param name='site_root' value='' />
-            <param name='name' value='CommunityLiving2022ADAPARCACS/LivinginCommunityScore' />
+            <param name='name' value='CommunityLiving2023ADA-PARC/LivinginCommunityScore' />
             <param name='tabs' value='yes' />
             <param name='toolbar' value='yes' />
-            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityLiving2022ADAPARCACS/LivinginCommunityScore/1.png' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Co/CommunityLiving2023ADA-PARC/LivinginCommunityScore/1.png' />
             <param name='animate_transition' value='yes' />
             <param name='display_static_image' value='yes' />
             <param name='display_spinner' value='yes' />
@@ -824,7 +826,7 @@ server <- function(input, output, session) {
           </object>
         </div>
         <script type='text/javascript'>
-          var divElement = document.getElementById('viz1738198301179');
+          var divElement = document.getElementById('viz1738961733477');
           var vizElement = divElement.getElementsByTagName('object')[0];
           if (divElement.offsetWidth > 800) {
             vizElement.style.width = '1000px';
@@ -843,20 +845,20 @@ server <- function(input, output, session) {
       ")
     } else if (input$scorecard_choice == "work_economic") {
       HTML("
-        <div class='tableauPlaceholder' id='viz1738198341521' style='position: relative'>
+        <div class='tableauPlaceholder' id='viz1738961762691' style='position: relative'>
           <noscript>
             <a href='#'>
-              <img alt=' ' src='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallScore/1_rss.png' style='border: none' />
+              <img alt=' ' src='https://public.tableau.com/static/images/Wo/WorkEconomic2023ADAPARC/WorkEconomicOverallScore/1_rss.png' style='border: none' />
             </a>
           </noscript>
           <object class='tableauViz' style='display:none;'>
             <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
             <param name='embed_code_version' value='3' />
             <param name='site_root' value='' />
-            <param name='name' value='WorkEconomic2022ADAPARCACS/WorkEconomicOverallScore' />
+            <param name='name' value='WorkEconomic2023ADAPARC/WorkEconomicOverallScore' />
             <param name='tabs' value='yes' />
             <param name='toolbar' value='yes' />
-            <param name='static_image' value='https://public.tableau.com/static/images/Wo/WorkEconomic2022ADAPARCACS/WorkEconomicOverallScore/1.png' />
+            <param name='static_image' value='https://public.tableau.com/static/images/Wo/WorkEconomic2023ADAPARC/WorkEconomicOverallScore/1.png' />
             <param name='animate_transition' value='yes' />
             <param name='display_static_image' value='yes' />
             <param name='display_spinner' value='yes' />
@@ -866,7 +868,7 @@ server <- function(input, output, session) {
           </object>
         </div>
         <script type='text/javascript'>
-          var divElement = document.getElementById('viz1738198341521');
+          var divElement = document.getElementById('viz1738961762691');
           var vizElement = divElement.getElementsByTagName('object')[0];
           if (divElement.offsetWidth > 800) {
             vizElement.style.width = '1000px';
@@ -889,7 +891,6 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
-
 ```
 
 
@@ -900,9 +901,18 @@ shinyApp(ui = ui, server = server)
 # Heading and Subheading
 tags$h1("Help", style = "font-weight: bold; font-size: 28px; margin-bottom: 10px;")
 
-# Italicized Message with Contact Button
-tags$p(em("You have reached the page for additional information on getting the most out of our website. If you have questions beyond this scope, feel free to contact us!"))
-a(href = "mailto:joyhammel@uic.edu", class = "email-button", "Contact Us")
+# Message with Contact Button
+tags$p(
+  style = "color: black; font-size: 16px; margin-bottom: 10px;",
+  "You have reached the page for additional information on getting the most out of our website. If you have questions beyond this scope, feel free to contact us!"
+)
+
+tags$a(
+  href = "mailto:joyhammel@uic.edu", 
+  class = "email-button", 
+  style = "font-weight: bold; font-size: 18px; display: inline-block; margin-top: 5px;", 
+  "Contact Us"
+)
 
 # Updated Map Palette Choices with Purple Gradient, Grayscale Gradient, and New Unique Options
 access_map_palette_choices <- list(
@@ -913,15 +923,6 @@ access_map_palette_choices <- list(
   "Green-Yellow Gradient" = "YlGn",  # New option
   "Brown-Blue Diverging" = "BrBG"  # New option
 )
-
-#access_map_palette_choices <- list(
-  #"Purple Gradient" = c("#F2F0F7", "#CBC9E2", "#9E9AC8", "#6A51A3"),  # Light to dark purple
-  #"Yellow-Orange-Red" = c("#FFFFCC", "#FF9966", "#FF3300", "#952108"),  # Yellow to orange to red
-  #"Grayscale Gradient" = c("#F0F0F0", "#BDBDBD", "#737373", "#252525"),  # Light to dark gray
-  #"Teal-Blue Gradient" = c("#E0F3F8", "#ABD9E9", "#74ADD1", "#4575B4"),  # Light teal to dark blue
-  #"Green-Yellow Gradient" = c("#F7FCB9", "#D9F0A3", "#ADDD8E", "#78C679"),  # Light green to dark green
-  #"Brown-Blue Diverging" = c("#8C510A", "#D8B365", "#C7EAE5", "#5AB4AC")  # Brown to blue diverging
-#)
 
 # Select Input for Map Palette
 selectInput(
@@ -936,6 +937,7 @@ access_map_palette_selected <- reactive({
   access_map_palette_choices[[input$access_map_palette]]
 })
 
+
 # Scorecard Information
 tags$div(
   style="text-align: left;",
@@ -945,14 +947,14 @@ tags$div(
          "Understanding ADA-PARC Scorecards"),
   
   tags$iframe(
-    style="height:600px; width:100%; border:none; overflow-y:scroll;", 
+    style="height:750px; width:100%; border:none; overflow-y:scroll;", 
     src="scorecard/report/ADA-PARC_scorecard_report_pdf.pdf"
   ),
   
 )
 
 ```
-:::
+
 
 <!-- Custom Javascript  -->
 
