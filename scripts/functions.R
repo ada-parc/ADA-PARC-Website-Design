@@ -62,7 +62,7 @@ format_ranges <- function(breaks, col_name) {
   return(formatted_ranges)
 }
 
-render_national_map <- function(selected, palette_selected = "YlOrBr") {
+render_national_map <- function(selected, palette_selected = "YlOrRd") {
   is_comp <- dict_vars %>%
     filter(var_readable == selected) %>%
     pull(display_type) %>%
