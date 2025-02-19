@@ -33,9 +33,6 @@ table td, table th {
   text-align: left;
 }
 
-#tableauContainer {
-  overflow: visible;
-}
 
 .shiny-spinner-output-container {
   height: 100%;
